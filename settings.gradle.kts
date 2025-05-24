@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "KTensorFlow"
 include(":ktensorflow-core")
+include(":ktensorflow-moko")
