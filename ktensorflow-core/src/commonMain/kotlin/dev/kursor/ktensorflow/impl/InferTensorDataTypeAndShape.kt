@@ -22,15 +22,12 @@ internal fun inferTensorShape(data: Any): TensorShape {
         dims += current.size
         current = if (current.isNotEmpty()) current[0]!! else break
     }
-    when (current) {
-        is FloatArray, is IntArray, is ByteArray, is LongArray -> dims += when (current) {
-            is FloatArray -> current.size
-            is IntArray -> current.size
-            is ByteArray -> current.size
-            is LongArray -> current.size
-            else -> 0
-        }
-        else -> {}
+    dims += when (current) {
+        is FloatArray -> current.size
+        is IntArray -> current.size
+        is ByteArray -> current.size
+        is LongArray -> current.size
+        else -> error("Unsupported tensor data type: ${current::class}")
     }
     return TensorShape(dims.toIntArray())
 }
