@@ -33,15 +33,15 @@ kotlin {
 
         pod("TensorFlowLiteObjC") {
             moduleName = "TFLTensorFlowLite"
-            extraOpts = listOf("-compiler-option", "-fmodules")
+            version = "2.17.0"
         }
         pod("TensorFlowLiteObjC/Metal") {
             moduleName = "TFLTensorFlowLite"
-            extraOpts = listOf("-compiler-option", "-fmodules")
+            version = "2.17.0"
         }
         pod("TensorFlowLiteObjC/CoreML") {
             moduleName = "TFLTensorFlowLite"
-            extraOpts = listOf("-compiler-option", "-fmodules")
+            version = "2.17.0"
         }
     }
 

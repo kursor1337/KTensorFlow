@@ -12,14 +12,19 @@ class IosInterpreter(
     options: InterpreterOptions
 ) : Interpreter {
 
+    // it is required to keep references so they are not garbage collected
+    // since kotlin gc does not know if objects are passed to obj-c
+    private val tflDelegate = options.hardwarePriorities.toTflDelegate()
+    private val tflOptions = options.toTensorFlowInterpreterOptions()
+
     private val tflInterpreter: TFLInterpreter = checkError { errPtr ->
         when (modelDesc) {
             is ModelDesc.PathInBundle -> {
                 TFLInterpreter(
                     modelPath = modelDesc.pathInBundle,
-                    options = options.toTensorFlowInterpreterOptions(),
+                    options = tflOptions,
                     error = errPtr,
-                    delegates = options.hardwarePriorities.toTflDelegate()
+                    delegates = tflDelegate
                 )
             }
         }
@@ -51,17 +56,14 @@ class IosInterpreter(
             throw IllegalArgumentException("Wrong inputs dimension.")
         }
 
-        inputs.forEachIndexed { index, any ->
+        inputs.forEachIndexed { index, input ->
             val inputTensor = getInputTensor(index)
+            val data = input.data.toNSData()
             checkError { errPtr ->
-                inputTensor.copyData(
-                    any.data.toNSData(),
-                    errPtr
-                )
+                inputTensor.copyData(data, errPtr)
             }
             Unit
         }
-
         checkError { errPtr ->
             tflInterpreter.invokeWithError(errPtr)
         }

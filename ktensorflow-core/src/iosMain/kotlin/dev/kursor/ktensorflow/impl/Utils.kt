@@ -45,8 +45,8 @@ internal fun <T : Any> checkErrorNullable(block: (CPointer<ObjCObjectVar<NSError
 }
 
 @OptIn(BetaInteropApi::class)
-internal fun ByteArray.toNSData(): NSData = memScoped {
-    NSData.create(bytes = allocArrayOf(this@toNSData), length = this@toNSData.size.convert())
+internal fun ByteArray.toNSData(): NSData = usePinned {
+    NSData.create(bytes = it.addressOf(0), length = this@toNSData.size.convert())
 }
 
 internal fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.toInt()).apply {

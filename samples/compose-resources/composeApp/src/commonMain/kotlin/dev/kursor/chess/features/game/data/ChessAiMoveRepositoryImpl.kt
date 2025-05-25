@@ -1,5 +1,7 @@
 package dev.kursor.chess.features.game.data
 
+import dev.kursor.chess.core.model.ModelLoader
+import dev.kursor.chess.core.utils.async
 import dev.kursor.chess.engine.logic.Move
 import dev.kursor.chess.engine.logic.move_generator.generateLegalMoves
 import dev.kursor.chess.engine.logic.state.GameState
@@ -15,22 +17,29 @@ import dev.kursor.ktensorflow.api.Tensor
 import dev.kursor.ktensorflow.api.TensorDataType
 import dev.kursor.ktensorflow.api.TensorShape
 import dev.kursor.ktensorflow.api.typedData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
-import ktensorflow.samples.compose_resources.composeapp.generated.resources.Res
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
-class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
+class ChessAiMoveRepositoryImpl(
+    modelLoader: ModelLoader
+) : ChessAiMoveRepository {
 
-    private val interpreter: Interpreter = Interpreter(
-        filePath = Res.getUri("files/chess-ai.tflite"),
-        options = InterpreterOptions(
-            numThreads = 4,
-            useXNNPACK = true,
-            hardwarePriorities = listOf(Hardware.GPU)
+    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+
+    private val interpreter: Interpreter by coroutineScope.async {
+        Interpreter(
+            modelDesc = modelLoader.loadModel(),
+            options = InterpreterOptions(
+                numThreads = 4,
+                useXNNPACK = true,
+                hardwarePriorities = listOf(Hardware.GPU)
+            )
         )
-    )
+    }
 
     @OptIn(ExperimentalTime::class)
     override suspend fun getMove(gameState: GameState): Move = withContext(Dispatchers.Default) {
