@@ -5,19 +5,24 @@ import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.Tensor
 import cocoapods.TensorFlowLiteObjC.TFLInterpreter
 import cocoapods.TensorFlowLiteObjC.TFLTensor
+import dev.kursor.ktensorflow.api.ModelDesc
 
 class IosInterpreter(
-    private val filePath: String,
-    private val options: InterpreterOptions
+    modelDesc: ModelDesc,
+    options: InterpreterOptions
 ) : Interpreter {
 
     private val tflInterpreter: TFLInterpreter = checkError { errPtr ->
-        TFLInterpreter(
-            modelPath = filePath,
-            options = options.toTensorFlowInterpreterOptions(),
-            error = errPtr,
-            delegates = options.hardwarePriorities.toTflDelegate()
-        )
+        when (modelDesc) {
+            is ModelDesc.PathInBundle -> {
+                TFLInterpreter(
+                    modelPath = modelDesc.pathInBundle,
+                    options = options.toTensorFlowInterpreterOptions(),
+                    error = errPtr,
+                    delegates = options.hardwarePriorities.toTflDelegate()
+                )
+            }
+        }
     }
 
     init {

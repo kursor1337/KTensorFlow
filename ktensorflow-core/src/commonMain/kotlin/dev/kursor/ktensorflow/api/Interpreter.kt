@@ -24,6 +24,6 @@ interface Interpreter {
 }
 
 expect fun Interpreter(
-    filePath: String,
+    modelDesc: ModelDesc,
     options: InterpreterOptions,
 ): Interpreter
