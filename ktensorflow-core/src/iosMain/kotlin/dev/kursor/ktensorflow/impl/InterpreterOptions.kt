@@ -16,7 +16,7 @@ internal fun List<Hardware>.toTflDelegate(): List<TFLDelegate> {
     return firstNotNullOfOrNull { hardware ->
         runCatching {
             when (hardware) {
-                Hardware.NPU -> TFLCoreMLDelegate()
+                // Hardware.NPU -> TFLCoreMLDelegate()
                 Hardware.GPU -> TFLMetalDelegate()
                 Hardware.CPU -> null
             }

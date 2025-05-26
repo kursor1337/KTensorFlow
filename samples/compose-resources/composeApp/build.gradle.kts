@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.cocoapods)
+    alias(libs.plugins.ktensorflow.link)
 }
 
 kotlin {
@@ -67,19 +68,6 @@ kotlin {
         ios.deploymentTarget = "13.0"
 
         podfile = project.file("../iosApp/Podfile")
-
-        pod("TensorFlowLiteObjC") {
-            moduleName = "TFLTensorFlowLite"
-            linkOnly = true
-        }
-        pod("TensorFlowLiteObjC/Metal") {
-            moduleName = "TFLTensorFlowLite"
-            linkOnly = true
-        }
-        pod("TensorFlowLiteObjC/CoreML") {
-            moduleName = "TFLTensorFlowLite"
-            linkOnly = true
-        }
     }
 }
 
