@@ -63,7 +63,6 @@ private fun readLongArray(bytes: ByteArray, count: Int): LongArray {
     return result
 }
 
-
 private fun reshapeArray(flat: Any, dims: IntArray): Any {
     var index = 0
 
@@ -86,5 +85,3 @@ private fun reshapeArray(flat: Any, dims: IntArray): Any {
 
     return build(dims)
 }
-
-

@@ -56,7 +56,8 @@ fun GameState.applyMove(move: Move): GameState {
     // Handle promotion (pawn reaches the 8th rank)
     if (movedPiece != null &&
         movedPiece.type == PieceType.Pawn &&
-        (move.to.rank == 0 || move.to.rank == 7)) {
+        (move.to.rank == 0 || move.to.rank == 7)
+        ) {
         val promotedPiece = move.promotion ?: PieceType.Queen // Default to queen if not specified
         updatedBoard = updatedBoard.setPiece(move.to, Piece(promotedPiece, activeColor))
     }
@@ -64,7 +65,7 @@ fun GameState.applyMove(move: Move): GameState {
     // En Passant (if applicable)
     if (enPassantTarget == move.to) {
         val enPassantCapturedSquare = Square(move.to.file, move.from.rank)
-        updatedBoard = updatedBoard.setPiece(enPassantCapturedSquare, null)  // Remove the captured pawn
+        updatedBoard = updatedBoard.setPiece(enPassantCapturedSquare, null) // Remove the captured pawn
     }
 
     // Update En Passant Target (if a pawn moves two squares forward)
@@ -95,4 +96,3 @@ fun GameState.applyMove(move: Move): GameState {
         fullMoveNumber = newFullMoveNumber
     )
 }
-

@@ -12,7 +12,9 @@ import dev.kursor.chess.features.game.createClassicGameComponent
 import dev.kursor.chess.features.game.presentation.classic.ClassicGameComponent
 import dev.kursor.chess.features.menu.createMenuComponent
 import dev.kursor.chess.features.menu.presentation.MenuComponent
-import dev.kursor.chess.features.root.presentation.RootComponent.Child.*
+import dev.kursor.chess.features.root.presentation.RootComponent.Child.AiGame
+import dev.kursor.chess.features.root.presentation.RootComponent.Child.ClassicGame
+import dev.kursor.chess.features.root.presentation.RootComponent.Child.Menu
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 

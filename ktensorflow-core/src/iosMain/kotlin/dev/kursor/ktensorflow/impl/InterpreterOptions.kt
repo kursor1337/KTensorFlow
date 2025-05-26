@@ -1,9 +1,8 @@
 package dev.kursor.ktensorflow.impl
 
-import cocoapods.TensorFlowLiteObjC.TFLInterpreterOptions
-import cocoapods.TensorFlowLiteObjC.TFLCoreMLDelegate
-import cocoapods.TensorFlowLiteObjC.TFLMetalDelegate
 import cocoapods.TensorFlowLiteObjC.TFLDelegate
+import cocoapods.TensorFlowLiteObjC.TFLInterpreterOptions
+import cocoapods.TensorFlowLiteObjC.TFLMetalDelegate
 import dev.kursor.ktensorflow.api.Hardware
 import dev.kursor.ktensorflow.api.InterpreterOptions
 

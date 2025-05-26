@@ -127,5 +127,3 @@ private fun writeFlatLongArray(src: LongArray, dest: ByteArray) {
         }
     }
 }
-
-

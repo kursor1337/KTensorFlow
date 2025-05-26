@@ -6,7 +6,6 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
-import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
@@ -54,4 +53,3 @@ internal fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length
         memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
     }
 }
-

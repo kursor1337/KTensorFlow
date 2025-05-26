@@ -5,17 +5,11 @@ import dev.kursor.chess.core.state.computed
 import dev.kursor.chess.core.utils.componentScope
 import dev.kursor.chess.engine.api.BasicChessEngine
 import dev.kursor.chess.engine.api.ChessEngine
-import dev.kursor.chess.engine.logic.Move
-import dev.kursor.chess.engine.logic.move_generator.generateLegalMoves
 import dev.kursor.chess.engine.model.Board
-import dev.kursor.chess.engine.model.Color
-import dev.kursor.chess.engine.model.Square
 import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class RealAiGameComponent(
     componentContext: ComponentContext,

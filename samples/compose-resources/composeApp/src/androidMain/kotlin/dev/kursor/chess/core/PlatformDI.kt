@@ -13,4 +13,3 @@ actual fun platformCoreModule(configuration: Configuration) = module {
     single<Context> { get<Application>() }
     single<ModelLoader> { AndroidModelLoader(get()) }
 }
-

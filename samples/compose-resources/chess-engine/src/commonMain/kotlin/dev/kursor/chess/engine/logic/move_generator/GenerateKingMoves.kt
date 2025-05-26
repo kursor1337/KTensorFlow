@@ -12,7 +12,7 @@ fun generateAllKingMoves(board: Board, square: Square, color: Color, castlingRig
     return standardMoves + castlingMoves
 }
 
-
+@Suppress("NoMultipleSpaces")
 fun generateKingMoves(board: Board, square: Square, color: Color): List<Move> {
     val moves = mutableListOf<Move>()
     val offsets = listOf(
@@ -62,4 +62,3 @@ fun generateCastlingMoves(board: Board, color: Color, castlingRights: CastlingRi
 
     return moves
 }
-

@@ -22,4 +22,3 @@ class AsyncDelegate<T : Any>(
 }
 
 fun <T : Any> CoroutineScope.async(initializer: suspend () -> T) = AsyncDelegate(this, initializer)
-

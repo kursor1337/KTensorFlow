@@ -6,7 +6,6 @@ import dev.kursor.ktensorflow.impl.inferTensorShape
 import dev.kursor.ktensorflow.impl.toByteArray
 import dev.kursor.ktensorflow.impl.toShapedAndTypedArray
 
-
 /**
  * Represents a multi-dimensional array of data with a specific data type and shape.
  */
@@ -44,7 +43,6 @@ fun <T : Any> Tensor.typedData(): T =
             "Requested type is not compatible with tensor " +
                     "data type $dataType and shape $shape"
         )
-
 
 /**
  * Creates a tensor with the specified data type and shape.

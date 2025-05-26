@@ -2,7 +2,6 @@ package dev.kursor.chess.core.model
 
 import android.content.Context
 import dev.kursor.ktensorflow.api.ModelDesc
-import kotlinx.coroutines.runBlocking
 import ktensorflow.samples.compose_resources.composeapp.generated.resources.Res
 import java.io.File
 

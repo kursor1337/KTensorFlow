@@ -30,5 +30,4 @@ fun ClassicGameUi(
             onSquareClick = component::onSquareClick
         )
     }
-
 }

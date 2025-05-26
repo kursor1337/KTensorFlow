@@ -1,11 +1,11 @@
 package dev.kursor.ktensorflow.impl
 
-import dev.kursor.ktensorflow.api.Interpreter
-import dev.kursor.ktensorflow.api.InterpreterOptions
-import dev.kursor.ktensorflow.api.Tensor
 import cocoapods.TensorFlowLiteObjC.TFLInterpreter
 import cocoapods.TensorFlowLiteObjC.TFLTensor
+import dev.kursor.ktensorflow.api.Interpreter
+import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.ModelDesc
+import dev.kursor.ktensorflow.api.Tensor
 
 class IosInterpreter(
     modelDesc: ModelDesc,
@@ -84,4 +84,3 @@ class IosInterpreter(
         // do nothing
     }
 }
-

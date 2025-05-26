@@ -14,6 +14,7 @@ class DetektPlugin : Plugin<Project> {
         extensions.configure<DetektExtension> {
             toolVersion = libs.versions.detekt.get()
             source.setFrom(files(rootDir))
+            config.setFrom(files("$rootDir/code_quality/detekt/config.yml"))
             parallel = true
             ignoreFailures = false
             disableDefaultRuleSets = true

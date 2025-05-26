@@ -107,7 +107,6 @@ fun Lifecycle.coroutineScope(): CoroutineScope {
     return scope
 }
 
-
 /**
  * A helper function to save and restore component state.
  */

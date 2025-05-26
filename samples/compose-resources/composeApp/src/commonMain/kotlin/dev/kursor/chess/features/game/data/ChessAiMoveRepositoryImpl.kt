@@ -10,7 +10,6 @@ import dev.kursor.chess.engine.model.Color
 import dev.kursor.chess.engine.model.PieceType
 import dev.kursor.chess.engine.model.Square
 import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
-import dev.kursor.ktensorflow.api.Hardware
 import dev.kursor.ktensorflow.api.Interpreter
 import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.Tensor
@@ -96,4 +95,3 @@ private fun Board.toTensor(): Tensor {
     }
     return Tensor(data)
 }
-
