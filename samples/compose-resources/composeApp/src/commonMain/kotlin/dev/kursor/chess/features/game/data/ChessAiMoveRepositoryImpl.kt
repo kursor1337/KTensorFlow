@@ -35,8 +35,7 @@ class ChessAiMoveRepositoryImpl(
             modelDesc = modelLoader.loadModel(),
             options = InterpreterOptions(
                 numThreads = 4,
-                useXNNPACK = true,
-                hardwarePriorities = listOf(Hardware.GPU)
+                useXNNPACK = true
             )
         )
     }
@@ -53,8 +52,7 @@ class ChessAiMoveRepositoryImpl(
                 outputs = listOf(output)
             )
         }
-
-        println("time: ${time.inWholeMilliseconds}")
+        println("Inference time: ${time.inWholeMilliseconds} ms")
         val legalMoves = gameState.generateLegalMoves()
         output
             .typedData<FloatArray>()

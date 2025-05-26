@@ -1,4 +1,4 @@
-package dev.kursor.chess.features.game.presentation
+package dev.kursor.chess.features.game.presentation.classic
 
 import com.arkivanov.decompose.ComponentContext
 import dev.kursor.chess.core.state.computed
@@ -15,11 +15,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class RealGameComponent(
+class RealClassicGameComponent(
     componentContext: ComponentContext,
-    onOutput: (GameComponent.Output) -> Unit,
+    onOutput: (ClassicGameComponent.Output) -> Unit,
     private val chessAiMoveRepository: ChessAiMoveRepository
-) : ComponentContext by componentContext, GameComponent {
+) : ComponentContext by componentContext, ClassicGameComponent {
 
     private val engine: ChessEngine = BasicChessEngine()
 

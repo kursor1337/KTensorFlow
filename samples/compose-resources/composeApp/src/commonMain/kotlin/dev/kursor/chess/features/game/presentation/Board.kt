@@ -48,11 +48,10 @@ fun Board(
     Column(modifier = modifier) {
         board.squares
             .reversed()
-            .map { it.reversed() }
             .forEachIndexed { rank, row ->
                 Row {
                     row.forEachIndexed { file, piece ->
-                        val square = Square(8 - 1 - file, 8 - 1 - rank)
+                        val square = Square(file, 8 - 1 - rank)
                         Square(
                             square = square,
                             piece = piece,

@@ -12,10 +12,9 @@ internal fun InterpreterOptions.toTensorFlowInterpreterOptions() = Interpreter.O
         val result = when (hardware) {
             Hardware.CPU -> trySetupCpu()
             Hardware.GPU -> trySetupGpu()
-            Hardware.NPU -> trySetupNpu()
+            // Hardware.NPU -> trySetupNpu()
         }
         if (result) {
-            println("hardware: $hardware is available")
             return@forEach
         }
     }

@@ -24,7 +24,7 @@ enum class Hardware {
     /**
      * Use GPU for inference.
      */
-    GPU,
+    GPU;
 
     /**
      * Use NPU for inference.
@@ -32,7 +32,7 @@ enum class Hardware {
      * On iOS is only available on devices with iOS ver > 12
      * and supports only Float32 data type.
      */
-    NPU;
+    // NPU;
 
     companion object {
         /**
@@ -40,6 +40,6 @@ enum class Hardware {
          * The order of the list is the order in which the hardware will be used.
          * If the hardware is not available, the next one will be used instead.
          */
-        val DefaultPriorities = listOf(NPU, GPU, CPU)
+        val DefaultPriorities = listOf(GPU, CPU)
     }
 }

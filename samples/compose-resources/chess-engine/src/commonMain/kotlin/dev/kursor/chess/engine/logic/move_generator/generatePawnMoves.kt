@@ -21,7 +21,7 @@ fun generatePawnMoves(
     if (forward.rank in 0..7 && board[forward] == null) {
         // Promotion
         if (forward.rank == promotionRank) {
-            for (promo in listOf(PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight)) {
+            for (promo in listOf(PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight, null)) {
                 moves.add(Move(square, forward, promo))
             }
         } else {
@@ -48,7 +48,7 @@ fun generatePawnMoves(
         if (targetPiece != null && targetPiece.color != color) {
             // Promotion by capture
             if (target.rank == promotionRank) {
-                for (promo in listOf(PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight)) {
+                for (promo in listOf(PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight, null)) {
                     moves.add(Move(square, target, promo))
                 }
             } else {

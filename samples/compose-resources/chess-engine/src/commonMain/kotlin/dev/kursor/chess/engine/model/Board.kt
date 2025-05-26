@@ -14,7 +14,7 @@ data class Board(
 
     override fun toString(): String {
         return squares.reversed().joinToString("\n") { row ->
-            row.joinToString(" ") { it?.let { "${it.color.name[0]}${it.type.name[0]}" } ?: "." }
+            row.joinToString(" ") { it?.let { "${it.color.name[0]}${it.type.name.take(2)}" } ?: " --- " }
         }
     }
 }

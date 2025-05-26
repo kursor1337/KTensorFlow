@@ -4,10 +4,15 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.pushNew
 import dev.kursor.chess.core.ComponentFactory
 import dev.kursor.chess.core.utils.toStateFlow
-import dev.kursor.chess.features.game.createGameComponent
-import dev.kursor.chess.features.game.presentation.GameComponent
+import dev.kursor.chess.features.game.createAiGameComponent
+import dev.kursor.chess.features.game.createClassicGameComponent
+import dev.kursor.chess.features.game.presentation.classic.ClassicGameComponent
+import dev.kursor.chess.features.menu.createMenuComponent
+import dev.kursor.chess.features.menu.presentation.MenuComponent
+import dev.kursor.chess.features.root.presentation.RootComponent.Child.*
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -20,7 +25,7 @@ class RealRootComponent(
 
     override val childStack: StateFlow<ChildStack<*, RootComponent.Child>> = childStack(
         source = navigation,
-        initialConfiguration = ChildConfig.Game,
+        initialConfiguration = ChildConfig.Menu,
         serializer = ChildConfig.serializer(),
         handleBackButton = true,
         childFactory = ::createChild
@@ -30,25 +35,44 @@ class RealRootComponent(
         childConfig: ChildConfig,
         componentContext: ComponentContext
     ): RootComponent.Child = when (childConfig) {
-        ChildConfig.Game -> RootComponent.Child.Game(
-            componentFactory.createGameComponent(
+        ChildConfig.Menu -> Menu(
+            componentFactory.createMenuComponent(
+                componentContext,
+                ::onMenuOutput
+            )
+        )
+        ChildConfig.ClassicGame -> ClassicGame(
+            componentFactory.createClassicGameComponent(
                 componentContext,
                 ::onGameOutput
             )
         )
+
+        ChildConfig.AiGame -> AiGame(
+            componentFactory.createAiGameComponent(
+                componentContext
+            )
+        )
     }
 
-    private fun onGameOutput(output: GameComponent.Output) {
+    private fun onMenuOutput(output: MenuComponent.Output) {
         when (output) {
-            GameComponent.Output.GameDraw -> TODO()
-            GameComponent.Output.GameLost -> TODO()
-            GameComponent.Output.GameWon -> TODO()
+            MenuComponent.Output.AiGameRequested -> navigation.pushNew(ChildConfig.AiGame)
+            MenuComponent.Output.ClassicGameRequested -> navigation.pushNew(ChildConfig.ClassicGame)
         }
     }
+
+    private fun onGameOutput(output: ClassicGameComponent.Output) = Unit
 
     @Serializable
     sealed interface ChildConfig {
         @Serializable
-        data object Game : ChildConfig
+        data object Menu : ChildConfig
+
+        @Serializable
+        data object ClassicGame : ChildConfig
+
+        @Serializable
+        data object AiGame : ChildConfig
     }
 }

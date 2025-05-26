@@ -1,10 +1,10 @@
-package dev.kursor.chess.features.game.presentation
+package dev.kursor.chess.features.game.presentation.classic
 
 import dev.kursor.chess.engine.model.Board
 import dev.kursor.chess.engine.model.Square
 import kotlinx.coroutines.flow.StateFlow
 
-interface GameComponent {
+interface ClassicGameComponent {
 
     val board: StateFlow<Board>
     val isMyTurn: StateFlow<Boolean>
