@@ -1,5 +1,6 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
+    includeBuild("ktensorflow-build-logic")
     includeBuild("ktensorflow-link")
     repositories {
         google()

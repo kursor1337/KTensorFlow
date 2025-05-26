@@ -10,6 +10,8 @@ qnn = "2.29.0"
 
 moko-resources = "0.24.5"
 
+detekt = "1.23.7"
+
 # Tests
 junit = "4.13.2"
 androidx-test-core = "1.6.1"
@@ -29,7 +31,6 @@ koin = "4.0.2"
 kermit = "2.0.5"
 serialization = "1.8.1"
 essenty = "2.5.0"
-jetbrainsKotlinJvm = "2.2.0-RC"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -41,6 +42,8 @@ qnn-runtime = { module = "com.qualcomm.qti:qnn-runtime", version.ref = "qnn" }
 qnn-litert-delegate = { module = "com.qualcomm.qti:qnn-litert-delegate", version.ref = "qnn" }
 
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "moko-resources" }
+
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 # Tests
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -67,6 +70,8 @@ serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", v
 kotlin-multiplatform-gradle-plugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref="kotlin" }
 cocoapods-gradle-plugin = { module = "org.jetbrains.kotlin.native.cocoapods:org.jetbrains.kotlin.native.cocoapods.gradle.plugin", version.ref = "kotlin" }
 
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -76,4 +81,9 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+
 ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="unspecified" }
+
+# Convention plugins
+convetion-detekt = { id = "convention.detekt", version = "unspecified" }
