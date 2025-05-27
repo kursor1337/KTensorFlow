@@ -70,7 +70,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.kursor.ktensorflow"
+    namespace = "dev.kursor.ktensorflow.core"
     compileSdk = 35
     defaultConfig {
         minSdk = 24

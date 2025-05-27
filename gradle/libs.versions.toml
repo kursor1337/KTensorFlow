@@ -12,6 +12,8 @@ moko-resources = "0.24.5"
 
 detekt = "1.23.7"
 
+publishing = "0.32.0"
+
 # Tests
 junit = "4.13.2"
 androidx-test-core = "1.6.1"
@@ -72,6 +74,8 @@ cocoapods-gradle-plugin = { module = "org.jetbrains.kotlin.native.cocoapods:org.
 
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
+publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -84,6 +88,8 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
 ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="unspecified" }
+
+publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
 # Convention plugins
 convetion-detekt = { id = "convention.detekt", version = "unspecified" }
