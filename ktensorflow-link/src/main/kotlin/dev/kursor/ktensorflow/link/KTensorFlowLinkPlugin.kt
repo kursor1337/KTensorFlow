@@ -21,11 +21,6 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
                     version = tflVersion
                     linkOnly = true
                 }
-                pod("TensorFlowLiteObjC/CoreML") {
-                    moduleName = "TFLTensorFlowLite"
-                    version = tflVersion
-                    linkOnly = true
-                }
             }
         }
     }

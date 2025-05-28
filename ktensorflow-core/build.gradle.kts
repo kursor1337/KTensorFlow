@@ -39,10 +39,6 @@ kotlin {
             moduleName = "TFLTensorFlowLite"
             version = "2.17.0"
         }
-        pod("TensorFlowLiteObjC/CoreML") {
-            moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
-        }
     }
 
     sourceSets {
