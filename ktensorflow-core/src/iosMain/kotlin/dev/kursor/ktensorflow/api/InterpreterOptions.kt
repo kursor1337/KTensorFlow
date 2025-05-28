@@ -8,6 +8,10 @@ actual data class InterpreterOptions(
     val tflDelegates: List<TFLDelegate>
 )
 
+/**
+ * Creates [InterpreterOptions] with custom [TFLInterpreterOptions] and [TFLDelegate].
+ * Allows to specify native TensorFlow options and delegates.
+ */
 fun InterpreterOptions(
     delegates: List<TFLDelegate>,
     builder: TFLInterpreterOptions.() -> Unit

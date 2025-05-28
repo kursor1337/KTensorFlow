@@ -2,6 +2,9 @@ plugins {
     `kotlin-dsl`
 }
 
+group = "io.github.kursor1337"
+version = "0.1"
+
 dependencies {
     compileOnly(libs.kotlin.multiplatform.gradle.plugin)
     compileOnly(libs.cocoapods.gradle.plugin)

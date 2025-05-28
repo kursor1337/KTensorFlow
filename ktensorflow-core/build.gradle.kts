@@ -6,6 +6,9 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+group = "io.github.kursor1337"
+version = "0.1"
+
 kotlin {
     compilerOptions {
         optIn.addAll("kotlinx.cinterop.ExperimentalForeignApi")

@@ -23,6 +23,9 @@ interface Interpreter {
     fun close()
 }
 
+/**
+ * Creates a new [Interpreter] for the given [ModelDesc] and [InterpreterOptions].
+ */
 expect fun Interpreter(
     modelDesc: ModelDesc,
     options: InterpreterOptions,

@@ -22,8 +22,9 @@ internal fun <T : Any> checkError(block: (CPointer<ObjCObjectVar<NSError?>>) -> 
         val errorPtr = alloc<ObjCObjectVar<NSError?>>()
         block(errorPtr.ptr) to errorPtr.value
     }
+
     if (error != null) {
-        throw TensorFlowException(error.description)
+        throw TensorFlowException(error.description, error.code.toInt(), null)
     }
     if (result == null) {
         throw TensorFlowException("Result is null")

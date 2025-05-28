@@ -6,6 +6,10 @@ actual data class GpuDelegateOptions(
     val tflOptions: TFLMetalDelegateOptions
 )
 
+/**
+ * Creates [GpuDelegateOptions] with the specified [builder].
+ * Allows to specify native TensorFlow Metal delegate options.
+ */
 fun GpuDelegateOptions(builder: TFLMetalDelegateOptions.() -> Unit): GpuDelegateOptions {
     return GpuDelegateOptions(TFLMetalDelegateOptions().apply(builder))
 }

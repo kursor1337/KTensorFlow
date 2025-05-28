@@ -1,5 +1,8 @@
 package dev.kursor.ktensorflow.api
 
+/**
+ * Exception thrown by TensorFlow as NSError.
+ */
 class TensorFlowException : Exception {
     constructor() : super()
 

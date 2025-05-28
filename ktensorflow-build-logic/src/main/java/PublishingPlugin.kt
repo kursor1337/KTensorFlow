@@ -30,7 +30,7 @@ class PublishingPlugin : Plugin<Project> {
                 }
                 developers {
                     developer {
-                        id.set("kursor1337")
+                        id.set("kursor")
                         name.set("Sergey Kurochkin")
                         url.set("https://github.com/kursor1337/")
                     }

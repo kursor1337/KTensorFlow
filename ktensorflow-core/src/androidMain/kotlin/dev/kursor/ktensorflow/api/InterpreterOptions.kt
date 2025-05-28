@@ -6,6 +6,10 @@ actual data class InterpreterOptions(
     val tflOptions: Interpreter.Options
 )
 
+/**
+ * Builder for [InterpreterOptions].
+ * Allows to specify native TensorFlow options and delegates.
+ */
 fun InterpreterOptions(builder: Interpreter.Options.() -> Unit): InterpreterOptions {
     return InterpreterOptions(Interpreter.Options().apply(builder))
 }
@@ -26,6 +30,10 @@ actual fun InterpreterOptions(
     }
 }
 
+/**
+ * Adds [delegates] to the [Interpreter.Options] builder.
+ * Only the first delegate from [delegates] that is available will be added.
+ */
 fun Interpreter.Options.setDelegates(delegates: List<Delegate>): Interpreter.Options {
     delegates
         .firstOrNull { it.isAvailable }

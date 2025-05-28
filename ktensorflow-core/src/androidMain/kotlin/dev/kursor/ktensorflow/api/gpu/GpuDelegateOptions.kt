@@ -7,6 +7,10 @@ actual class GpuDelegateOptions(
     val tflOptions: GpuDelegateFactory.Options
 )
 
+/**
+ * Creates [GpuDelegateOptions] with the specified [builder].
+ * Allows to specify native TensorFlow GPU delegate options
+ */
 fun GpuDelegateOptions(builder: GpuDelegateFactory.Options.() -> Unit): GpuDelegateOptions {
     return GpuDelegateOptions(GpuDelegateFactory.Options().apply(builder))
 }

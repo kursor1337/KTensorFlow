@@ -10,3 +10,6 @@ plugins {
 
     alias(libs.plugins.convetion.detekt)
 }
+
+group = "io.github.kursor1337"
+version = "0.1"
