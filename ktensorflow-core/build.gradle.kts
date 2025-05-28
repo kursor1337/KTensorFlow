@@ -43,9 +43,9 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.tensorflow)
-            implementation(libs.tensorflow.gpu)
-            implementation(libs.tensorflow.gpu.api)
+            api(libs.tensorflow)
+            api(libs.tensorflow.gpu)
+            api(libs.tensorflow.gpu.api)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
