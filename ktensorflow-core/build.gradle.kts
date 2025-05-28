@@ -46,8 +46,6 @@ kotlin {
             implementation(libs.tensorflow)
             implementation(libs.tensorflow.gpu)
             implementation(libs.tensorflow.gpu.api)
-            implementation(libs.qnn.runtime)
-            implementation(libs.qnn.litert.delegate)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
