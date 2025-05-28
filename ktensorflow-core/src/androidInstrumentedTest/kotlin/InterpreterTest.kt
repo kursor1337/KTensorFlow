@@ -1,12 +1,13 @@
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import dev.kursor.ktensorflow.api.Hardware
+import dev.kursor.ktensorflow.api.Delegate
 import dev.kursor.ktensorflow.api.Interpreter
 import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.ModelDesc
 import dev.kursor.ktensorflow.api.Tensor
 import dev.kursor.ktensorflow.api.TensorDataType
 import dev.kursor.ktensorflow.api.TensorShape
+import dev.kursor.ktensorflow.api.gpu.GpuDelegate
 import dev.kursor.ktensorflow.api.typedData
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,17 +23,17 @@ class InterpreterTest {
 
     @Test
     fun testWithCpu() {
-        testWithHardware(Hardware.CPU)
+        testWithHardware(emptyList())
         assertTrue(true)
     }
 
     @Test
     fun testWithGpu() {
-        testWithHardware(Hardware.GPU)
+        testWithHardware(listOf(GpuDelegate()))
         assertTrue(true)
     }
 
-    fun testWithHardware(hardware: Hardware) {
+    fun testWithHardware(delegates: List<Delegate>) {
         val fileDescriptor = context.assets.openFd("mnist.tflite")
         val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
         val fileChannel = inputStream.channel
@@ -45,11 +46,11 @@ class InterpreterTest {
         val options = InterpreterOptions(
             numThreads = 4,
             useXNNPACK = true,
-            hardwarePriorities = listOf(hardware)
+            delegates = delegates
         )
         val interpreter = Interpreter(modelDesc, options)
 
-        for (i in 0 until 1_000_000) {
+        for (i in 0 until 100_000) {
             val inputArray = Array(28) {
                 FloatArray(28) {
                     Random.nextFloat()

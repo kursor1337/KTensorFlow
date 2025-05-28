@@ -15,6 +15,7 @@ import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.Tensor
 import dev.kursor.ktensorflow.api.TensorDataType
 import dev.kursor.ktensorflow.api.TensorShape
+import dev.kursor.ktensorflow.api.gpu.GpuDelegate
 import dev.kursor.ktensorflow.api.typedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,11 @@ class ChessAiMoveRepositoryImpl(
     private val interpreter: Interpreter by coroutineScope.async {
         Interpreter(
             modelDesc = modelLoader.loadModel(),
-            options = InterpreterOptions()
+            options = InterpreterOptions(
+                numThreads = 4,
+                useXNNPACK = true,
+                delegates = listOf(GpuDelegate())
+            )
         )
     }
 
