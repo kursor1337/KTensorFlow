@@ -7,24 +7,21 @@ import dev.kursor.ktensorflow.api.InterpreterOptions
 import dev.kursor.ktensorflow.api.ModelDesc
 import dev.kursor.ktensorflow.api.Tensor
 
-class IosInterpreter(
+// private val on options because it is required to keep references so that they are not
+// garbage collected since kotlin gc does not know if objects are passed to obj-c
+internal class IosInterpreter(
     modelDesc: ModelDesc,
-    options: InterpreterOptions
+    private val options: InterpreterOptions
 ) : Interpreter {
-
-    // it is required to keep references so they are not garbage collected
-    // since kotlin gc does not know if objects are passed to obj-c
-    private val tflDelegate = options.hardwarePriorities.toTflDelegate()
-    private val tflOptions = options.toTensorFlowInterpreterOptions()
 
     private val tflInterpreter: TFLInterpreter = checkError { errPtr ->
         when (modelDesc) {
             is ModelDesc.PathInBundle -> {
                 TFLInterpreter(
                     modelPath = modelDesc.pathInBundle,
-                    options = tflOptions,
+                    options = options.tflOptions,
                     error = errPtr,
-                    delegates = tflDelegate
+                    delegates = options.tflDelegates
                 )
             }
         }

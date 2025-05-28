@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.tensorflow.lite.Interpreter as TFLInterpreter
 
-class AndroidInterpreter(
+internal class AndroidInterpreter(
     modelDesc: ModelDesc,
     options: InterpreterOptions
 ) : Interpreter {
@@ -16,11 +16,11 @@ class AndroidInterpreter(
     private val tensorFlowInterpreter = when (modelDesc) {
         is ModelDesc.ByteBuffer -> TFLInterpreter(
             modelDesc.buffer,
-            options.toTensorFlowInterpreterOptions(),
+            options.tflOptions,
         )
         is ModelDesc.File -> TFLInterpreter(
             modelDesc.file,
-            options.toTensorFlowInterpreterOptions(),
+            options.tflOptions,
         )
     }
 

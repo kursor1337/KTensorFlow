@@ -32,10 +32,7 @@ class ChessAiMoveRepositoryImpl(
     private val interpreter: Interpreter by coroutineScope.async {
         Interpreter(
             modelDesc = modelLoader.loadModel(),
-            options = InterpreterOptions(
-                numThreads = 4,
-                useXNNPACK = true
-            )
+            options = InterpreterOptions()
         )
     }
 
