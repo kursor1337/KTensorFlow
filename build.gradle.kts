@@ -8,8 +8,8 @@ plugins {
     alias(libs.plugins.compose.compiler).apply(false)
     alias(libs.plugins.kotlin.serialization).apply(false)
 
-    alias(libs.plugins.convetion.detekt)
+    alias(libs.plugins.convention.detekt)
 }
 
-group = "io.github.kursor1337"
+group = "dev.kursor.ktensorflow"
 version = "0.1"

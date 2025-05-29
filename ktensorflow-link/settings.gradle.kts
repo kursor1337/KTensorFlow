@@ -1,4 +1,12 @@
 @Suppress("UnstableApiUsage")
+pluginManagement {
+    includeBuild("../ktensorflow-build-logic")
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
 dependencyResolutionManagement {
     repositories {
         google()

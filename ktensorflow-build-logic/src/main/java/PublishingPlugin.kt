@@ -14,7 +14,11 @@ class PublishingPlugin : Plugin<Project> {
 
             signAllPublications()
 
-            coordinates(group.toString(), project.name, version.toString())
+            coordinates(
+                project.rootProject.group.toString(),
+                project.name,
+                project.rootProject.version.toString()
+            )
 
             pom {
                 name.set("KTensorFlow")

@@ -23,5 +23,9 @@ gradlePlugin {
             id = "convention.detekt"
             implementationClass = "DetektPlugin"
         }
+        register("publishing") {
+            id = "convention.publishing"
+            implementationClass = "PublishingPlugin"
+        }
     }
 }

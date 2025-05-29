@@ -92,4 +92,5 @@ ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="unspecified" }
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
 # Convention plugins
-convetion-detekt = { id = "convention.detekt", version = "unspecified" }
+convention-detekt = { id = "convention.detekt" }
+convention-publishing = { id = "convention.publishing" }

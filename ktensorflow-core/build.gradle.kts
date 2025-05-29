@@ -4,10 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.convention.publishing)
 }
-
-group = "io.github.kursor1337"
-version = "0.1"
 
 kotlin {
     compilerOptions {
