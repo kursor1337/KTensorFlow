@@ -1,5 +1,5 @@
 # KTensorFlow
-Kotlin Multiplatform library designed to use LiteRT (TensorFlow Lite) neural network models from common code
+KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow Lite) neural network models from common code. It abstracts platform-specific implementation details, making it easier to load models and run inference across Android and iOS.
 
 ## Installation
 First add dependencies:
@@ -105,7 +105,7 @@ val gpuDelegateOptions = GpuDelegateOptions { // this: GpuDelegateFactory.Option
 
 iOS:
 ```kotlin
-val interpreterOptions = InterpreterOptions(delegates = emptyList()) { // this: 
+val interpreterOptions = InterpreterOptions(delegates = emptyList()) { // this: TFLInterpreterOptions
   setUseXNNPACK(true)
 }
 val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
