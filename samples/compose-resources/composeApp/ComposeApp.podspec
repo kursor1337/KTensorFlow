@@ -10,7 +10,6 @@ Pod::Spec.new do |spec|
     spec.libraries                = 'c++'
     spec.ios.deployment_target    = '13.0'
     spec.dependency 'TensorFlowLiteObjC', '2.17.0'
-    spec.dependency 'TensorFlowLiteObjC/CoreML', '2.17.0'
     spec.dependency 'TensorFlowLiteObjC/Metal', '2.17.0'
                 
     if !Dir.exist?('build/cocoapods/framework/ComposeApp.framework') || Dir.empty?('build/cocoapods/framework/ComposeApp.framework')

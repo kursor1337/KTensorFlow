@@ -1,7 +1,6 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 pluginManagement {
     includeBuild("ktensorflow-build-logic")
-    includeBuild("ktensorflow-link")
     repositories {
         google()
         gradlePluginPortal()
@@ -18,6 +17,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "KTensorFlow"
 include(":ktensorflow-core")
-
+include(":ktensorflow-link")
 include(":samples:compose-resources:chess-engine")
 include(":samples:compose-resources:composeApp")

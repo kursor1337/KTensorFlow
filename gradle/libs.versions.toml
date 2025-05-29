@@ -87,7 +87,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
-ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="unspecified" }
+ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="0.1" }
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
