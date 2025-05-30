@@ -74,14 +74,14 @@ val result = output.typedData<FloatArray>()
 
 `Tensor` class stores data in a ByteArray. So, if you're using `Tensor(any: Any)` to create a Tensor from multidimensional primitive array, it copies entire array inside a new ByteArray.
 Because of this, it is better to use `Tensor(shape: TensorShape, dataType: TensorDataType)` for output tensors, 
-since it will allows to skip copying of the array and just allocate a ByteArray of the neseccary size.
+since it will allow to skip copying of the array and just allocate a ByteArray of the necessary size.
 
 ### Hardware acceleration
 Hardware acceleration is provided by delegates. `ktensorflow-core` module already has `GpuDelegate` implementation to run the inference on GPU.
 
-Delegates can be provided to interpreter using InterpreterOptions
+Delegates can be provided to interpreter using `InterpreterOptions`
 ```kotlin
-val interpreter = Interpreter(
+val options = InterpreterOptions(
   numThreads = 4,
   useXNNPack = true,
   delegates = listOf(GpuDelegate())
