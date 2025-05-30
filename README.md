@@ -116,6 +116,13 @@ val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
 ### Writing custom delegates
 If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface
 
+## Library development plan
+* Add Moko and Compose Resources extensions
+* Add support for NPU (CoreML on iOS and NNAPI/QNN on Android)
+* Add support for image processing (for example, ImageClassifier)
+
+If you have any other suggestions, feel free to create an issue, I'd love to hear your thoughts
+
 ## License
 ```
 Copyright 2025 Sergey Kurochkin
