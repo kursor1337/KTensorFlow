@@ -17,6 +17,7 @@ plugins {
   id("dev.kursor.ktensorflow.link") version "0.1"
 }
 ```
+Currently, this library only supports projects, that are being linked to iOS app via CocoaPods, and only static frameworks (`isStatic = true`)
 
 ## Usage
 ### Load the model
