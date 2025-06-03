@@ -17,4 +17,6 @@ actual sealed interface ModelDesc {
      * ModelDesc that allows to load model from a byte buffer.
      */
     data class ByteBuffer(val buffer: JavaByteBuffer) : ModelDesc
+
+    actual companion object
 }

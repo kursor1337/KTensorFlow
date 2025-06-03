@@ -2,10 +2,9 @@
 agp = "8.10.0"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.2.0-RC"
+kotlin = "2.1.21"
 
 tensorflow-android = "1.3.0"
-tensorflow-ios = "2.17.0"
 qnn = "2.29.0"
 
 moko-resources = "0.24.5"
@@ -13,6 +12,8 @@ moko-resources = "0.24.5"
 detekt = "1.23.7"
 
 publishing = "0.32.0"
+
+startup = "1.2.0"
 
 # Tests
 junit = "4.13.2"
@@ -44,8 +45,11 @@ qnn-runtime = { module = "com.qualcomm.qti:qnn-runtime", version.ref = "qnn" }
 qnn-litert-delegate = { module = "com.qualcomm.qti:qnn-litert-delegate", version.ref = "qnn" }
 
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "moko-resources" }
+moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "moko-resources" }
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+
+androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 
 # Tests
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -84,6 +88,8 @@ kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref =
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+moko-resources = { id = "dev.icerock.mobile.multiplatform-resources", version.ref = "moko-resources" }
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
