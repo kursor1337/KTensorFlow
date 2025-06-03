@@ -1,0 +1,4 @@
+<resources>
+    <string name="menu_button_game_classic">Classic Game</string>
+    <string name="menu_button_game_ai">AI Game</string>
+</resources>
