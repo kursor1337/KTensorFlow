@@ -1,0 +1,1 @@
+Copy models/chess-ai.tflite from repository root to this directory

@@ -7,4 +7,6 @@ package dev.kursor.ktensorflow.api
  * Android: ModelDesc.File, ModelDesc.ByteBuffer
  * iOS: ModelDesc.PathInBundle
  */
-expect sealed interface ModelDesc
+expect sealed interface ModelDesc {
+    companion object
+}

@@ -10,4 +10,6 @@ actual sealed interface ModelDesc {
      * @param pathInBundle Path to the model file in bundle. Needs to be without the "file://" prefix.
      */
     data class PathInBundle(val pathInBundle: String) : ModelDesc
+
+    actual companion object
 }
