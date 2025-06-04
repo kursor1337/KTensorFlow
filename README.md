@@ -4,20 +4,23 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 ## Installation
 First add dependencies:
 
-Core module
 ```kotlin
 dependencies {
-  implementation("dev.kursor.ktensorflow:ktensorflow-core:0.1")
+  // core module, contains Interpreter, Tensor and other core classes and functions
+  implementation("dev.kursor.ktensorflow:ktensorflow-core:0.2")
+
+  // moko module, contains extensions for loading models from moko-resources
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:0.2")
 }
 ```
 
 To link TensorFlow Lite binaries to iOS you need to add Linking plugin
 ```kotlin
 plugins {
-  id("dev.kursor.ktensorflow.link") version "0.1"
+  id("dev.kursor.ktensorflow.link") version "0.2"
 }
 ```
-Currently, this library only supports projects, that are being linked to iOS app via CocoaPods, and only static frameworks (`isStatic = true`)
+Currently, this library only supports projects, that are being linked to iOS app via CocoaPods
 
 ## Usage
 ### Load the model
@@ -45,6 +48,14 @@ iOS examples with Compose Multiplatform Resources:
 ```kotlin
 val modelDesc = ModelDesc.PathInBundle(Res.getUri("files/model.tflite").removePrefix("file://"))
 ```
+
+**Moko resources extensions**
+
+Module `ktensorflow-moko` contains useful extension functions to create a `ModelDesc` from [moko-resources](https://github.com/icerockdev/moko-resources).
+
+It adds two useful functions:
+* `ModelDesc.FileResource(resource: FileResource)` to load a model from moko's `FileResource`
+* `ModelDesc.AssetResource(resource: AssetResource)` to load a model from moko's `AssetResource`
 
 ### Run inference
 To run the inference, create `Interpreter`:
