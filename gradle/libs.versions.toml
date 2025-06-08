@@ -35,6 +35,9 @@ kermit = "2.0.5"
 serialization = "1.8.1"
 essenty = "2.5.0"
 
+# KTensorFlow
+ktensorflow = "0.2"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
@@ -80,6 +83,10 @@ detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plu
 
 publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
 
+# KTensorFlow
+ktensorflow-core = { module = "dev.kursor.ktensorflow:ktensorflow-core", version.ref="ktensorflow" }
+ktensorflow-moko = { module = "dev.kursor.ktensorflow:ktensorflow-moko", version.ref="ktensorflow" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
@@ -93,7 +100,7 @@ moko-resources = { id = "dev.icerock.mobile.multiplatform-resources", version.re
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
-ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version="0.1" }
+ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref="ktensorflow" }
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
