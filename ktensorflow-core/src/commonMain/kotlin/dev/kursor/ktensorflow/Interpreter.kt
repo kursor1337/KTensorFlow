@@ -30,3 +30,14 @@ expect fun Interpreter(
     modelDesc: ModelDesc,
     options: InterpreterOptions,
 ): Interpreter
+
+/**
+ * Runs model inference with a single input and output [Tensor].
+ * This is a convenience method that wraps the [run] method.
+ * @param input Input [Tensor].
+ * @param output Output [Tensor].
+ */
+fun Interpreter.run(
+    input: Tensor,
+    output: Tensor
+) = run(listOf(input), listOf(output))
