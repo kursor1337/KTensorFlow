@@ -1,9 +1,9 @@
 package dev.kursor.ktensorflow.impl
 
-import dev.kursor.ktensorflow.api.Interpreter
-import dev.kursor.ktensorflow.api.InterpreterOptions
-import dev.kursor.ktensorflow.api.ModelDesc
-import dev.kursor.ktensorflow.api.Tensor
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.Tensor
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.tensorflow.lite.Interpreter as TFLInterpreter
