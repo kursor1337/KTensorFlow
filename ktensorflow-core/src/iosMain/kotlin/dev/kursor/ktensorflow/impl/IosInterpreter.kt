@@ -2,10 +2,10 @@ package dev.kursor.ktensorflow.impl
 
 import cocoapods.TensorFlowLiteObjC.TFLInterpreter
 import cocoapods.TensorFlowLiteObjC.TFLTensor
-import dev.kursor.ktensorflow.api.Interpreter
-import dev.kursor.ktensorflow.api.InterpreterOptions
-import dev.kursor.ktensorflow.api.ModelDesc
-import dev.kursor.ktensorflow.api.Tensor
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.Tensor
 
 // private val on options because it is required to keep references so that they are not
 // garbage collected since kotlin gc does not know if objects are passed to obj-c

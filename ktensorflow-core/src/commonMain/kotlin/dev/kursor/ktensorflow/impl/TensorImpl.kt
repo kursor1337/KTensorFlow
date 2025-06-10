@@ -1,8 +1,8 @@
 package dev.kursor.ktensorflow.impl
 
-import dev.kursor.ktensorflow.api.Tensor
-import dev.kursor.ktensorflow.api.TensorDataType
-import dev.kursor.ktensorflow.api.TensorShape
+import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.TensorDataType
+import dev.kursor.ktensorflow.TensorShape
 
 internal class TensorImpl(
     override val dataType: TensorDataType,

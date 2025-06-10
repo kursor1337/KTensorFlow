@@ -31,6 +31,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.samples.chessEngine)
             implementation(projects.ktensorflowCore)
+            implementation(projects.ktensorflowGpu)
 
             implementation(compose.runtime)
             implementation(compose.foundation)

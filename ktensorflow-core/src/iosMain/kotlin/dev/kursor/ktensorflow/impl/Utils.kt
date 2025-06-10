@@ -1,6 +1,6 @@
 package dev.kursor.ktensorflow.impl
 
-import dev.kursor.ktensorflow.api.TensorFlowException
+import dev.kursor.ktensorflow.TensorFlowException
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ObjCObjectVar

@@ -9,25 +9,21 @@ import dev.kursor.chess.engine.model.Color
 import dev.kursor.chess.engine.model.PieceType
 import dev.kursor.chess.engine.model.Square
 import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
-import dev.kursor.ktensorflow.api.Interpreter
-import dev.kursor.ktensorflow.api.InterpreterOptions
-import dev.kursor.ktensorflow.api.ModelDesc
-import dev.kursor.ktensorflow.api.Tensor
-import dev.kursor.ktensorflow.api.TensorDataType
-import dev.kursor.ktensorflow.api.TensorShape
-import dev.kursor.ktensorflow.api.gpu.GpuDelegate
-import dev.kursor.ktensorflow.api.typedData
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.TensorDataType
+import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
-import kotlinx.coroutines.CoroutineScope
+import dev.kursor.ktensorflow.typedData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
-
-    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
     private val interpreter: Interpreter = Interpreter(
         modelDesc = ModelDesc.FileResource(MR.files.chess_ai_tflite),

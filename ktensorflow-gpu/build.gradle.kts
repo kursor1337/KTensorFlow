@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.convention.publishing)
 }
 
@@ -22,6 +22,12 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    sourceSets {
+        commonMain.dependencies {
+            implementation(projects.ktensorflowCore)
+        }
+    }
+
     cocoapods {
         summary = "Some description for the Shared Module"
         homepage = "Link to the Shared Module homepage"
@@ -36,36 +42,22 @@ kotlin {
             moduleName = "TFLTensorFlowLite"
             version = "2.17.0"
         }
-    }
-
-    sourceSets {
-        androidMain.dependencies {
-            api(libs.tensorflow)
-            api(libs.tensorflow.gpu)
-            api(libs.tensorflow.gpu.api)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-
-        androidInstrumentedTest.dependencies {
-            implementation(libs.junit)
-            implementation(libs.androidx.test.core)
-            implementation(libs.androidx.test.junit)
-            implementation(libs.androidx.test.runner)
+        pod("TensorFlowLiteObjC/Metal") {
+            moduleName = "TFLTensorFlowLite"
+            version = "2.17.0"
         }
     }
+
     sourceSets.androidInstrumentedTest.dependencies {
         implementation(kotlin("test"))
     }
 }
 
 android {
-    namespace = "dev.kursor.ktensorflow.core"
+    namespace = "dev.kursor.ktensorflow.gpu"
     compileSdk = 35
     defaultConfig {
         minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
