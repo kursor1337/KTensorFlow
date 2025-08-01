@@ -15,7 +15,7 @@ import dev.kursor.ktensorflow.api.ModelDesc
 import dev.kursor.ktensorflow.api.Tensor
 import dev.kursor.ktensorflow.api.TensorDataType
 import dev.kursor.ktensorflow.api.TensorShape
-import dev.kursor.ktensorflow.api.gpu.GpuDelegate
+import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.api.typedData
 import dev.kursor.ktensorflow.moko.FileResource
 import kotlinx.coroutines.CoroutineScope

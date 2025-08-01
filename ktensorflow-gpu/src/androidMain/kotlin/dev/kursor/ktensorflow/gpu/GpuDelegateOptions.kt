@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.api.gpu
+package dev.kursor.ktensorflow.gpu
 
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegateFactory

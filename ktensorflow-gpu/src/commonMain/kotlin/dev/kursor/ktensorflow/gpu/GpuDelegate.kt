@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.api.gpu
+package dev.kursor.ktensorflow.gpu
 
 import dev.kursor.ktensorflow.api.Delegate
 
@@ -8,7 +8,7 @@ import dev.kursor.ktensorflow.api.Delegate
 interface GpuDelegate : Delegate
 
 /**
- * Creates [GpuDelegate] with the specified [options].
+ * Creates [dev.kursor.ktensorflow.gpu.GpuDelegate] with the specified [options].
  */
 expect fun GpuDelegate(
     options: GpuDelegateOptions = GpuDelegateOptions()

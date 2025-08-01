@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "KTensorFlow"
 include(":ktensorflow-core")
+include(":ktensorflow-gpu")
 include(":ktensorflow-link")
 include(":ktensorflow-moko")
 include(":samples:chess-engine")

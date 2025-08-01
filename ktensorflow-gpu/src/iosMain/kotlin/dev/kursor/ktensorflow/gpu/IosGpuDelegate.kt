@@ -1,9 +1,8 @@
-package dev.kursor.ktensorflow.impl
+package dev.kursor.ktensorflow.gpu
 
 import cocoapods.TensorFlowLiteObjC.TFLDelegate
 import cocoapods.TensorFlowLiteObjC.TFLMetalDelegate
 import cocoapods.TensorFlowLiteObjC.TFLMetalDelegateOptions
-import dev.kursor.ktensorflow.api.gpu.GpuDelegate
 
 internal class IosGpuDelegate(
     private val tflOptions: TFLMetalDelegateOptions
