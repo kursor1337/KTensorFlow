@@ -45,19 +45,12 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)
-            implementation(libs.moko.resources)
         }
-        androidMain.dependencies {
-            implementation(libs.androidx.startup.runtime)
-        }
-    }
-    sourceSets.androidInstrumentedTest.dependencies {
-        implementation(kotlin("test"))
     }
 }
 
 android {
-    namespace = "dev.kursor.ktensorflow.moko"
+    namespace = "dev.kursor.ktensorflow.gpu"
     compileSdk = 35
     defaultConfig {
         minSdk = 24
