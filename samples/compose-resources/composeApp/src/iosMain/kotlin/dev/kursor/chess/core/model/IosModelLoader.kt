@@ -1,6 +1,6 @@
 package dev.kursor.chess.core.model
 
-import dev.kursor.ktensorflow.api.ModelDesc
+import dev.kursor.ktensorflow.ModelDesc
 import ktensorflow.samples.compose_resources.composeapp.generated.resources.Res
 
 class IosModelLoader : ModelLoader {

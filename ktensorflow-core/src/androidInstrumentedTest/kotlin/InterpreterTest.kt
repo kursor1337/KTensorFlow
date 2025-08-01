@@ -1,14 +1,12 @@
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import dev.kursor.ktensorflow.api.Delegate
-import dev.kursor.ktensorflow.api.Interpreter
-import dev.kursor.ktensorflow.api.InterpreterOptions
-import dev.kursor.ktensorflow.api.ModelDesc
-import dev.kursor.ktensorflow.api.Tensor
-import dev.kursor.ktensorflow.api.TensorDataType
-import dev.kursor.ktensorflow.api.TensorShape
-import dev.kursor.ktensorflow.api.gpu.GpuDelegate
-import dev.kursor.ktensorflow.api.typedData
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.TensorDataType
+import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.typedData
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,17 +21,6 @@ class InterpreterTest {
 
     @Test
     fun testWithCpu() {
-        testWithHardware(emptyList())
-        assertTrue(true)
-    }
-
-    @Test
-    fun testWithGpu() {
-        testWithHardware(listOf(GpuDelegate()))
-        assertTrue(true)
-    }
-
-    fun testWithHardware(delegates: List<Delegate>) {
         val fileDescriptor = context.assets.openFd("mnist.tflite")
         val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
         val fileChannel = inputStream.channel
@@ -45,8 +32,7 @@ class InterpreterTest {
         val modelDesc = ModelDesc.ByteBuffer(byteBuffer)
         val options = InterpreterOptions(
             numThreads = 4,
-            useXNNPACK = true,
-            delegates = delegates
+            useXNNPACK = true
         )
         val interpreter = Interpreter(modelDesc, options)
 
@@ -69,5 +55,6 @@ class InterpreterTest {
                 .index
             println("test $i: result = $result")
         }
+        assertTrue(true)
     }
 }
