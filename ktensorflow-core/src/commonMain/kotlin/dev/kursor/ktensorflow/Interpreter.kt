@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.api
+package dev.kursor.ktensorflow
 
 /**
  * Interpreter to run inference on a model.

@@ -1,6 +1,6 @@
 package dev.kursor.ktensorflow.gpu
 
-import dev.kursor.ktensorflow.api.Delegate
+import dev.kursor.ktensorflow.Delegate
 
 /**
  * Delegate to use GPU for inference.
@@ -8,7 +8,7 @@ import dev.kursor.ktensorflow.api.Delegate
 interface GpuDelegate : Delegate
 
 /**
- * Creates [dev.kursor.ktensorflow.gpu.GpuDelegate] with the specified [options].
+ * Creates [GpuDelegate] with the specified [options].
  */
 expect fun GpuDelegate(
     options: GpuDelegateOptions = GpuDelegateOptions()

@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.api
+package dev.kursor.ktensorflow
 
 import java.io.File as JavaFile
 import java.nio.ByteBuffer as JavaByteBuffer

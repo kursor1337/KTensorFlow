@@ -1,7 +1,7 @@
 package dev.kursor.ktensorflow.impl
 
-import dev.kursor.ktensorflow.api.TensorDataType
-import dev.kursor.ktensorflow.api.TensorShape
+import dev.kursor.ktensorflow.TensorDataType
+import dev.kursor.ktensorflow.TensorShape
 
 internal fun inferTensorDataType(data: Any): TensorDataType = when (data) {
     is FloatArray -> TensorDataType.Float32

@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import dev.icerock.moko.resources.AssetResource
 import dev.icerock.moko.resources.FileResource
-import dev.kursor.ktensorflow.api.ModelDesc
+import dev.kursor.ktensorflow.ModelDesc
 import java.io.File
 
 actual fun ModelDesc.Companion.FileResource(resource: FileResource): ModelDesc {

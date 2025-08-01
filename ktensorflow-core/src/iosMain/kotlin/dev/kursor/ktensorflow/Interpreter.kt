@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.api
+package dev.kursor.ktensorflow
 
 import dev.kursor.ktensorflow.impl.IosInterpreter
 

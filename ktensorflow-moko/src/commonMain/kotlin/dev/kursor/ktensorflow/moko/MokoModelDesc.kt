@@ -2,7 +2,7 @@ package dev.kursor.ktensorflow.moko
 
 import dev.icerock.moko.resources.AssetResource
 import dev.icerock.moko.resources.FileResource
-import dev.kursor.ktensorflow.api.ModelDesc
+import dev.kursor.ktensorflow.ModelDesc
 
 expect fun ModelDesc.Companion.FileResource(resource: FileResource): ModelDesc
 
