@@ -1,38 +1,38 @@
 [versions]
-agp = "8.10.0"
+agp = "8.12.0"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.1.21"
+kotlin = "2.2.0"
 
-tensorflow-android = "1.3.0"
-qnn = "2.29.0"
+tensorflow-android = "1.4.0"
+qnn = "2.36.1"
 
-moko-resources = "0.24.5"
+moko-resources = "0.25.0"
 
-detekt = "1.23.7"
+detekt = "1.23.8"
 
-publishing = "0.32.0"
+publishing = "0.34.0"
 
 startup = "1.2.0"
 
 # Tests
 junit = "4.13.2"
-androidx-test-core = "1.6.1"
-androidx-test-junit = "1.2.1"
-androidx-test-runner = "1.6.2"
+androidx-test-core = "1.7.0"
+androidx-test-junit = "1.3.0"
+androidx-test-runner = "1.7.0"
 
 # Samples
-android-compileSdk = "35"
-android-minSdk = "26"
+android-compileSdk = "36"
+android-minSdk = "24"
 
-compose = "1.8.1"
+compose = "1.8.2"
 activity-compose = "1.10.1"
 
 coroutines = "1.10.2"
 decompose = "3.3.0"
-koin = "4.0.2"
-kermit = "2.0.5"
-serialization = "1.8.1"
+koin = "4.1.0"
+kermit = "2.0.6"
+serialization = "1.9.0"
 essenty = "2.5.0"
 
 # KTensorFlow

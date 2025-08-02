@@ -51,9 +51,11 @@ kotlin {
 
 android {
     namespace = "dev.kursor.ktensorflow.gpu"
-    compileSdk = 35
+    val compileVersion = libs.versions.android.compileSdk.get().toInt()
+    val minVersion = libs.versions.android.minSdk.get().toInt()
+    compileSdk = compileVersion
     defaultConfig {
-        minSdk = 24
+        minSdk = minVersion
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
