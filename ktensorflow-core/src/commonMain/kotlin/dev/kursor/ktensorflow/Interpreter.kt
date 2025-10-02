@@ -6,6 +6,16 @@ package dev.kursor.ktensorflow
 interface Interpreter {
 
     /**
+     * Number of input tensors.
+     */
+    val inputTensorCount: Int
+
+    /**
+     * Number of output tensors.
+     */
+    val outputTensorCount: Int
+
+    /**
      * Runs model inference for multiple inputs and outputs.
      * Result of the inference will be written to the output [Tensor]s, which should be
      * allocated beforehand and passed to this method.
