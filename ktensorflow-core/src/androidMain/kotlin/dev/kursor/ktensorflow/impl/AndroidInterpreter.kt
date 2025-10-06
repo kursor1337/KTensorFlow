@@ -18,6 +18,7 @@ internal class AndroidInterpreter(
             modelDesc.buffer,
             options.tflOptions,
         )
+
         is ModelDesc.File -> TFLInterpreter(
             modelDesc.file,
             options.tflOptions,
@@ -25,14 +26,18 @@ internal class AndroidInterpreter(
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)
-    override fun run(inputs: List<Tensor>, outputs: List<Tensor>) {
-
+    override fun run(inputs: List<Tensor>, outputs: Map<Int, Tensor>) {
         val inputsArray = inputs
-            .map { ByteBuffer.wrap(it.data).apply { order(ByteOrder.nativeOrder()) } }
+            .map {
+                ByteBuffer.wrap(it.data)
+                    .apply { order(ByteOrder.nativeOrder()) }
+            }
             .toTypedArray()
-        val outputsArray = outputs.withIndex().associate {
-            it.index to ByteBuffer.wrap(it.value.data).apply { order(ByteOrder.nativeOrder()) }
+        val outputsArray = outputs.mapValues {
+            ByteBuffer.wrap(it.value.data)
+                .apply { order(ByteOrder.nativeOrder()) }
         }
+
         tensorFlowInterpreter.runForMultipleInputsOutputs(
             inputsArray,
             outputsArray

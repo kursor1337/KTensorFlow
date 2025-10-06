@@ -6,25 +6,15 @@ package dev.kursor.ktensorflow
 interface Interpreter {
 
     /**
-     * Number of input tensors.
-     */
-    val inputTensorCount: Int
-
-    /**
-     * Number of output tensors.
-     */
-    val outputTensorCount: Int
-
-    /**
      * Runs model inference for multiple inputs and outputs.
      * Result of the inference will be written to the output [Tensor]s, which should be
      * allocated beforehand and passed to this method.
      * @param inputs List of input [Tensor]s.
-     * @param outputs List of output [Tensor]s.
+     * @param outputs Map of output [Tensor]s, key is Tensor index..
      */
     fun run(
         inputs: List<Tensor>,
-        outputs: List<Tensor>
+        outputs: Map<Int, Tensor>
     )
 
     /**
@@ -51,4 +41,7 @@ expect fun Interpreter(
 fun Interpreter.run(
     input: Tensor,
     output: Tensor
-) = run(listOf(input), listOf(output))
+): Tensor {
+    run(listOf(input), mapOf(0 to output))
+    return output
+}

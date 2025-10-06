@@ -47,7 +47,7 @@ internal class IosInterpreter(
 
     override fun run(
         inputs: List<Tensor>,
-        outputs: List<Tensor>
+        outputs: Map<Int, Tensor>
     ) {
         if (inputs.size > tflInterpreter.inputTensorCount().toInt()) {
             throw IllegalArgumentException("Wrong inputs dimension.")
@@ -65,7 +65,8 @@ internal class IosInterpreter(
             tflInterpreter.invokeWithError(errPtr)
         }
 
-        for (i in 0 until tflInterpreter.outputTensorCount().toInt()) {
+        for (entry in outputs) {
+            val (i, tensor) = entry
             val outputTensor = getOutputTensor(i)
 
             val array = checkError { errPtr ->
@@ -73,7 +74,7 @@ internal class IosInterpreter(
             }
                 .toByteArray()
 
-            array.copyInto(destination = outputs[i].data)
+            array.copyInto(destination = tensor.data)
         }
     }
 
