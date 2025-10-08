@@ -22,6 +22,13 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)
         }
+
+        androidInstrumentedTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.test.runner)
+        }
     }
     sourceSets.androidInstrumentedTest.dependencies {
         implementation(kotlin("test"))
@@ -33,6 +40,7 @@ android {
     compileSdk = 35
     defaultConfig {
         minSdk = 24
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
