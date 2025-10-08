@@ -6,6 +6,13 @@ import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.TensorDataType
 import dev.kursor.ktensorflow.TensorShape
 
+/**
+ * Represents an output data of the inference stage.
+ *
+ * @property index The index of the output tensor.
+ * @property dataType The data type of the output tensor.
+ * @property shape The shape of the output tensor.
+ */
 @ExperimentalKTensorFlowApi
 data class InferenceOutputData(
     val index: Int,
@@ -13,6 +20,9 @@ data class InferenceOutputData(
     val shape: TensorShape
 )
 
+/**
+ * Represents a single input and single output inference stage.
+ */
 @ExperimentalKTensorFlowApi
 class SingleInferenceStage(
     private val interpreter: Interpreter,
@@ -25,6 +35,9 @@ class SingleInferenceStage(
     }
 }
 
+/**
+ * Represents a multiple input and multiple output inference stage.
+ */
 @ExperimentalKTensorFlowApi
 class MultiInferenceStage(
     private val interpreter: Interpreter,
@@ -40,6 +53,14 @@ class MultiInferenceStage(
     }
 }
 
+/**
+ * Adds a [SingleInferenceStage] to a [Stage].
+ *
+ * @param interpreter The interpreter to use for inference.
+ * @param dataType The data type of the output tensor.
+ * @param shape The shape of the output tensor.
+ * @param index The index of the output tensor.
+ */
 @ExperimentalKTensorFlowApi
 fun <Input> Stage<Input, Tensor>.inference(
     interpreter: Interpreter,
@@ -57,6 +78,12 @@ fun <Input> Stage<Input, Tensor>.inference(
     )
 )
 
+/**
+ * Adds a [MultiInferenceStage] to a [Stage].
+ *
+ * @param interpreter The interpreter to use for inference.
+ * @param outputs The list of output data.
+ */
 @ExperimentalKTensorFlowApi
 fun <Input> Stage<Input, List<Tensor>>.inference(
     interpreter: Interpreter,

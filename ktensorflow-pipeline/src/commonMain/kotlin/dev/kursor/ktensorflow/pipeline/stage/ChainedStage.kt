@@ -13,6 +13,12 @@ internal class ChainedStage<in Input, Intermediate, out Output>(
     }
 }
 
+/**
+ * Chains two stages together.
+ *
+ * @param other The stage to chain after this stage.
+ * @return A new stage that chains this stage and the other stage.
+ */
 @ExperimentalKTensorFlowApi
 fun <Input, Intermediate, Output> Stage<Input, Intermediate>.then(
     other: Stage<Intermediate, Output>

@@ -7,12 +7,21 @@ import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.then
 
+/**
+ * A builder that represents a pipeline with preprocessing and inference stages.
+ */
 @ExperimentalKTensorFlowApi
 class InferencePipelineBuilder<Input : Tuple> internal constructor(
     internal val inputStage: Stage<Input, List<Tensor>>,
     internal val interpreter: Interpreter
 )
 
+/**
+ * Creates an [InferencePipelineBuilder] from an [InputPipelineBuilder].
+ *
+ * @param interpreter The interpreter to use for inference.
+ * @return An [InferencePipelineBuilder] with the added inference stage.
+ */
 @ExperimentalKTensorFlowApi
 fun <Input : Tuple, Output : Tuple> InputPipelineBuilder<Input, Output>.inference(
     interpreter: Interpreter
