@@ -1,16 +1,19 @@
 package dev.kursor.ktensorflow.pipeline.stage
 
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.TensorDataType
 import dev.kursor.ktensorflow.TensorShape
 
+@ExperimentalKTensorFlowApi
 data class InferenceOutputData(
     val index: Int,
     val dataType: TensorDataType,
     val shape: TensorShape
 )
 
+@ExperimentalKTensorFlowApi
 class SingleInferenceStage(
     private val interpreter: Interpreter,
     private val output: InferenceOutputData
@@ -22,7 +25,7 @@ class SingleInferenceStage(
     }
 }
 
-// Model stage wrapping TensorFlow Interpreter
+@ExperimentalKTensorFlowApi
 class MultiInferenceStage(
     private val interpreter: Interpreter,
     private val outputs: List<InferenceOutputData>
@@ -37,6 +40,7 @@ class MultiInferenceStage(
     }
 }
 
+@ExperimentalKTensorFlowApi
 fun <Input> Stage<Input, Tensor>.inference(
     interpreter: Interpreter,
     dataType: TensorDataType,
@@ -53,6 +57,7 @@ fun <Input> Stage<Input, Tensor>.inference(
     )
 )
 
+@ExperimentalKTensorFlowApi
 fun <Input> Stage<Input, List<Tensor>>.inference(
     interpreter: Interpreter,
     outputs: List<InferenceOutputData>
@@ -60,4 +65,5 @@ fun <Input> Stage<Input, List<Tensor>>.inference(
     MultiInferenceStage(interpreter, outputs)
 )
 
+@ExperimentalKTensorFlowApi
 internal fun InferenceOutputData.toTensor() = Tensor(dataType, shape)

@@ -1,16 +1,19 @@
 package dev.kursor.ktensorflow.pipeline.builder
 
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.then
 
+@ExperimentalKTensorFlowApi
 class InferencePipelineBuilder<Input : Tuple> internal constructor(
     internal val inputStage: Stage<Input, List<Tensor>>,
     internal val interpreter: Interpreter
 )
 
+@ExperimentalKTensorFlowApi
 fun <Input : Tuple, Output : Tuple> InputPipelineBuilder<Input, Output>.inference(
     interpreter: Interpreter
 ): InferencePipelineBuilder<Input> {
@@ -18,6 +21,7 @@ fun <Input : Tuple, Output : Tuple> InputPipelineBuilder<Input, Output>.inferenc
     return InferencePipelineBuilder(inputStage, interpreter)
 }
 
+@ExperimentalKTensorFlowApi
 internal fun Tuple.toTensorList(): List<Tensor> = when (this) {
     is Tuple.Zero -> emptyList()
     is Tuple.One<*> -> listOf(

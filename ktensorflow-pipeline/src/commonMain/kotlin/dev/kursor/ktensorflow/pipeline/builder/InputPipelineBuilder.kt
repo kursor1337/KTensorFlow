@@ -1,5 +1,8 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package dev.kursor.ktensorflow.pipeline.builder
 
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.stage.CombinedStage
@@ -17,6 +20,7 @@ import dev.kursor.ktensorflow.pipeline.Tuple.Three
 import dev.kursor.ktensorflow.pipeline.Tuple.Two
 import kotlin.jvm.JvmName
 
+@ExperimentalKTensorFlowApi
 class InputPipelineBuilder<Input : Tuple, Output : Tuple> internal constructor(
     internal val inputStages: List<Stage<Any?, Tensor>> = listOf()
 ) {
@@ -25,10 +29,12 @@ class InputPipelineBuilder<Input : Tuple, Output : Tuple> internal constructor(
     }
 }
 
+@ExperimentalKTensorFlowApi
 fun <SI> Pipeline.Companion.input(preprocessing: Stage<SI, Tensor>): InputPipelineBuilder<One<SI>, One<Tensor>> {
     return InputPipelineBuilder<One<SI>, One<Tensor>>(listOf(preprocessing) as List<Stage<Any?, Tensor>>)
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input2")
 fun <SI, T1> InputPipelineBuilder<One<T1>, One<Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -38,6 +44,7 @@ fun <SI, T1> InputPipelineBuilder<One<T1>, One<Tensor>>.input(
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input3")
 fun <SI, I1, I2> InputPipelineBuilder<Two<I1, I2>, Two<Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -47,6 +54,7 @@ fun <SI, I1, I2> InputPipelineBuilder<Two<I1, I2>, Two<Tensor, Tensor>>.input(
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input4")
 fun <SI, I1, I2, I3> InputPipelineBuilder<Three<I1, I2, I3>, Three<Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -56,6 +64,7 @@ fun <SI, I1, I2, I3> InputPipelineBuilder<Three<I1, I2, I3>, Three<Tensor, Tenso
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input5")
 fun <SI, I1, I2, I3, I4> InputPipelineBuilder<Four<I1, I2, I3, I4>, Four<Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -65,6 +74,7 @@ fun <SI, I1, I2, I3, I4> InputPipelineBuilder<Four<I1, I2, I3, I4>, Four<Tensor,
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input6")
 fun <SI, I1, I2, I3, I4, I5> InputPipelineBuilder<Five<I1, I2, I3, I4, I5>, Five<Tensor, Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -74,6 +84,7 @@ fun <SI, I1, I2, I3, I4, I5> InputPipelineBuilder<Five<I1, I2, I3, I4, I5>, Five
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input7")
 fun <SI, I1, I2, I3, I4, I5, I6> InputPipelineBuilder<Six<I1, I2, I3, I4, I5, I6>, Six<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -83,6 +94,7 @@ fun <SI, I1, I2, I3, I4, I5, I6> InputPipelineBuilder<Six<I1, I2, I3, I4, I5, I6
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input8")
 fun <SI, I1, I2, I3, I4, I5, I6, I7> InputPipelineBuilder<Seven<I1, I2, I3, I4, I5, I6, I7>, Seven<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -92,6 +104,7 @@ fun <SI, I1, I2, I3, I4, I5, I6, I7> InputPipelineBuilder<Seven<I1, I2, I3, I4, 
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input9")
 fun <SI, I1, I2, I3, I4, I5, I6, I7, I8> InputPipelineBuilder<Eight<I1, I2, I3, I4, I5, I6, I7, I8>, Eight<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>
@@ -101,6 +114,7 @@ fun <SI, I1, I2, I3, I4, I5, I6, I7, I8> InputPipelineBuilder<Eight<I1, I2, I3, 
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("input10")
 fun <SI, I1, I2, I3, I4, I5, I6, I7, I8, I9> InputPipelineBuilder<Nine<I1, I2, I3, I4, I5, I6, I7, I8, I9>, Nine<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>>.input(
     preprocessing: Stage<SI, Tensor>

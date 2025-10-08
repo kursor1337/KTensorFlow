@@ -3,6 +3,7 @@
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
@@ -27,6 +28,7 @@ import java.io.FileInputStream
 import java.nio.channels.FileChannel
 
 @RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalKTensorFlowApi::class)
 class PipelineTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -138,8 +140,10 @@ fun CsvDataFrame.extractImages(): List<Pair<Byte, Array<UByteArray>>> =
         label to image
     }
 
+@OptIn(ExperimentalKTensorFlowApi::class)
 fun <I, O : Any> Stage<I, O>.tensorize(): Stage<I, Tensor> = this.then { Tensor(it) }
 
+@OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Array<UByteArray>>.floatify() = this.then {
     Array(it.size) { i ->
         FloatArray(it.size) { j ->
@@ -148,6 +152,7 @@ fun <T> Stage<T, Array<UByteArray>>.floatify() = this.then {
     }
 }
 
+@OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Array<FloatArray>>.normalize() = this.then {
     val maxValue = it.maxBy { it.max() }.max()
     Array(it.size) { i ->
@@ -158,8 +163,10 @@ fun <T> Stage<T, Array<FloatArray>>.normalize() = this.then {
 }
 
 
+@OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Tensor>.argmax() = this.then {
     it.typedData<FloatArray>().withIndex().maxBy { it.value }.index
 }
 
+@OptIn(ExperimentalKTensorFlowApi::class)
 fun <T, C> Stage<T, Int>.classify(classes: List<C>) = this.then { classes[it] }

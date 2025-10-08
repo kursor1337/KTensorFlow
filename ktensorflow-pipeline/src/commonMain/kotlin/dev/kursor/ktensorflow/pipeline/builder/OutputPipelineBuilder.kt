@@ -1,5 +1,6 @@
 package dev.kursor.ktensorflow.pipeline.builder
 
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.TensorDataType
@@ -13,6 +14,8 @@ import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.then
 import kotlin.jvm.JvmName
 
+@Suppress("UNCHECKED_CAST")
+@ExperimentalKTensorFlowApi
 class OutputPipelineBuilder<Input : Tuple, OutputInput : Tuple, Output : Tuple> internal constructor(
     internal val inputStage: Stage<Input, List<Tensor>>,
     internal val interpreter: Interpreter,
@@ -42,6 +45,7 @@ class OutputPipelineBuilder<Input : Tuple, OutputInput : Tuple, Output : Tuple> 
     }
 }
 
+@ExperimentalKTensorFlowApi
 fun <SO, Input : Tuple> InferencePipelineBuilder<Input>.output(
     index: Int = 0,
     dataType: TensorDataType,
@@ -55,6 +59,7 @@ fun <SO, Input : Tuple> InferencePipelineBuilder<Input>.output(
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output2")
 fun <SO, Input : Tuple, O1> OutputPipelineBuilder<Input, Tuple.One<Tensor>, Tuple.One<O1>>.output(
     index: Int,
@@ -69,6 +74,7 @@ fun <SO, Input : Tuple, O1> OutputPipelineBuilder<Input, Tuple.One<Tensor>, Tupl
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output3")
 fun <SO, Input : Tuple, O1, O2> OutputPipelineBuilder<Input, Tuple.Two<Tensor, Tensor>, Tuple.Two<O1, O2>>.output(
     index: Int,
@@ -83,6 +89,7 @@ fun <SO, Input : Tuple, O1, O2> OutputPipelineBuilder<Input, Tuple.Two<Tensor, T
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output4")
 fun <SO, Input : Tuple, O1, O2, O3> OutputPipelineBuilder<Input, Tuple.Three<Tensor, Tensor, Tensor>, Tuple.Three<O1, O2, O3>>.output(
     index: Int,
@@ -97,6 +104,7 @@ fun <SO, Input : Tuple, O1, O2, O3> OutputPipelineBuilder<Input, Tuple.Three<Ten
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output5")
 fun <SO, Input : Tuple, O1, O2, O3, O4> OutputPipelineBuilder<Input, Tuple.Four<Tensor, Tensor, Tensor, Tensor>, Tuple.Four<O1, O2, O3, O4>>.output(
     index: Int,
@@ -111,6 +119,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4> OutputPipelineBuilder<Input, Tuple.Four<
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output6")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5> OutputPipelineBuilder<Input, Tuple.Five<Tensor, Tensor, Tensor, Tensor, Tensor>, Tuple.Five<O1, O2, O3, O4, O5>>.output(
     index: Int,
@@ -125,6 +134,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5> OutputPipelineBuilder<Input, Tuple.F
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output7")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6> OutputPipelineBuilder<Input, Tuple.Six<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>, Tuple.Six<O1, O2, O3, O4, O5, O6>>.output(
     index: Int,
@@ -139,6 +149,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6> OutputPipelineBuilder<Input, Tup
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output8")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7> OutputPipelineBuilder<Input, Tuple.Seven<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>, Tuple.Seven<O1, O2, O3, O4, O5, O6, O7>>.output(
     index: Int,
@@ -153,6 +164,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7> OutputPipelineBuilder<Input,
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output9")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8> OutputPipelineBuilder<Input, Tuple.Eight<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>, Tuple.Eight<O1, O2, O3, O4, O5, O6, O7, O8>>.output(
     index: Int,
@@ -167,6 +179,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8> OutputPipelineBuilder<In
     )
 }
 
+@ExperimentalKTensorFlowApi
 @JvmName("output10")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, O9> OutputPipelineBuilder<Input, Tuple.Nine<Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor>, Tuple.Nine<O1, O2, O3, O4, O5, O6, O7, O8, O9>>.output(
     index: Int,
@@ -181,6 +194,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, O9> OutputPipelineBuilde
     )
 }
 
+@ExperimentalKTensorFlowApi
 internal data class PipelineOutputData<Output>(
     val index: Int,
     val dataType: TensorDataType,
@@ -188,6 +202,8 @@ internal data class PipelineOutputData<Output>(
     val stage: Stage<Tensor, Output>
 )
 
+@Suppress("UNCHECKED_CAST")
+@ExperimentalKTensorFlowApi
 internal fun <T : Tuple> Map<Int, Tensor>.toTuple(): T {
     val list = this.toList().sortedBy { it.first }.map { it.second }
     return when (list.size) {

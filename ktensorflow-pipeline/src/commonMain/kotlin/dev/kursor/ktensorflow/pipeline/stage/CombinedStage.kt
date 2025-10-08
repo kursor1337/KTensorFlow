@@ -1,7 +1,9 @@
 package dev.kursor.ktensorflow.pipeline.stage
 
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.pipeline.Tuple
 
+@ExperimentalKTensorFlowApi
 internal class CombinedStage<Input : Tuple, Output : Tuple>(
     val stages: List<Stage<Any?, Any?>>
 ) : Stage<Input, Output> {

@@ -2,6 +2,7 @@ package dev.kursor.ktensorflow.pipeline.stage
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 
+@ExperimentalKTensorFlowApi
 internal class ChainedStage<in Input, Intermediate, out Output>(
     private val inner: Stage<Input, Intermediate>,
     private val outer: Stage<Intermediate, Output>
