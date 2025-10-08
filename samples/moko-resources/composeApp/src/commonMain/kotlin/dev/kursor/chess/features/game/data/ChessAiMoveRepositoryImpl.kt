@@ -17,6 +17,7 @@ import dev.kursor.ktensorflow.TensorDataType
 import dev.kursor.ktensorflow.TensorShape
 import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
+import dev.kursor.ktensorflow.run
 import dev.kursor.ktensorflow.typedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,8 +47,8 @@ class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
         )
         val time = measureTime {
             interpreter.run(
-                inputs = listOf(gameState.board.toTensor()),
-                outputs = listOf(output)
+                input = gameState.board.toTensor(),
+                output = output
             )
         }
         println("Inference time: ${time.inWholeMilliseconds} ms")

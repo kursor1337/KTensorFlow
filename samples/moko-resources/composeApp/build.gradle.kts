@@ -34,6 +34,7 @@ kotlin {
             implementation(projects.ktensorflowCore)
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowMoko)
+            implementation(projects.ktensorflowPipeline)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
