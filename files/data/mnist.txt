@@ -1,0 +1,2 @@
+Dataset didn't fit into Github's file size limit
+You can download it from here - https://www.kaggle.com/datasets/oddrationale/mnist-in-csv

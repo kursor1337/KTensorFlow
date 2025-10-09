@@ -1,1 +1,1 @@
-Copy models/mnist.tflite from repository root to this directory
+Copy files/models/mnist.tflite from repository root to this directory
