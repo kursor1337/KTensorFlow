@@ -7,17 +7,23 @@ First add dependencies:
 ```kotlin
 dependencies {
   // core module, contains Interpreter, Tensor and other core classes and functions
-  implementation("dev.kursor.ktensorflow:ktensorflow-core:0.2")
+  implementation("dev.kursor.ktensorflow:ktensorflow-core:0.3")
+
+  // gpu module, contains delegate to run inference on the gpu
+  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:0.3")
+
+  // pipeline module, contains utils to create pipelines for preprocessing and postprocessing of the data
+  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:0.3")
 
   // moko module, contains extensions for loading models from moko-resources
-  implementation("dev.kursor.ktensorflow:ktensorflow-moko:0.2")
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:0.3")
 }
 ```
 
 To link TensorFlow Lite binaries to iOS you need to add Linking plugin
 ```kotlin
 plugins {
-  id("dev.kursor.ktensorflow.link") version "0.2"
+  id("dev.kursor.ktensorflow.link") version "0.3"
 }
 ```
 Currently, this library only supports projects, that are being linked to iOS app via CocoaPods
@@ -78,7 +84,7 @@ val output = Tensor(
   shape = TensorShape(10),
   dataType = TensorDataType.Float32
 )
-interpreter.run(listOf(input), listOf(output))
+interpreter.run(listOf(input), mapOf(0 to output))
 val result = output.typedData<FloatArray>()
 ```
 
@@ -86,10 +92,10 @@ val result = output.typedData<FloatArray>()
 
 `Tensor` class stores data in a ByteArray. So, if you're using `Tensor(any: Any)` to create a Tensor from multidimensional primitive array, it copies entire array inside a new ByteArray.
 Because of this, it is better to use `Tensor(shape: TensorShape, dataType: TensorDataType)` for output tensors, 
-since it will allow to skip copying of the array and just allocate a ByteArray of the necessary size.
+since it will allow to skip copying of the array and just allocate a ByteArray of the necessary size. It will allocate ByteArray of the size `shape.flatSize * dataType.byteSize`, with data type memory size already taken into account.
 
 ### Hardware acceleration
-Hardware acceleration is provided by delegates. `ktensorflow-core` module already has `GpuDelegate` implementation to run the inference on GPU.
+Hardware acceleration is provided by delegates. `ktensorflow-gpu` module already has `GpuDelegate` implementation to run the inference on GPU.
 
 Delegates can be provided to interpreter using `InterpreterOptions`
 ```kotlin
@@ -127,6 +133,52 @@ val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
 
 ### Writing custom delegates
 If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface
+
+### Creating pipelines
+You can create pipelines to make preprocessing and postprocessing of the data easier
+You can create 2 types of pipelines: single input/output and multiple input/output
+
+Single i/o pipeline creation
+```kotlin
+val pipeline = Pipeline.linear<Array<UByteArray>>()
+  .floatify()
+  .normalize()
+  .tensorize()
+  .inference(
+    interpreter = interpreter,
+    index = 0,
+    dataType = TensorDataType.Float32,
+    shape = TensorShape(10)
+  )
+  .argmax()
+  .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
+```
+
+Multiple i/p pipeline creation
+```kotlin
+val pipeline = Pipeline
+  .input(
+    preprocessing = Stage<Array<UByteArray>>()
+      .floatify()
+      .normalize()
+      .tensorize()
+    )
+  .inference(interpreter)
+  .output(
+    index = 0,
+    dataType = TensorDataType.Float32,
+    shape = TensorShape(10),
+    preprocessing = Stage<Tensor>()
+      .argmax()
+      .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
+  )
+  .build()
+```
+
+Then you can call
+```kotlin
+pipeline.run(input, output)
+```
 
 ## Library development plan
 * Add Moko and Compose Resources extensions
