@@ -101,5 +101,6 @@ val linkerArgs = listOf(
     "___asan_stack_malloc_1",
     "___asan_stack_malloc_2",
     "___asan_unregister_image_globals",
-    "___asan_version_mismatch_check_apple_clang_1700"
+    "___asan_version_mismatch_check_apple_clang_1700",
+    "___sanitizer_annotate_contiguous_container"
 ).joinToString(" ") { "-U $it" }

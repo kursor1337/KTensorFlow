@@ -1,13 +1,13 @@
 [versions]
-agp = "8.12.0"
+agp = "8.13.0"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.2.0"
+kotlin = "2.2.20"
 
 tensorflow-android = "1.4.0"
-qnn = "2.36.1"
+qnn = "2.39.0"
 
-moko-resources = "0.25.0"
+moko-resources = "0.25.1"
 
 detekt = "1.23.8"
 
@@ -25,18 +25,18 @@ androidx-test-runner = "1.7.0"
 android-compileSdk = "36"
 android-minSdk = "24"
 
-compose = "1.8.2"
-activity-compose = "1.10.1"
+compose = "1.9.0"
+activity-compose = "1.11.0"
 
 coroutines = "1.10.2"
-decompose = "3.3.0"
-koin = "4.1.0"
-kermit = "2.0.6"
+decompose = "3.4.0"
+koin = "4.1.1"
+kermit = "2.0.8"
 serialization = "1.9.0"
 essenty = "2.5.0"
 
 # KTensorFlow
-ktensorflow = "0.2"
+ktensorflow = "0.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
