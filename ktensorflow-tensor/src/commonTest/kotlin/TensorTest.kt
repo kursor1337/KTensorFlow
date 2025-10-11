@@ -1,4 +1,5 @@
-import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.typedData
 import kotlin.test.Test
 
 class TensorTest {

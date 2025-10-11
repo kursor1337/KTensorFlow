@@ -1,7 +1,7 @@
-package dev.kursor.ktensorflow.impl
+package dev.kursor.ktensorflow.tensor.impl
 
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 
 internal fun ByteArray.toShapedAndTypedArray(
     dataType: TensorDataType,

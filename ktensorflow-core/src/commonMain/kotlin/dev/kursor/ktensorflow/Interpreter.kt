@@ -7,14 +7,14 @@ interface Interpreter {
 
     /**
      * Runs model inference for multiple inputs and outputs.
-     * Result of the inference will be written to the output [Tensor]s, which should be
+     * Result of the inference will be written to the output [dev.kursor.ktensorflow.tensor.Tensor]s, which should be
      * allocated beforehand and passed to this method.
-     * @param inputs List of input [Tensor]s.
-     * @param outputs Map of output [Tensor]s, key is Tensor index..
+     * @param inputs List of input [dev.kursor.ktensorflow.tensor.Tensor]s.
+     * @param outputs Map of output [dev.kursor.ktensorflow.tensor.Tensor]s, key is Tensor index..
      */
     fun run(
-        inputs: List<Tensor>,
-        outputs: Map<Int, Tensor>
+        inputs: List<ByteArray>,
+        outputs: Map<Int, ByteArray>
     )
 
     /**
@@ -33,15 +33,12 @@ expect fun Interpreter(
 
 /**
  * Runs model inference for single input and output.
- * Result of the inference will be written to the output [Tensor], which should be
+ * Result of the inference will be written to the output [dev.kursor.ktensorflow.tensor.Tensor], which should be
  * allocated beforehand and passed to this method.
- * @param input Input [Tensor].
- * @param output Output [Tensor].
+ * @param input Input [dev.kursor.ktensorflow.tensor.Tensor].
+ * @param output Output [dev.kursor.ktensorflow.tensor.Tensor].
  */
 fun Interpreter.run(
-    input: Tensor,
-    output: Tensor
-): Tensor {
-    run(listOf(input), mapOf(0 to output))
-    return output
-}
+    input: ByteArray,
+    output: ByteArray
+) = run(listOf(input), mapOf(0 to output))

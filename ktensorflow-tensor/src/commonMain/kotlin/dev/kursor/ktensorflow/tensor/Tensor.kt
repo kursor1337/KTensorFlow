@@ -1,10 +1,10 @@
-package dev.kursor.ktensorflow
+package dev.kursor.ktensorflow.tensor
 
-import dev.kursor.ktensorflow.impl.TensorImpl
-import dev.kursor.ktensorflow.impl.inferTensorDataType
-import dev.kursor.ktensorflow.impl.inferTensorShape
-import dev.kursor.ktensorflow.impl.toByteArray
-import dev.kursor.ktensorflow.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.impl.TensorImpl
+import dev.kursor.ktensorflow.tensor.impl.inferTensorDataType
+import dev.kursor.ktensorflow.tensor.impl.inferTensorShape
+import dev.kursor.ktensorflow.tensor.impl.toByteArray
+import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 
 /**
  * Represents a multi-dimensional array of data with a specific data type and shape.

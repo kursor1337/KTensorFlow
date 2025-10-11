@@ -12,12 +12,12 @@ import dev.kursor.chess.engine.model.Square
 import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
-import dev.kursor.ktensorflow.Tensor
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.gpu.GpuDelegate
-import dev.kursor.ktensorflow.run
-import dev.kursor.ktensorflow.typedData
+import dev.kursor.ktensorflow.tensor.run
+import dev.kursor.ktensorflow.tensor.typedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

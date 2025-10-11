@@ -3,7 +3,7 @@
 package dev.kursor.ktensorflow.pipeline.builder
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
-import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.stage.CombinedStage
 import dev.kursor.ktensorflow.pipeline.stage.Stage

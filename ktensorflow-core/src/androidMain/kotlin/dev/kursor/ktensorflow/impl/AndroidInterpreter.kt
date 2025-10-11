@@ -3,7 +3,6 @@ package dev.kursor.ktensorflow.impl
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.Tensor
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.tensorflow.lite.Interpreter as TFLInterpreter
@@ -26,15 +25,15 @@ internal class AndroidInterpreter(
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)
-    override fun run(inputs: List<Tensor>, outputs: Map<Int, Tensor>) {
+    override fun run(inputs: List<ByteArray>, outputs: Map<Int, ByteArray>) {
         val inputsArray = inputs
             .map {
-                ByteBuffer.wrap(it.data)
+                ByteBuffer.wrap(it)
                     .apply { order(ByteOrder.nativeOrder()) }
             }
             .toTypedArray()
         val outputsArray = outputs.mapValues {
-            ByteBuffer.wrap(it.value.data)
+            ByteBuffer.wrap(it.value)
                 .apply { order(ByteOrder.nativeOrder()) }
         }
 

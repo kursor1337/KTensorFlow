@@ -5,7 +5,6 @@ import cocoapods.TensorFlowLiteObjC.TFLTensor
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.Tensor
 
 // private val on options because it is required to keep references so that they are not
 // garbage collected since kotlin gc does not know if objects are passed to obj-c
@@ -46,8 +45,8 @@ internal class IosInterpreter(
     }
 
     override fun run(
-        inputs: List<Tensor>,
-        outputs: Map<Int, Tensor>
+        inputs: List<ByteArray>,
+        outputs: Map<Int, ByteArray>
     ) {
         if (inputs.size > tflInterpreter.inputTensorCount().toInt()) {
             throw IllegalArgumentException("Wrong inputs dimension.")
@@ -55,7 +54,7 @@ internal class IosInterpreter(
 
         inputs.forEachIndexed { index, input ->
             val inputTensor = getInputTensor(index)
-            val data = input.data.toNSData()
+            val data = input.toNSData()
             checkError { errPtr ->
                 inputTensor.copyData(data, errPtr)
             }
@@ -66,7 +65,7 @@ internal class IosInterpreter(
         }
 
         for (entry in outputs) {
-            val (i, tensor) = entry
+            val (i, byteArray) = entry
             val outputTensor = getOutputTensor(i)
 
             val array = checkError { errPtr ->
@@ -74,7 +73,7 @@ internal class IosInterpreter(
             }
                 .toByteArray()
 
-            array.copyInto(destination = tensor.data)
+            array.copyInto(destination = byteArray)
         }
     }
 
