@@ -140,6 +140,7 @@ If you need to use a custom delegate that is not yet supported by the library, c
 
 ### Creating pipelines
 You can create pipelines to make preprocessing and postprocessing of the data easier
+
 You can create 2 types of pipelines: single input/output and multiple input/output
 
 Single i/o pipeline creation
@@ -158,7 +159,7 @@ val pipeline = Pipeline.linear<Array<UByteArray>>()
   .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
 ```
 
-Multiple i/p pipeline creation
+Multiple i/o pipeline creation
 ```kotlin
 val pipeline = Pipeline
   .input(
@@ -181,15 +182,16 @@ val pipeline = Pipeline
 
 Then you can call
 ```kotlin
-pipeline.run(input, output)
+val output = pipeline.run(input)
 ```
 
 ## Library development plan
-* Add Moko and Compose Resources extensions
+* Improve Tensors - rewrite them from simple data holders to be real mathematical multidimensional arrays which you can conveniently transform in different ways
+* Add Compose Resources extensions
 * Add support for NPU (CoreML on iOS and NNAPI/QNN on Android)
-* Add support for image processing (for example, ImageClassifier)
+* Add utils for media and text processing
 
-If you have any other suggestions, feel free to create an issue, I'd love to hear your thoughts
+If you have any other suggestions, feel free to create an issue, I'd love to hear your thoughts!
 
 ## License
 ```
