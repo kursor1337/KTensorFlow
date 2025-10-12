@@ -1,19 +1,6 @@
 package dev.kursor.ktensorflow.tensor.impl
 
-import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-
-internal fun inferTensorDataType(data: Any): TensorDataType = when (data) {
-    is FloatArray -> TensorDataType.Float32
-    is IntArray -> TensorDataType.Int32
-    is ByteArray -> TensorDataType.Uint8
-    is LongArray -> TensorDataType.Int64
-    is Array<*> -> {
-        if (data.isEmpty()) error("Cannot infer data type from empty array")
-        inferTensorDataType(data[0]!!)
-    }
-    else -> error("Unsupported tensor data type: ${data::class}")
-}
 
 internal fun inferTensorShape(data: Any): TensorShape {
     val dims = mutableListOf<Int>()

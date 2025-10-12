@@ -1,35 +1,38 @@
 package dev.kursor.ktensorflow.tensor.impl
 
-import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
+import kotlin.reflect.KClass
 
-internal fun ByteArray.toShapedAndTypedArray(
-    dataType: TensorDataType,
+@OptIn(ExperimentalUnsignedTypes::class)
+internal fun <T : Any> ByteArray.toShapedAndTypedArray(
+    dataType: KClass<T>,
     shape: TensorShape
 ): Any {
-    val totalElements = shape.flatSize
 
     return when (dataType) {
-        TensorDataType.Float32 -> reshapeArray(
-            readFloatArray(this, totalElements),
+        Float::class -> reshapeArray(
+            readFloatArray(this),
             shape.dimensions
         )
-        TensorDataType.Int32 -> reshapeArray(
-            readIntArray(this, totalElements),
+        Int::class -> reshapeArray(
+            readIntArray(this),
             shape.dimensions
         )
-        TensorDataType.Uint8 -> reshapeArray(
-            readByteArray(this, totalElements),
+        UByte::class -> reshapeArray(
+            readUByteArray(this),
             shape.dimensions
         )
-        TensorDataType.Int64 -> reshapeArray(
-            readLongArray(this, totalElements),
+        Long::class -> reshapeArray(
+            readLongArray(this),
             shape.dimensions
         )
+
+        else -> throw IllegalArgumentException("Unsupported data type: $dataType")
     }
 }
 
-private fun readIntArray(bytes: ByteArray, count: Int): IntArray {
+private fun readIntArray(bytes: ByteArray): IntArray {
+    val count = bytes.size / 4
     val result = IntArray(count)
     for (i in 0 until count) {
         val offset = i * 4
@@ -42,23 +45,30 @@ private fun readIntArray(bytes: ByteArray, count: Int): IntArray {
     return result
 }
 
-private fun readFloatArray(bytes: ByteArray, count: Int): FloatArray {
-    val ints = readIntArray(bytes, count)
+private fun readFloatArray(bytes: ByteArray): FloatArray {
+    val count = bytes.size / 4
+    val ints = readIntArray(bytes)
     return FloatArray(count) { i -> Float.fromBits(ints[i]) }
 }
 
-private fun readByteArray(bytes: ByteArray, count: Int): ByteArray =
-    bytes.copyOf(count)
+@OptIn(ExperimentalUnsignedTypes::class)
+private fun readUByteArray(bytes: ByteArray): UByteArray =
+    bytes.toUByteArray()
 
-private fun readLongArray(bytes: ByteArray, count: Int): LongArray {
+private fun readLongArray(bytes: ByteArray): LongArray {
+    val count = bytes.size / 8
     val result = LongArray(count)
     for (i in 0 until count) {
-        var value = 0L
         val offset = i * 8
-        for (b in 0 until 8) {
-            value = value or ((bytes[offset + b].toLong() and 0xFF) shl (b * 8))
-        }
-        result[i] = value
+        result[i] =
+            (bytes[offset + 0].toLong() and 0xFF) or
+                    ((bytes[offset + 1].toLong() and 0xFF) shl 8) or
+                    ((bytes[offset + 2].toLong() and 0xFF) shl 16) or
+                    ((bytes[offset + 3].toLong() and 0xFF) shl 24) or
+                    ((bytes[offset + 4].toLong() and 0xFF) shl 32) or
+                    ((bytes[offset + 5].toLong() and 0xFF) shl 40) or
+                    ((bytes[offset + 6].toLong() and 0xFF) shl 48) or
+                    ((bytes[offset + 7].toLong() and 0xFF) shl 56)
     }
     return result
 }
