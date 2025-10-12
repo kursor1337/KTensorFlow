@@ -74,7 +74,7 @@ inline fun <reified T : Any> Tensor(
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T : Any, R : Any> Tensor<T>.toArray(dataType: KClass<T>): R =
+fun <T : Any, R : Any> Tensor<*>.toArray(dataType: KClass<T>): R =
     (data.toShapedAndTypedArray(dataType, shape) as? R)
         ?: throw IllegalArgumentException("Unsupported data type: $dataType")
 

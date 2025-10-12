@@ -12,7 +12,7 @@ import dev.kursor.ktensorflow.pipeline.stage.then
  */
 @ExperimentalKTensorFlowApi
 class InferencePipelineBuilder<Input : Tuple> internal constructor(
-    internal val inputStage: Stage<Input, List<Tensor>>,
+    internal val inputStage: Stage<Input, List<Tensor<*>>>,
     internal val interpreter: Interpreter
 )
 
@@ -30,8 +30,9 @@ fun <Input : Tuple, Output : Tuple> InputPipelineBuilder<Input, Output>.inferenc
     return InferencePipelineBuilder(inputStage, interpreter)
 }
 
+@Suppress("UNCHECKED_CAST")
 @ExperimentalKTensorFlowApi
-internal fun Tuple.toTensorList(): List<Tensor> = when (this) {
+internal fun Tuple.toTensorList(): List<Tensor<*>> = when (this) {
     is Tuple.Zero -> emptyList()
     is Tuple.One<*> -> listOf(
         this.first
@@ -117,4 +118,4 @@ internal fun Tuple.toTensorList(): List<Tensor> = when (this) {
         this.ninth,
         this.tenth
     )
-} as List<Tensor>
+} as List<Tensor<*>>
