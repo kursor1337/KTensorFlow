@@ -1,9 +1,13 @@
 package dev.kursor.ktensorflow.tensor
 
+import kotlin.reflect.KClass
+
 class FloatTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : Tensor<Float> {
+
+    override val dataType = TensorDataType.Float32
 
     override fun get(index: IntArray): Float {
         return data.readFloat(index.toFlatIndex(shape))

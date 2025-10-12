@@ -165,7 +165,7 @@ fun <T> Stage<T, Array<FloatArray>>.normalize() = this.then {
 
 @OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Tensor<Float>>.argmax() = this.then {
-    it.toArray<Float, FloatArray>().withIndex().maxBy { it.value }.index
+    it.toArray<FloatArray>().withIndex().maxBy { it.value }.index
 }
 
 @OptIn(ExperimentalKTensorFlowApi::class)

@@ -55,7 +55,7 @@ class ChessAiMoveRepositoryImpl(
         println("Inference time: ${time.inWholeMilliseconds} ms")
         val legalMoves = gameState.generateLegalMoves()
         output
-            .toArray<Float, FloatArray>()
+            .toArray<FloatArray>()
             .withIndex()
             .map {
                 val from = it.index / 64

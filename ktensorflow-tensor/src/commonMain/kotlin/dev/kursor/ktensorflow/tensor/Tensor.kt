@@ -6,6 +6,9 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 import kotlin.reflect.KClass
 
 sealed interface Tensor<T : Any> {
+
+    val dataType: KClass<T>
+
     val shape: TensorShape
 
     val data: ByteArray
@@ -73,9 +76,6 @@ inline fun <reified T : Any> Tensor(
     return Tensor(T::class, data)
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <T : Any, R : Any> Tensor<*>.toArray(dataType: KClass<T>): R =
+fun <R : Any> Tensor<*>.toArray(): R =
     (data.toShapedAndTypedArray(dataType, shape) as? R)
         ?: throw IllegalArgumentException("Unsupported data type: $dataType")
-
-inline fun <reified T : Any, R : Any> Tensor<T>.toArray(): R = toArray(T::class)

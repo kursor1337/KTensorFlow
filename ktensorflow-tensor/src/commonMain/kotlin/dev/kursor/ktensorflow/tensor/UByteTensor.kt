@@ -1,9 +1,14 @@
 package dev.kursor.ktensorflow.tensor
 
+import kotlin.reflect.KClass
+
 class UByteTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : Tensor<UByte> {
+
+    override val dataType = TensorDataType.UInt8
+
     override fun get(index: IntArray): UByte {
         return data.readUByte(index.toFlatIndex(shape))
     }
