@@ -33,39 +33,6 @@ class PipelineTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
-    fun loadModel(context: Context, fileName: String): ModelDesc {
-        val fileDescriptor = context.assets.openFd(fileName)
-        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-        val fileChannel = inputStream.channel
-        val byteBuffer = fileChannel.map(
-            FileChannel.MapMode.READ_ONLY,
-            fileDescriptor.startOffset,
-            fileDescriptor.declaredLength
-        )
-        return ModelDesc.ByteBuffer(byteBuffer)
-    }
-
-    fun loadDataset(context: Context, fileName: String): List<Pair<Byte, Array<UByteArray>>> {
-        val dataset = context
-            .assets
-            .open(fileName)
-
-        val csvDataFrame = CsvDataFrame(dataset)
-
-        return csvDataFrame.extractImages()
-    }
-
-    fun createInterpreter(context: Context, modelFileName: String): Interpreter {
-        val modelDesc = loadModel(context, modelFileName)
-
-        val options = InterpreterOptions(
-            numThreads = 4,
-            useXNNPACK = true
-        )
-
-        return Interpreter(modelDesc, options)
-    }
-
     @Test
     fun testSimple() {
         val interpreter = createInterpreter(context, "mnist.tflite")

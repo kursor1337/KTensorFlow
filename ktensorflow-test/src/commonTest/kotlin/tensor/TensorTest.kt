@@ -1,3 +1,6 @@
+package tensor
+
+import assertContentDeepEquals
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.toArray
 import kotlin.test.Test
