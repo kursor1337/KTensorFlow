@@ -2,15 +2,32 @@ package dev.kursor.ktensorflow.tensor
 
 import kotlin.reflect.KClass
 
-internal fun IntArray.toFlatIndex(shape: TensorShape): Int {
-    val strides = shape
-        .dimensions
-        .reversed()
-        .runningFold(1) { acc, element ->
-            acc * element
-        }
-        .reversed()
-    return zip(strides).sumOf { it.first * it.second }
+fun IntArray.toFlatIndex(shape: TensorShape): Int {
+    require(size == shape.rank) {
+        "Index rank $size doesn't match tensor rank ${shape.rank}"
+    }
+
+    var flatIndex = 0
+    var stride = 1
+    for (i in shape.rank - 1 downTo 0) {
+        flatIndex += this[i] * stride
+        stride *= shape.dimensions[i]
+    }
+    return flatIndex
+}
+
+fun Int.toNestedIndex(shape: TensorShape): IntArray {
+    require(this in 0 until shape.flatSize) {
+        "Flat index $this out of bounds for shape $shape"
+    }
+
+    val index = IntArray(shape.rank)
+    var remainder = this
+    for (i in shape.rank - 1 downTo 0) {
+        index[i] = remainder % shape.dimensions[i]
+        remainder /= shape.dimensions[i]
+    }
+    return index
 }
 
 internal fun ByteArray.readFloat(index: Int): Float {

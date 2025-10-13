@@ -1,7 +1,5 @@
 package dev.kursor.ktensorflow.tensor
 
-import kotlin.reflect.KClass
-
 class UByteTensor(
     override val shape: TensorShape,
     override val data: ByteArray

@@ -21,6 +21,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)
         }
+        
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
