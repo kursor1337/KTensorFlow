@@ -1,7 +1,5 @@
 package dev.kursor.ktensorflow.tensor
 
-import kotlin.reflect.KClass
-
 class FloatTensor(
     override val shape: TensorShape,
     override val data: ByteArray
