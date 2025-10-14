@@ -27,5 +27,9 @@ gradlePlugin {
             id = "convention.publishing"
             implementationClass = "PublishingPlugin"
         }
+        register("verify") {
+            id = "convention.verify"
+            implementationClass = "VerificationPlugin"
+        }
     }
 }
