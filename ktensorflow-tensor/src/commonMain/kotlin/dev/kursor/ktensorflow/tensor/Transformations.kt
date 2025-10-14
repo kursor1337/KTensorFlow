@@ -94,7 +94,7 @@ fun Tensor<Float>.sum(): Float {
     return s
 }
 
-fun Tensor<Float>.mean(): Float = sum() / shape.flatSize
+fun Tensor<Float>.avg(): Float = sum() / shape.flatSize
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : Any> Tensor<T>.toFloatTensor(): Tensor<Float> = when (T::class) {

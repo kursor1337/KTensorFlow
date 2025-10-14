@@ -5,8 +5,10 @@ import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.div
 import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
+import dev.kursor.ktensorflow.tensor.toFloatTensor
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,7 +33,7 @@ class InterpreterTest {
         data.forEachIndexed { i, pair ->
             val (label, image) = pair
 
-            val input = Tensor<UByte>(image)
+            val input = Tensor<UByte>(image).toFloatTensor() / 255f
             val output = Tensor<Float>(
                 shape = TensorShape(10)
             )

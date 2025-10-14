@@ -1,7 +1,9 @@
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.div
 import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
+import dev.kursor.ktensorflow.tensor.toFloatTensor
 import kotlin.math.sign
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -20,7 +22,8 @@ class InterpreterTest {
         data.forEachIndexed { i, pair ->
             val (label, image) = pair
 
-            val input = Tensor<UByte>(image)
+            val input = Tensor<UByte>(image).toFloatTensor() / 255f
+
             val output = Tensor<Float>(
                 shape = TensorShape(10)
             )
