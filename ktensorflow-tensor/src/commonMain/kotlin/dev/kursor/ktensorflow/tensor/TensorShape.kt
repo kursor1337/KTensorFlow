@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow
+package dev.kursor.ktensorflow.tensor
 
 import kotlin.jvm.JvmInline
 

@@ -32,6 +32,7 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.samples.chessEngine)
             implementation(projects.ktensorflowCore)
+            implementation(projects.ktensorflowTensor)
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowMoko)
             implementation(projects.ktensorflowPipeline)

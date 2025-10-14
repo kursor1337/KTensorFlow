@@ -2,9 +2,10 @@ package dev.kursor.ktensorflow.pipeline.stage
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
-import dev.kursor.ktensorflow.Tensor
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.run
+import kotlin.reflect.KClass
 
 /**
  * Represents an output data of the inference stage.
@@ -14,9 +15,9 @@ import dev.kursor.ktensorflow.TensorShape
  * @property shape The shape of the output tensor.
  */
 @ExperimentalKTensorFlowApi
-data class InferenceOutputData(
+data class InferenceOutputData<T : Any>(
     val index: Int,
-    val dataType: TensorDataType,
+    val dataType: KClass<T>,
     val shape: TensorShape
 )
 
@@ -24,11 +25,11 @@ data class InferenceOutputData(
  * Represents a single input and single output inference stage.
  */
 @ExperimentalKTensorFlowApi
-class SingleInferenceStage(
+class SingleInferenceStage<T : Any>(
     private val interpreter: Interpreter,
-    private val output: InferenceOutputData
-) : Stage<Tensor, Tensor> {
-    override fun run(input: Tensor): Tensor {
+    private val output: InferenceOutputData<T>
+) : Stage<Tensor<*>, Tensor<T>> {
+    override fun run(input: Tensor<*>): Tensor<T> {
         val outputTensor = mapOf(output.index to output.toTensor())
         interpreter.run(listOf(input), outputTensor)
         return outputTensor[output.index]!!
@@ -41,10 +42,10 @@ class SingleInferenceStage(
 @ExperimentalKTensorFlowApi
 class MultiInferenceStage(
     private val interpreter: Interpreter,
-    private val outputs: List<InferenceOutputData>
-) : Stage<List<Tensor>, Map<Int, Tensor>> {
+    private val outputs: List<InferenceOutputData<*>>
+) : Stage<List<Tensor<*>>, Map<Int, Tensor<*>>> {
 
-    override fun run(input: List<Tensor>): Map<Int, Tensor> {
+    override fun run(input: List<Tensor<*>>): Map<Int, Tensor<*>> {
         val outputTensors = outputs.associate {
             it.index to it.toTensor()
         }
@@ -62,12 +63,12 @@ class MultiInferenceStage(
  * @param index The index of the output tensor.
  */
 @ExperimentalKTensorFlowApi
-fun <Input> Stage<Input, Tensor>.inference(
+fun <Input, T : Any> Stage<Input, Tensor<T>>.inference(
     interpreter: Interpreter,
-    dataType: TensorDataType,
+    dataType: KClass<T>,
     shape: TensorShape,
     index: Int = 0
-): Stage<Input, Tensor> = this.then(
+): Stage<Input, Tensor<T>> = this.then(
     SingleInferenceStage(
         interpreter,
         InferenceOutputData(
@@ -85,12 +86,12 @@ fun <Input> Stage<Input, Tensor>.inference(
  * @param outputs The list of output data.
  */
 @ExperimentalKTensorFlowApi
-fun <Input> Stage<Input, List<Tensor>>.inference(
+fun <Input> Stage<Input, List<Tensor<*>>>.inference(
     interpreter: Interpreter,
-    outputs: List<InferenceOutputData>
-): Stage<Input, Map<Int, Tensor>> = this.then(
+    outputs: List<InferenceOutputData<*>>
+): Stage<Input, Map<Int, Tensor<*>>> = this.then(
     MultiInferenceStage(interpreter, outputs)
 )
 
 @ExperimentalKTensorFlowApi
-internal fun InferenceOutputData.toTensor() = Tensor(dataType, shape)
+internal fun <T : Any> InferenceOutputData<T>.toTensor() = Tensor(dataType, shape)

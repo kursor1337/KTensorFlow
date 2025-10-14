@@ -1,12 +1,13 @@
-import dev.kursor.ktensorflow.Tensor
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.toArray
 import kotlin.test.Test
 
 class TensorTest {
     @Test
     fun reshapeSmallFloat() {
         val data = Array(2) { i -> FloatArray(3) { j -> (i * 31 + j).toFloat() } }
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<FloatArray>>()
+        val tensor = Tensor<Float>(data)
+        val reshapedBack = tensor.toArray<Array<FloatArray>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -20,8 +21,8 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<FloatArray>>>()
+        val tensor = Tensor<Float>(data)
+        val reshapedBack = tensor.toArray<Array<Array<FloatArray>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -37,16 +38,16 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<Array<FloatArray>>>>()
+        val tensor = Tensor<Float>(data)
+        val reshapedBack = tensor.toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
     @Test
     fun reshapeSmallInt() {
         val data = Array(2) { i -> IntArray(3) { j -> i * 31 + j } }
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<IntArray>>()
+        val tensor = Tensor<Int>(data)
+        val reshapedBack = tensor.toArray<Array<IntArray>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -60,8 +61,8 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<IntArray>>>()
+        val tensor = Tensor<Int>(data)
+        val reshapedBack = tensor.toArray<Array<Array<IntArray>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -77,56 +78,59 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<Array<IntArray>>>>()
+        val tensor = Tensor<Int>(data)
+        val reshapedBack = tensor.toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     @Test
     fun reshapeSmallByte() {
-        val data = Array(2) { i -> ByteArray(3) { j -> (i * 31 + j).toByte() } }
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<ByteArray>>()
+        val data = Array(2) { i -> UByteArray(3) { j -> (i * 31 + j).toUByte() } }
+        val tensor = Tensor<UByte>(data)
+        val reshapedBack = tensor.toArray<Array<UByteArray>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     @Test
     fun reshapeLargeByte() {
         val data = Array(8) { i ->
             Array(8) { j ->
-                ByteArray(12) { k ->
-                    (i * 31 + j * 31 + k).toByte()
+                UByteArray(12) { k ->
+                    (i * 31 + j * 31 + k).toUByte()
                 }
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<ByteArray>>>()
+        val tensor = Tensor<UByte>(data)
+        val reshapedBack = tensor.toArray<Array<Array<UByteArray>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
+    @OptIn(ExperimentalUnsignedTypes::class)
     @Test
     fun reshapeVeryLargeByte() {
         val data = Array(100) { i ->
             Array(8) { j ->
                 Array(99) { k ->
-                    ByteArray(73) { l ->
-                        (i * 31 + j * 31 + k * 31 + l).toByte()
+                    UByteArray(73) { l ->
+                        (i * 31 + j * 31 + k * 31 + l).toUByte()
                     }
                 }
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<Array<ByteArray>>>>()
+        val tensor = Tensor<UByte>(data)
+        val reshapedBack = tensor.toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
     @Test
     fun reshapeSmallLong() {
         val data = Array(2) { i -> LongArray(3) { j -> (i * 31 + j).toLong() } }
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<LongArray>>()
+        val tensor = Tensor<Long>(data)
+        val reshapedBack = tensor.toArray<Array<LongArray>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -140,8 +144,8 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<LongArray>>>()
+        val tensor = Tensor<Long>(data)
+        val reshapedBack = tensor.toArray<Array<Array<LongArray>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 
@@ -157,8 +161,8 @@ class TensorTest {
             }
         }
 
-        val tensor = Tensor(data)
-        val reshapedBack = tensor.typedData<Array<Array<Array<LongArray>>>>()
+        val tensor = Tensor<Long>(data)
+        val reshapedBack = tensor.toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(data, reshapedBack)
     }
 }

@@ -6,7 +6,6 @@ import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.Tensor
 import dev.kursor.ktensorflow.TensorDataType
 import dev.kursor.ktensorflow.TensorShape
-import dev.kursor.ktensorflow.run
 import dev.kursor.ktensorflow.typedData
 import org.junit.Assert.assertTrue
 import org.junit.Test

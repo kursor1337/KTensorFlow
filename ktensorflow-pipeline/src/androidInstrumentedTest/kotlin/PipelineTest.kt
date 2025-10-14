@@ -7,11 +7,7 @@ import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.Tensor
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
 import dev.kursor.ktensorflow.pipeline.Pipeline
-import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.builder.inference
 import dev.kursor.ktensorflow.pipeline.builder.input
 import dev.kursor.ktensorflow.pipeline.builder.output
@@ -20,7 +16,11 @@ import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.inference
 import dev.kursor.ktensorflow.pipeline.stage.then
 import dev.kursor.ktensorflow.pipeline.tuple
-import dev.kursor.ktensorflow.typedData
+import dev.kursor.ktensorflow.tensor.FloatTensor
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.toArray
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,7 +100,7 @@ class PipelineTest {
                 index = 0,
                 dataType = TensorDataType.Float32,
                 shape = TensorShape(10),
-                Stage<Tensor>()
+                Stage<Tensor<Float>>()
                     .argmax()
                     .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
             )
@@ -141,7 +141,7 @@ fun CsvDataFrame.extractImages(): List<Pair<Byte, Array<UByteArray>>> =
     }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <I, O : Any> Stage<I, O>.tensorize(): Stage<I, Tensor> = this.then { Tensor(it) }
+fun <I, O : Any> Stage<I, O>.tensorize(): Stage<I, Tensor<Float>> = this.then { Tensor<Float>(it) }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Array<UByteArray>>.floatify() = this.then {
@@ -164,8 +164,8 @@ fun <T> Stage<T, Array<FloatArray>>.normalize() = this.then {
 
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <T> Stage<T, Tensor>.argmax() = this.then {
-    it.typedData<FloatArray>().withIndex().maxBy { it.value }.index
+fun <T> Stage<T, Tensor<Float>>.argmax() = this.then {
+    it.toArray<FloatArray>().withIndex().maxBy { it.value }.index
 }
 
 @OptIn(ExperimentalKTensorFlowApi::class)

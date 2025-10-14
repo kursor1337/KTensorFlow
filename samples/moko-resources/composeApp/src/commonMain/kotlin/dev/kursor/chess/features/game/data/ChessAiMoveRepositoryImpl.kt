@@ -12,13 +12,12 @@ import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.Tensor
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
 import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
-import dev.kursor.ktensorflow.run
-import dev.kursor.ktensorflow.typedData
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.run
+import dev.kursor.ktensorflow.tensor.toArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,8 +40,7 @@ class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
 
     @OptIn(ExperimentalTime::class)
     override suspend fun getMove(gameState: GameState): Move = withContext(Dispatchers.Default) {
-        val output = Tensor(
-            dataType = TensorDataType.Float32,
+        val output = Tensor<Float>(
             shape = TensorShape(4096)
         )
         val time = measureTime {
@@ -54,7 +52,7 @@ class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
         println("Inference time: ${time.inWholeMilliseconds} ms")
         val legalMoves = gameState.generateLegalMoves()
         output
-            .typedData<FloatArray>()
+            .toArray<FloatArray>()
             .withIndex()
             .map {
                 val from = it.index / 64
@@ -72,7 +70,7 @@ class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
     }
 }
 
-private fun Board.toTensor(): Tensor {
+private fun Board.toTensor(): Tensor<Float> {
     val data = Array(8) { Array(8) { FloatArray(12) } }
     squares.forEachIndexed { i, row ->
         row.forEachIndexed { j, square ->

@@ -1,20 +1,22 @@
-package dev.kursor.ktensorflow.impl
+package dev.kursor.ktensorflow.tensor.impl
 
-import dev.kursor.ktensorflow.TensorDataType
-import dev.kursor.ktensorflow.TensorShape
+import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.byteSize
+import kotlin.reflect.KClass
 
-internal fun Any.toByteArray(
-    dataType: TensorDataType,
+@OptIn(ExperimentalUnsignedTypes::class)
+internal fun <T : Any> Any.toByteArray(
+    dataType: KClass<T>,
     shape: TensorShape
 ): ByteArray {
     val totalElements = shape.flatSize
     val byteArray = ByteArray(totalElements * dataType.byteSize)
 
     when (dataType) {
-        TensorDataType.Float32 -> writeFlatFloatArray(flattenFloatArray(this, shape), byteArray)
-        TensorDataType.Int32 -> writeFlatIntArray(flattenIntArray(this, shape), byteArray)
-        TensorDataType.Uint8 -> writeFlatByteArray(flattenByteArray(this, shape), byteArray)
-        TensorDataType.Int64 -> writeFlatLongArray(flattenLongArray(this, shape), byteArray)
+        Float::class -> writeFlatFloatArray(flattenFloatArray(this, shape), byteArray)
+        Int::class -> writeFlatIntArray(flattenIntArray(this, shape), byteArray)
+        UByte::class -> writeFlatUByteArray(flattenUByteArray(this, shape), byteArray)
+        Long::class -> writeFlatLongArray(flattenLongArray(this, shape), byteArray)
     }
 
     return byteArray
@@ -56,12 +58,13 @@ private fun flattenIntArray(array: Any, shape: TensorShape): IntArray {
     return flat
 }
 
-private fun flattenByteArray(array: Any, shape: TensorShape): ByteArray {
-    val flat = ByteArray(shape.flatSize)
+@OptIn(ExperimentalUnsignedTypes::class)
+private fun flattenUByteArray(array: Any, shape: TensorShape): UByteArray {
+    val flat = UByteArray(shape.flatSize)
     var index = 0
     fun recurse(curr: Any) {
         when (curr) {
-            is ByteArray -> {
+            is UByteArray -> {
                 for (v in curr) flat[index++] = v
             }
             is Array<*> -> {
@@ -113,9 +116,10 @@ private fun writeFlatIntArray(src: IntArray, dest: ByteArray) {
     }
 }
 
-private fun writeFlatByteArray(src: ByteArray, dest: ByteArray) {
+@OptIn(ExperimentalUnsignedTypes::class)
+private fun writeFlatUByteArray(src: UByteArray, dest: ByteArray) {
     for (i in src.indices) {
-        dest[i] = src[i]
+        dest[i] = src[i].toByte()
     }
 }
 
