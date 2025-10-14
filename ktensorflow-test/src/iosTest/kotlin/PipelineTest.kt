@@ -1,12 +1,6 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
-import android.content.Context
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
-import dev.kursor.ktensorflow.Interpreter
-import dev.kursor.ktensorflow.InterpreterOptions
-import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.builder.inference
 import dev.kursor.ktensorflow.pipeline.builder.input
@@ -16,59 +10,19 @@ import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.inference
 import dev.kursor.ktensorflow.pipeline.stage.then
 import dev.kursor.ktensorflow.pipeline.tuple
-import dev.kursor.ktensorflow.tensor.FloatTensor
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.toArray
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import org.junit.runner.RunWith
-import java.io.FileInputStream
-import java.nio.channels.FileChannel
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
-@RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalKTensorFlowApi::class)
 class PipelineTest {
 
-    private val context = InstrumentationRegistry.getInstrumentation().targetContext
-
-    fun loadModel(context: Context, fileName: String): ModelDesc {
-        val fileDescriptor = context.assets.openFd(fileName)
-        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-        val fileChannel = inputStream.channel
-        val byteBuffer = fileChannel.map(
-            FileChannel.MapMode.READ_ONLY,
-            fileDescriptor.startOffset,
-            fileDescriptor.declaredLength
-        )
-        return ModelDesc.ByteBuffer(byteBuffer)
-    }
-
-    fun loadDataset(context: Context, fileName: String): List<Pair<Byte, Array<UByteArray>>> {
-        val dataset = context
-            .assets
-            .open(fileName)
-
-        val csvDataFrame = CsvDataFrame(dataset)
-
-        return csvDataFrame.extractImages()
-    }
-
-    fun createInterpreter(context: Context, modelFileName: String): Interpreter {
-        val modelDesc = loadModel(context, modelFileName)
-
-        val options = InterpreterOptions(
-            numThreads = 4,
-            useXNNPACK = true
-        )
-
-        return Interpreter(modelDesc, options)
-    }
-
     @Test
     fun testSimple() {
-        val interpreter = createInterpreter(context, "mnist.tflite")
+        val interpreter = createInterpreter("mnist", "tflite")
         val pipeline = Pipeline.linear<Array<UByteArray>>()
             .floatify()
             .normalize()
@@ -87,7 +41,7 @@ class PipelineTest {
 
     @Test
     fun testComplex() {
-        val interpreter = createInterpreter(context, "mnist.tflite")
+        val interpreter = createInterpreter("mnist", "tflite")
         val pipeline = Pipeline
             .input(
                 Stage<Array<UByteArray>>()
@@ -111,7 +65,7 @@ class PipelineTest {
 
     private fun test(pipelineRun: (Array<UByteArray>) -> String) {
 
-        val data = loadDataset(context, "mnist.csv")
+        val data = loadDataset("mnist", "csv")
 
         var accuratePredictions = 0
 
@@ -132,6 +86,7 @@ class PipelineTest {
 fun CsvDataFrame.extractImages(): List<Pair<Byte, Array<UByteArray>>> =
     this.map {
         val label = it["label"].toByte()
+
         val image = Array(28) { i ->
             UByteArray(28) { j ->
                 it["${i + 1}x${j + 1}"].toUByte()

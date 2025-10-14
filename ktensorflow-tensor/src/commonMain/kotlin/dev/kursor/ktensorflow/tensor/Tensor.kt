@@ -14,6 +14,7 @@ sealed interface Tensor<T : Any> {
     val data: ByteArray
 
     operator fun get(index: IntArray): T
+
     operator fun set(index: IntArray, value: T)
 }
 

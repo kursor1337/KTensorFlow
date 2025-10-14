@@ -31,19 +31,14 @@ fun Int.toNestedIndex(shape: TensorShape): IntArray {
 }
 
 internal fun ByteArray.readFloat(index: Int): Float {
-    return Float.fromBits(
-        this[4 * index].toInt() or
-                (this[4 * index + 1].toInt() shl 8) or
-                (this[4 * index + 2].toInt() shl 16) or
-                (this[4 * index + 3].toInt() shl 24)
-    )
+    return Float.fromBits(readInt(index))
 }
 
 internal fun ByteArray.readInt(index: Int): Int {
-    return this[4 * index].toInt() or
-            (this[4 * index + 1].toInt() shl 8) or
-            (this[4 * index + 2].toInt() shl 16) or
-            (this[4 * index + 3].toInt() shl 24)
+    return (this[4 * index].toInt() and 0xFF) or
+            ((this[4 * index + 1].toInt() and 0xFF) shl 8) or
+            ((this[4 * index + 2].toInt() and 0xFF) shl 16) or
+            ((this[4 * index + 3].toInt() and 0xFF) shl 24)
 }
 
 internal fun ByteArray.readUByte(index: Int): UByte {
@@ -51,14 +46,14 @@ internal fun ByteArray.readUByte(index: Int): UByte {
 }
 
 internal fun ByteArray.readLong(index: Int): Long {
-    return this[8 * index].toLong() or
-            (this[8 * index + 1].toLong() shl 8) or
-            (this[8 * index + 2].toLong() shl 16) or
-            (this[8 * index + 3].toLong() shl 24) or
-            (this[8 * index + 4].toLong() shl 32) or
-            (this[8 * index + 5].toLong() shl 40) or
-            (this[8 * index + 6].toLong() shl 48) or
-            (this[8 * index + 7].toLong() shl 56)
+    return ((this[8 * index].toLong() and 0xFF) or
+            ((this[8 * index + 1].toLong() and 0xFF) shl 8) or
+            ((this[8 * index + 2].toLong() and 0xFF) shl 16) or
+            ((this[8 * index + 3].toLong()) shl 24) or
+            ((this[8 * index + 4].toLong() and 0xFF) shl 32) or
+            ((this[8 * index + 5].toLong() and 0xFF) shl 40) or
+            ((this[8 * index + 6].toLong() and 0xFF) shl 48) or
+            ((this[8 * index + 7].toLong() and 0xFF) shl 56))
 }
 
 internal fun ByteArray.writeFloat(index: Int, value: Float) {

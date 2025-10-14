@@ -44,6 +44,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.tensorflow.gpu)
+            implementation(libs.tensorflow.gpu.api)
             implementation(projects.ktensorflowCore)
         }
     }

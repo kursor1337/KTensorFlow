@@ -27,9 +27,6 @@ kotlin {
             implementation(libs.androidx.startup.runtime)
         }
     }
-    sourceSets.androidInstrumentedTest.dependencies {
-        implementation(kotlin("test"))
-    }
 }
 
 android {

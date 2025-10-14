@@ -1,8 +1,11 @@
+package tensor
+
+import assertContentDeepEquals
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.toArray
 import kotlin.test.Test
 
-class TensorTest {
+class ToArrayTest {
     @Test
     fun reshapeSmallFloat() {
         val data = Array(2) { i -> FloatArray(3) { j -> (i * 31 + j).toFloat() } }
