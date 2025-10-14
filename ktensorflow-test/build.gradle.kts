@@ -108,7 +108,7 @@ val copyIosSimulatorArm64TestResources = tasks.register<Copy>("copyIosSimulatorA
 
 tasks.findByName("iosSimulatorArm64Test")!!.dependsOn(copyIosSimulatorArm64TestResources)
 
-tasks.register<Exec>("startEmulator") {
+val startEmulator = tasks.register<Exec>("startEmulator") {
     group = "verification"
     description = "Starts the first available Android emulator if no emulator is currently running (ignores physical devices)"
 
@@ -141,7 +141,7 @@ tasks.register<Exec>("startEmulator") {
 }
 
 tasks.matching { it.name.startsWith("connected") && it.name.endsWith("AndroidTest") }.configureEach {
-    dependsOn("startEmulator")
+    dependsOn(startEmulator)
 }
 
 tasks.register("runAllTests") {
@@ -152,8 +152,4 @@ tasks.register("runAllTests") {
         "iosSimulatorArm64Test",
         "connectedAndroidTest"
     )
-}
-
-tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
-    dependsOn("runAllTests")
 }

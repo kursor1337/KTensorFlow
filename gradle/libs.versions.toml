@@ -107,3 +107,4 @@ publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 # Convention plugins
 convention-detekt = { id = "convention.detekt" }
 convention-publishing = { id = "convention.publishing" }
+convention-verify = { id = "convention.verify" }
