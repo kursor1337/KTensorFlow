@@ -13,4 +13,4 @@ plugins {
 }
 
 group = "dev.kursor.ktensorflow"
-version = "0.3"
+version = "1.0"
