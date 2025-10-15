@@ -15,7 +15,9 @@ import dev.kursor.ktensorflow.pipeline.tuple
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.toArray
+import dev.kursor.ktensorflow.tensor.argmax
+import dev.kursor.ktensorflow.tensor.normalize
+import dev.kursor.ktensorflow.tensor.toFloatTensor
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,9 +32,9 @@ class PipelineTest {
     fun testSimple() {
         val interpreter = createInterpreter(context, "mnist.tflite")
         val pipeline = Pipeline.linear<Array<UByteArray>>()
+            .tensorize()
             .floatify()
             .normalize()
-            .tensorize()
             .inference(
                 interpreter = interpreter,
                 index = 0,
@@ -51,9 +53,9 @@ class PipelineTest {
         val pipeline = Pipeline
             .input(
                 Stage<Array<UByteArray>>()
+                    .tensorize()
                     .floatify()
                     .normalize()
-                    .tensorize()
             )
             .inference(interpreter)
             .output(
@@ -101,32 +103,17 @@ fun CsvDataFrame.extractImages(): List<Pair<Byte, Array<UByteArray>>> =
     }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <I, O : Any> Stage<I, O>.tensorize(): Stage<I, Tensor<Float>> = this.then { Tensor<Float>(it) }
+fun <I, O : Any> Stage<I, O>.tensorize(): Stage<I, Tensor<UByte>> = this.then { Tensor<UByte>(it) }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <T> Stage<T, Array<UByteArray>>.floatify() = this.then {
-    Array(it.size) { i ->
-        FloatArray(it.size) { j ->
-            it[i][j].toFloat()
-        }
-    }
-}
+fun <T> Stage<T, Tensor<UByte>>.floatify() = this.then { it.toFloatTensor() }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <T> Stage<T, Array<FloatArray>>.normalize() = this.then {
-    val maxValue = it.maxBy { it.max() }.max()
-    Array(it.size) { i ->
-        FloatArray(it[i].size) { j ->
-            it[i][j] / maxValue
-        }
-    }
-}
+fun <T> Stage<T, Tensor<Float>>.normalize() = this.then { it.normalize() }
 
 
 @OptIn(ExperimentalKTensorFlowApi::class)
-fun <T> Stage<T, Tensor<Float>>.argmax() = this.then {
-    it.toArray<FloatArray>().withIndex().maxBy { it.value }.index
-}
+fun <T> Stage<T, Tensor<Float>>.argmax() = this.then { it.argmax()[0] }
 
 @OptIn(ExperimentalKTensorFlowApi::class)
 fun <T, C> Stage<T, Int>.classify(classes: List<C>) = this.then { classes[it] }

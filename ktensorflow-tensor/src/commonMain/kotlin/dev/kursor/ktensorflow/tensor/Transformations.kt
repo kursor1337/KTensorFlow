@@ -185,7 +185,7 @@ fun Tensor<Long>.max(): Long {
 }
 
 @JvmName("argMaxFloat")
-fun Tensor<Float>.argMax(): IntArray {
+fun Tensor<Float>.argmax(): IntArray {
     var max = Float.MIN_VALUE
     var maxIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -198,7 +198,7 @@ fun Tensor<Float>.argMax(): IntArray {
 }
 
 @JvmName("argMaxInt")
-fun Tensor<Int>.argMax(): IntArray {
+fun Tensor<Int>.argmax(): IntArray {
     var max = Int.MIN_VALUE
     var maxIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -211,7 +211,7 @@ fun Tensor<Int>.argMax(): IntArray {
 }
 
 @JvmName("argMaxUByte")
-fun Tensor<UByte>.argMax(): IntArray {
+fun Tensor<UByte>.argmax(): IntArray {
     var max = UByte.MIN_VALUE
     var maxIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -224,7 +224,7 @@ fun Tensor<UByte>.argMax(): IntArray {
 }
 
 @JvmName("argMaxLong")
-fun Tensor<Long>.argMax(): IntArray {
+fun Tensor<Long>.argmax(): IntArray {
     var max = Long.MIN_VALUE
     var maxIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -237,7 +237,7 @@ fun Tensor<Long>.argMax(): IntArray {
 }
 
 @JvmName("argMinFloat")
-fun Tensor<Float>.argMin(): IntArray {
+fun Tensor<Float>.argmin(): IntArray {
     var min = Float.MAX_VALUE
     var minIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -250,7 +250,7 @@ fun Tensor<Float>.argMin(): IntArray {
 }
 
 @JvmName("argMinInt")
-fun Tensor<Int>.argMin(): IntArray {
+fun Tensor<Int>.argmin(): IntArray {
     var min = Int.MAX_VALUE
     var minIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -263,7 +263,7 @@ fun Tensor<Int>.argMin(): IntArray {
 }
 
 @JvmName("argMinUByte")
-fun Tensor<UByte>.argMin(): IntArray {
+fun Tensor<UByte>.argmin(): IntArray {
     var min = UByte.MAX_VALUE
     var minIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
@@ -276,7 +276,7 @@ fun Tensor<UByte>.argMin(): IntArray {
 }
 
 @JvmName("argMinLong")
-fun Tensor<Long>.argMin(): IntArray {
+fun Tensor<Long>.argmin(): IntArray {
     var min = Long.MAX_VALUE
     var minIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->

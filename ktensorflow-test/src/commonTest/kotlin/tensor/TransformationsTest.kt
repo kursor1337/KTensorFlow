@@ -3,8 +3,8 @@ package tensor
 import assertContentDeepEquals
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.argMax
-import dev.kursor.ktensorflow.tensor.argMin
+import dev.kursor.ktensorflow.tensor.argmax
+import dev.kursor.ktensorflow.tensor.argmin
 import dev.kursor.ktensorflow.tensor.avg
 import dev.kursor.ktensorflow.tensor.flatten
 import dev.kursor.ktensorflow.tensor.forEach
@@ -24,12 +24,9 @@ import dev.kursor.ktensorflow.tensor.toFlatIndex
 import dev.kursor.ktensorflow.tensor.toFloatTensor
 import dev.kursor.ktensorflow.tensor.toIntTensor
 import dev.kursor.ktensorflow.tensor.transpose
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.expect
 
 class TransformationsTest {
 
@@ -214,7 +211,7 @@ class TransformationsTest {
     fun argMaxTest() {
         val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
         val tensor = Tensor<Float>(data)
-        val result = tensor.argMax()
+        val result = tensor.argmax()
         assertContentEquals(
             expected =  intArrayOf(1, 2),
             actual = result
@@ -225,7 +222,7 @@ class TransformationsTest {
     fun argMinTest() {
         val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
         val tensor = Tensor<Float>(data)
-        val result = tensor.argMin()
+        val result = tensor.argmin()
         assertContentEquals(
             expected =  intArrayOf(0, 0),
             actual = result
