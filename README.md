@@ -9,9 +9,9 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Loading of the model](#load-the-model)
+  - [Model loading](#load-the-model)
     - [Moko resources extensions](#moko-resources-extensions)
-  - [Run inference](#run-inference)
+  - [Inference](#run-inference)
     - [Data transformation with Tensors](#data-transformation-with-tensors)
   - [Hardware acceleration](#hardware-acceleration)
   - [Providing platform-specific options](#providing-platform-specific-options)
