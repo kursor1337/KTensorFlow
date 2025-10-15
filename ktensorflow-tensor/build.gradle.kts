@@ -26,10 +26,12 @@ kotlin {
 
 android {
     namespace = "dev.kursor.ktensorflow.tensor"
-    compileSdk = 35
+
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
-        minSdk = 24
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

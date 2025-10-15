@@ -86,12 +86,3 @@ internal fun ByteArray.writeLong(index: Int, value: Long) {
     this[8 * index + 6] = ((value shr 48) and 0xFF).toByte()
     this[8 * index + 7] = ((value shr 56) and 0xFF).toByte()
 }
-
-val <T : Any> KClass<T>.byteSize: Int
-    get() = when (this) {
-        Float::class -> 4
-        Int::class -> 4
-        UByte::class -> 1
-        Long::class -> 8
-        else -> throw IllegalArgumentException("Unsupported type: $this")
-    }

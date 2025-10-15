@@ -1,34 +1,32 @@
 package dev.kursor.ktensorflow.tensor.impl
 
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-import kotlin.reflect.KClass
 
 @OptIn(ExperimentalUnsignedTypes::class)
 internal fun <T : Any> ByteArray.toShapedAndTypedArray(
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape
-): Any {
+): Any = when (dataType) {
+    TensorDataType.Float32 -> reshapeArray(
+        readFloatArray(this),
+        shape.dimensions
+    )
 
-    return when (dataType) {
-        Float::class -> reshapeArray(
-            readFloatArray(this),
-            shape.dimensions
-        )
-        Int::class -> reshapeArray(
-            readIntArray(this),
-            shape.dimensions
-        )
-        UByte::class -> reshapeArray(
-            readUByteArray(this),
-            shape.dimensions
-        )
-        Long::class -> reshapeArray(
-            readLongArray(this),
-            shape.dimensions
-        )
+    TensorDataType.Int32 -> reshapeArray(
+        readIntArray(this),
+        shape.dimensions
+    )
 
-        else -> throw IllegalArgumentException("Unsupported data type: $dataType")
-    }
+    TensorDataType.UInt8 -> reshapeArray(
+        readUByteArray(this),
+        shape.dimensions
+    )
+
+    TensorDataType.Int64 -> reshapeArray(
+        readLongArray(this),
+        shape.dimensions
+    )
 }
 
 private fun readIntArray(bytes: ByteArray): IntArray {

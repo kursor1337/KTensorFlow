@@ -1,22 +1,21 @@
 package dev.kursor.ktensorflow.tensor.impl
 
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.byteSize
-import kotlin.reflect.KClass
 
 @OptIn(ExperimentalUnsignedTypes::class)
 internal fun <T : Any> Any.toByteArray(
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape
 ): ByteArray {
     val totalElements = shape.flatSize
     val byteArray = ByteArray(totalElements * dataType.byteSize)
 
     when (dataType) {
-        Float::class -> writeFlatFloatArray(flattenFloatArray(this, shape), byteArray)
-        Int::class -> writeFlatIntArray(flattenIntArray(this, shape), byteArray)
-        UByte::class -> writeFlatUByteArray(flattenUByteArray(this, shape), byteArray)
-        Long::class -> writeFlatLongArray(flattenLongArray(this, shape), byteArray)
+        TensorDataType.Float32 -> writeFlatFloatArray(flattenFloatArray(this, shape), byteArray)
+        TensorDataType.Int32 -> writeFlatIntArray(flattenIntArray(this, shape), byteArray)
+        TensorDataType.UInt8 -> writeFlatUByteArray(flattenUByteArray(this, shape), byteArray)
+        TensorDataType.Int64 -> writeFlatLongArray(flattenLongArray(this, shape), byteArray)
     }
 
     return byteArray

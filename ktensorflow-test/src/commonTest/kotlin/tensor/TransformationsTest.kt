@@ -3,6 +3,8 @@ package tensor
 import assertContentDeepEquals
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.argmax
+import dev.kursor.ktensorflow.tensor.argmin
 import dev.kursor.ktensorflow.tensor.avg
 import dev.kursor.ktensorflow.tensor.flatten
 import dev.kursor.ktensorflow.tensor.forEach
@@ -11,6 +13,9 @@ import dev.kursor.ktensorflow.tensor.map
 import dev.kursor.ktensorflow.tensor.mapInPlace
 import dev.kursor.ktensorflow.tensor.mapInPlaceIndexed
 import dev.kursor.ktensorflow.tensor.mapIndexed
+import dev.kursor.ktensorflow.tensor.max
+import dev.kursor.ktensorflow.tensor.min
+import dev.kursor.ktensorflow.tensor.normalize
 import dev.kursor.ktensorflow.tensor.reshape
 import dev.kursor.ktensorflow.tensor.slice
 import dev.kursor.ktensorflow.tensor.sum
@@ -19,11 +24,9 @@ import dev.kursor.ktensorflow.tensor.toFlatIndex
 import dev.kursor.ktensorflow.tensor.toFloatTensor
 import dev.kursor.ktensorflow.tensor.toIntTensor
 import dev.kursor.ktensorflow.tensor.transpose
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.expect
 
 class TransformationsTest {
 
@@ -186,5 +189,87 @@ class TransformationsTest {
             expected =  arrayOf(intArrayOf(0, 1, 2), intArrayOf(3, 4, 5)),
             actual = result.toArray()
         )
+    }
+
+    @Test
+    fun maxTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val result = tensor.max()
+        assertEquals(5f, result)
+    }
+
+    @Test
+    fun minTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val result = tensor.min()
+        assertEquals(0f, result)
+    }
+
+    @Test
+    fun argMaxTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val result = tensor.argmax()
+        assertContentEquals(
+            expected =  intArrayOf(1, 2),
+            actual = result
+        )
+    }
+
+    @Test
+    fun argMinTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val result = tensor.argmin()
+        assertContentEquals(
+            expected =  intArrayOf(0, 0),
+            actual = result
+        )
+    }
+
+    @Test
+    fun normalizeTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val result = tensor.normalize()
+        assertContentDeepEquals(
+            expected =  arrayOf(floatArrayOf(0f / 5, 1f / 5, 2f / 5), floatArrayOf(3f / 5, 4f / 5, 5f / 5)),
+            actual = result.toArray()
+        )
+    }
+
+    @Test
+    fun equalsFloatTest() {
+        val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
+        val tensor = Tensor<Float>(data)
+        val tensor2 = tensor.map { it }
+        assertEquals(tensor, tensor2)
+    }
+
+    @Test
+    fun equalsIntTest() {
+        val data = Array(2) { i -> IntArray(3) { j -> (i * 3 + j) } }
+        val tensor = Tensor<Int>(data)
+        val tensor2 = tensor.map { it }
+        assertEquals(tensor, tensor2)
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun equalsUByteTest() {
+        val data = Array(2) { i -> UByteArray(3) { j -> (i * 3 + j).toUByte() } }
+        val tensor = Tensor<UByte>(data)
+        val tensor2 = tensor.map { it }
+        assertEquals(tensor, tensor2)
+    }
+
+    @Test
+    fun equalsLongTest() {
+        val data = Array(2) { i -> LongArray(3) { j -> (i * 3 + j).toLong() } }
+        val tensor = Tensor<Long>(data)
+        val tensor2 = tensor.map { it }
+        assertEquals(tensor, tensor2)
     }
 }

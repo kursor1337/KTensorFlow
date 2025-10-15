@@ -32,4 +32,4 @@ value class TensorShape(
  *
  * @param dimensions The dimensions of the tensor.
  */
-inline fun TensorShape(vararg dimensions: Int) = TensorShape(dimensions)
+fun TensorShape(vararg dimensions: Int) = TensorShape(dimensions)
