@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 sealed interface Tensor<T : Any> {
 
-    val dataType: KClass<T>
+    val dataType: TensorDataType<T>
 
     val shape: TensorShape
 
@@ -28,53 +28,50 @@ operator fun <T : Any> Tensor<T>.set(vararg index: Int, value: T) {
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     data: ByteArray = ByteArray(shape.flatSize * dataType.byteSize)
 ): Tensor<T> = when (dataType) {
-    Float::class -> FloatTensor(shape, data)
-    Int::class -> IntTensor(shape, data)
-    UByte::class -> UByteTensor(shape, data)
-    Long::class -> LongTensor(shape, data)
-    else -> throw IllegalArgumentException("Unsupported data type: $dataType")
+    TensorDataType.Float32 -> FloatTensor(shape, data)
+    TensorDataType.Int32 -> IntTensor(shape, data)
+    TensorDataType.UInt8 -> UByteTensor(shape, data)
+    TensorDataType.Int64 -> LongTensor(shape, data)
 } as Tensor<T>
 
 inline fun <reified T : Any> Tensor(
     shape: TensorShape,
-    data: ByteArray = ByteArray(shape.flatSize * T::class.byteSize)
-) = Tensor(T::class, shape, data)
+    data: ByteArray = ByteArray(shape.flatSize * TensorDataType.of<T>().byteSize)
+): Tensor<T> = Tensor(TensorDataType.of<T>(), shape, data)
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     data: Any
 ): Tensor<T> {
     val shape = inferTensorShape(data)
     return when (dataType) {
-        Float::class -> {
-            FloatTensor(shape, data.toByteArray(Float::class, shape))
+        TensorDataType.Float32 -> {
+            FloatTensor(shape, data.toByteArray(dataType, shape))
         }
 
-        Int::class -> {
-            IntTensor(shape, data.toByteArray(Int::class, shape))
+        TensorDataType.Int32 -> {
+            IntTensor(shape, data.toByteArray(dataType, shape))
         }
 
-        UByte::class -> {
-            UByteTensor(shape, data.toByteArray(UByte::class, shape))
+        TensorDataType.UInt8 -> {
+            UByteTensor(shape, data.toByteArray(dataType, shape))
         }
 
-        Long::class -> {
-            LongTensor(shape, data.toByteArray(Long::class, shape))
+        TensorDataType.Int64 -> {
+            LongTensor(shape, data.toByteArray(dataType, shape))
         }
-
-        else -> throw IllegalArgumentException("Unsupported data type: $dataType")
     } as Tensor<T>
 }
 
 inline fun <reified T : Any> Tensor(
     data: Any
 ): Tensor<T> {
-    return Tensor(T::class, data)
+    return Tensor(TensorDataType.of<T>(), data)
 }
 
 fun <R : Any> Tensor<*>.toArray(): R =

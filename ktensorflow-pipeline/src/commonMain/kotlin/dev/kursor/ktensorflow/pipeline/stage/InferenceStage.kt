@@ -3,6 +3,7 @@ package dev.kursor.ktensorflow.pipeline.stage
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.run
 import kotlin.reflect.KClass
@@ -17,7 +18,7 @@ import kotlin.reflect.KClass
 @ExperimentalKTensorFlowApi
 data class InferenceOutputData<T : Any>(
     val index: Int,
-    val dataType: KClass<T>,
+    val dataType: TensorDataType<T>,
     val shape: TensorShape
 )
 
@@ -65,7 +66,7 @@ class MultiInferenceStage(
 @ExperimentalKTensorFlowApi
 fun <Input, T : Any> Stage<Input, Tensor<T>>.inference(
     interpreter: Interpreter,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     index: Int = 0
 ): Stage<Input, Tensor<T>> = this.then(

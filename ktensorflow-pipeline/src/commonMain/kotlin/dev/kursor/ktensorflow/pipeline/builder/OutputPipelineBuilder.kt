@@ -11,6 +11,7 @@ import dev.kursor.ktensorflow.pipeline.stage.InferenceOutputData
 import dev.kursor.ktensorflow.pipeline.stage.MultiInferenceStage
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.then
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 
@@ -64,7 +65,7 @@ class OutputPipelineBuilder<Input : Tuple, OutputInput : Tuple, Output : Tuple> 
 @ExperimentalKTensorFlowApi
 fun <SO, Input : Tuple, T : Any> InferencePipelineBuilder<Input>.output(
     index: Int = 0,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.One<Tensor<T>>, Tuple.One<SO>> {
@@ -88,7 +89,7 @@ fun <SO, Input : Tuple, T : Any> InferencePipelineBuilder<Input>.output(
 @JvmName("output2")
 fun <SO, Input : Tuple, O1, T : Any> OutputPipelineBuilder<Input, Tuple.One<Tensor<*>>, Tuple.One<O1>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Two<Tensor<*>, Tensor<T>>, Tuple.Two<O1, SO>> {
@@ -112,7 +113,7 @@ fun <SO, Input : Tuple, O1, T : Any> OutputPipelineBuilder<Input, Tuple.One<Tens
 @JvmName("output3")
 fun <SO, Input : Tuple, O1, O2, T : Any> OutputPipelineBuilder<Input, Tuple.Two<Tensor<*>, Tensor<*>>, Tuple.Two<O1, O2>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Three<Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Three<O1, O2, SO>> {
@@ -136,7 +137,7 @@ fun <SO, Input : Tuple, O1, O2, T : Any> OutputPipelineBuilder<Input, Tuple.Two<
 @JvmName("output4")
 fun <SO, Input : Tuple, O1, O2, O3, T : Any> OutputPipelineBuilder<Input, Tuple.Three<Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Three<O1, O2, O3>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Four<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Four<O1, O2, O3, SO>> {
@@ -160,7 +161,7 @@ fun <SO, Input : Tuple, O1, O2, O3, T : Any> OutputPipelineBuilder<Input, Tuple.
 @JvmName("output5")
 fun <SO, Input : Tuple, O1, O2, O3, O4, T : Any> OutputPipelineBuilder<Input, Tuple.Four<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Four<O1, O2, O3, O4>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Five<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Five<O1, O2, O3, O4, SO>> {
@@ -184,7 +185,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, T : Any> OutputPipelineBuilder<Input, Tu
 @JvmName("output6")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, T : Any> OutputPipelineBuilder<Input, Tuple.Five<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Five<O1, O2, O3, O4, O5>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Six<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Six<O1, O2, O3, O4, O5, SO>> {
@@ -208,7 +209,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, T : Any> OutputPipelineBuilder<Input
 @JvmName("output7")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, T : Any> OutputPipelineBuilder<Input, Tuple.Six<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Six<O1, O2, O3, O4, O5, O6>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Seven<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Seven<O1, O2, O3, O4, O5, O6, SO>> {
@@ -232,7 +233,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, T : Any> OutputPipelineBuilder<I
 @JvmName("output8")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, T : Any> OutputPipelineBuilder<Input, Tuple.Seven<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Seven<O1, O2, O3, O4, O5, O6, O7>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Eight<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Eight<O1, O2, O3, O4, O5, O6, O7, SO>> {
@@ -256,7 +257,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, T : Any> OutputPipelineBuild
 @JvmName("output9")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, T : Any> OutputPipelineBuilder<Input, Tuple.Eight<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Eight<O1, O2, O3, O4, O5, O6, O7, O8>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Nine<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Nine<O1, O2, O3, O4, O5, O6, O7, O8, SO>> {
@@ -280,7 +281,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, T : Any> OutputPipelineB
 @JvmName("output10")
 fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, O9, T : Any> OutputPipelineBuilder<Input, Tuple.Nine<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>>, Tuple.Nine<O1, O2, O3, O4, O5, O6, O7, O8, O9>>.output(
     index: Int,
-    dataType: KClass<T>,
+    dataType: TensorDataType<T>,
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Ten<Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<*>, Tensor<T>>, Tuple.Ten<O1, O2, O3, O4, O5, O6, O7, O8, O9, SO>> {
@@ -294,7 +295,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, O9, T : Any> OutputPipel
 @ExperimentalKTensorFlowApi
 internal data class PipelineOutputData<Output, T : Any>(
     val index: Int,
-    val dataType: KClass<T>,
+    val dataType: TensorDataType<T>,
     val shape: TensorShape,
     val stage: Stage<Tensor<T>, Output>
 )

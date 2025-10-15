@@ -1,12 +1,8 @@
 @file:OptIn(ExperimentalUnsignedTypes::class)
 
-import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
-import dev.kursor.ktensorflow.Interpreter
-import dev.kursor.ktensorflow.InterpreterOptions
-import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.builder.inference
 import dev.kursor.ktensorflow.pipeline.builder.input
@@ -16,7 +12,6 @@ import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.inference
 import dev.kursor.ktensorflow.pipeline.stage.then
 import dev.kursor.ktensorflow.pipeline.tuple
-import dev.kursor.ktensorflow.tensor.FloatTensor
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
@@ -24,8 +19,6 @@ import dev.kursor.ktensorflow.tensor.toArray
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.FileInputStream
-import java.nio.channels.FileChannel
 
 @RunWith(AndroidJUnit4::class)
 @OptIn(ExperimentalKTensorFlowApi::class)
