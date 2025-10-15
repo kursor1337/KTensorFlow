@@ -31,12 +31,12 @@ kotlin {
 
 android {
     namespace = "dev.kursor.ktensorflow.moko"
-    val compileVersion = libs.versions.android.compileSdk.get().toInt()
-    val minVersion = libs.versions.android.minSdk.get().toInt()
-    compileSdk = compileVersion
+
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
-        minSdk = minVersion
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

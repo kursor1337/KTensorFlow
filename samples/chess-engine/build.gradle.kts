@@ -26,11 +26,12 @@ kotlin {
 
 android {
     namespace = "dev.kursor.chess.engine"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
