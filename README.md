@@ -5,22 +5,39 @@
 # KTensorFlow
 KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow Lite) neural network models from common code. It abstracts platform-specific implementation details, making it easier to load models and run inference across Android and iOS.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Loading of the model](#load-the-model)
+    - [Moko resources extensions](#moko-resources-extensions)
+  - [Run inference](#run-inference)
+    - [Data transformation with Tensors](#data-transformation-with-tensors)
+  - [Hardware acceleration](#hardware-acceleration)
+  - [Providing platform-specific options](#providing-platform-specific-options)
+  - [Writing custom delegates](#writing-custom-delegates)
+  - [Preprocessing and postprocessing of the data](#preprocessing-and-postprocessing-of-the-data)
+
 ## Installation
 First add dependencies:
 
 ```kotlin
 dependencies {
-  // core module, contains Interpreter, Tensor and other core classes and functions
-  implementation("dev.kursor.ktensorflow:ktensorflow-core:0.3")
+  // core module, contains Interpreter and other core classes and functions
+  implementation("dev.kursor.ktensorflow:ktensorflow-core:1.0")
+
+  // tensors module, adds support for Tensors and allows easy data transformation
+  // highly recommended if you don't want to convert your model inputs and outputs to and from ByteArray
+  implementation("dev.kursor.ktensorflow:ktensorflow-tensor:1.0")
 
   // gpu module, contains delegate to run inference on the gpu
-  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:0.3")
+  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:1.0")
 
   // pipeline module, contains utils to create pipelines for preprocessing and postprocessing of the data
-  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:0.3")
+  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:1.0")
 
-  // moko module, contains extensions for loading models from moko-resources
-  implementation("dev.kursor.ktensorflow:ktensorflow-moko:0.3")
+  // moko module, contains extensions for loading models from moko-resources (ModelDesc.FileResource and ModelDesc.AssetResource)
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.0")
 }
 ```
 
@@ -30,7 +47,7 @@ plugins {
   id("dev.kursor.ktensorflow.link") version "0.3"
 }
 ```
-Currently, this library only supports projects, that are being linked to iOS app via CocoaPods
+**Currently, this library only supports projects, that are being linked to iOS app via CocoaPods**
 
 ## Usage
 ### Load the model
@@ -59,11 +76,11 @@ iOS examples with Compose Multiplatform Resources:
 val modelDesc = ModelDesc.PathInBundle(Res.getUri("files/model.tflite").removePrefix("file://"))
 ```
 
-**Moko resources extensions**
+#### Moko resources extensions
 
 Module `ktensorflow-moko` contains useful extension functions to create a `ModelDesc` from [moko-resources](https://github.com/icerockdev/moko-resources).
 
-It adds two useful functions:
+It adds 2 useful functions:
 * `ModelDesc.FileResource(resource: FileResource)` to load a model from moko's `FileResource`
 * `ModelDesc.AssetResource(resource: AssetResource)` to load a model from moko's `AssetResource`
 
@@ -88,8 +105,8 @@ val output = Tensor(
   shape = TensorShape(10),
   dataType = TensorDataType.Float32
 )
-interpreter.run(listOf(input), mapOf(0 to output))
-val result = output.typedData<FloatArray>()
+interpreter.run(input, output)
+val result = output.argmax()[0]
 ```
 
 **Note**
@@ -97,6 +114,9 @@ val result = output.typedData<FloatArray>()
 `Tensor` class stores data in a ByteArray. So, if you're using `Tensor(any: Any)` to create a Tensor from multidimensional primitive array, it copies entire array inside a new ByteArray.
 Because of this, it is better to use `Tensor(shape: TensorShape, dataType: TensorDataType)` for output tensors, 
 since it will allow to skip copying of the array and just allocate a ByteArray of the necessary size. It will allocate ByteArray of the size `shape.flatSize * dataType.byteSize`, with data type memory size already taken into account.
+
+#### Data transformation with Tensors
+Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions
 
 ### Hardware acceleration
 Hardware acceleration is provided by delegates. `ktensorflow-gpu` module already has `GpuDelegate` implementation to run the inference on GPU.
@@ -138,7 +158,7 @@ val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
 ### Writing custom delegates
 If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface
 
-### Creating pipelines
+### Preprocessing and postprocessing of the data
 You can create pipelines to make preprocessing and postprocessing of the data easier
 
 You can create 2 types of pipelines: single input/output and multiple input/output
@@ -186,7 +206,6 @@ val output = pipeline.run(input)
 ```
 
 ## Library development plan
-* Improve Tensors - rewrite them from simple data holders to be real mathematical multidimensional arrays which you can conveniently transform in different ways
 * Add Compose Resources extensions
 * Add support for NPU (CoreML on iOS and NNAPI/QNN on Android)
 * Add utils for media and text processing
