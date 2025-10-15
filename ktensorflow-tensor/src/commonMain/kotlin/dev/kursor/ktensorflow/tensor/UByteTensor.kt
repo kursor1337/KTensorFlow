@@ -2,6 +2,12 @@ package dev.kursor.ktensorflow.tensor
 
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 
+/**
+ * Represents a [Tensor] of kotlin type [UByte] and [TensorDataType.UInt8]
+ *
+ * @param shape - shape of the tensor
+ * @param data - raw data of the tensor
+ */
 class UByteTensor(
     override val shape: TensorShape,
     override val data: ByteArray

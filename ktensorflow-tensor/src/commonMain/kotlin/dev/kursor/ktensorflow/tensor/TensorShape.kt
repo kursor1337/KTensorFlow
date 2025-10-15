@@ -33,8 +33,3 @@ value class TensorShape(
  * @param dimensions The dimensions of the tensor.
  */
 fun TensorShape(vararg dimensions: Int) = TensorShape(dimensions)
-
-fun TensorShape.removeDimension(axis: Int): TensorShape {
-    val newDimensions = IntArray(rank - 1) { i -> if (i < axis) dimensions[i] else dimensions[i + 1] }
-    return TensorShape(newDimensions)
-}
