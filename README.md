@@ -33,6 +33,9 @@ dependencies {
   // gpu module, contains delegate to run inference on the gpu
   implementation("dev.kursor.ktensorflow:ktensorflow-gpu:1.0")
 
+  // npu module, contains delegate to run inference on the npu
+  implementation("dev.kursor.ktensorflow:ktensorflow-npu:1.0")
+
   // pipeline module, contains utils to create pipelines for preprocessing and postprocessing of the data
   implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:1.0")
 
@@ -119,7 +122,8 @@ since it will allow to skip copying of the array and just allocate a ByteArray o
 Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions
 
 ### Hardware acceleration
-Hardware acceleration is provided by delegates. `ktensorflow-gpu` module already has `GpuDelegate` implementation to run the inference on GPU.
+Hardware acceleration is provided by delegates.
+There are built-in Delegates to run inference on GPU and NPU in modules `ktensorflow-gpu` and `ktensorflow-npu` 
 
 Delegates can be provided to interpreter using `InterpreterOptions`
 ```kotlin
@@ -140,8 +144,13 @@ Android:
 val interpreterOptions = InterpreterOptions { // this: Interpreter.Options
   setUseNNAPI(true)
 }
+
 val gpuDelegateOptions = GpuDelegateOptions { // this: GpuDelegateFactory.Options
   setPrecisionLossAllowed(true)
+}
+
+val npuDelegateOptions = NpuDelegateOptions { // this: NpuDelegate.Options
+  setMaxNumberOfDelegatedPartitions(maxDelegatedPartitions)
 }
 ```
 
@@ -150,8 +159,13 @@ iOS:
 val interpreterOptions = InterpreterOptions(delegates = emptyList()) { // this: TFLInterpreterOptions
   setUseXNNPACK(true)
 }
+
 val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
   setWaitType(TFLMetalDelegateThreadWaitType.TFLMetalDelegateThreadWaitTypeActive)
+}
+
+val npuDelegateOptions = NpuDelefateOptions { // this: TFLCoreMLDelegateOptions
+  setMaxDelegatedPartitions(maxDelegatedPartitions.toULong())
 }
 ```
 
