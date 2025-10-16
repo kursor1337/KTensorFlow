@@ -10,7 +10,7 @@ actual data class NpuDelegateOptions(
  * Creates [NpuDelegateOptions] with the specified [builder].
  * Allows to specify native TensorFlow CoreML delegate options.
  */
-fun NpuDelegateOptions(builder: TFLCoreMLDelegateOptions.() -> Unit): dev.kursor.ktensorflow.npu.NpuDelegateOptions {
+fun NpuDelegateOptions(builder: TFLCoreMLDelegateOptions.() -> Unit): NpuDelegateOptions {
     return NpuDelegateOptions(TFLCoreMLDelegateOptions().apply(builder))
 }
 

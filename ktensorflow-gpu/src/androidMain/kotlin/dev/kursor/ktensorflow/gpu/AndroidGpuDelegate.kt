@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.npu
+package dev.kursor.ktensorflow.gpu
 
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.gpu.CompatibilityList

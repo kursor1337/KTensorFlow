@@ -52,7 +52,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.kursor.ktensorflow.npu"
+    namespace = "dev.kursor.ktensorflow.gpu"
 
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {

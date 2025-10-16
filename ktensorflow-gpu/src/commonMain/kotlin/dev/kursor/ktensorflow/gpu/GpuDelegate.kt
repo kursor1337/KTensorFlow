@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.npu
+package dev.kursor.ktensorflow.gpu
 
 import dev.kursor.ktensorflow.Delegate
 
