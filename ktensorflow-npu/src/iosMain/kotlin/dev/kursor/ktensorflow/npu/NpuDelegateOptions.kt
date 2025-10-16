@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.gpu
+package dev.kursor.ktensorflow.npu
 
 import cocoapods.TensorFlowLiteObjC.TFLCoreMLDelegateOptions
 
@@ -10,7 +10,7 @@ actual data class NpuDelegateOptions(
  * Creates [NpuDelegateOptions] with the specified [builder].
  * Allows to specify native TensorFlow CoreML delegate options.
  */
-fun NpuDelegateOptions(builder: TFLCoreMLDelegateOptions.() -> Unit): NpuDelegateOptions {
+fun NpuDelegateOptions(builder: TFLCoreMLDelegateOptions.() -> Unit): dev.kursor.ktensorflow.npu.NpuDelegateOptions {
     return NpuDelegateOptions(TFLCoreMLDelegateOptions().apply(builder))
 }
 

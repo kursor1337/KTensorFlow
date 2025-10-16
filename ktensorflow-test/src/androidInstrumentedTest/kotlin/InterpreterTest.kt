@@ -1,8 +1,8 @@
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.kursor.ktensorflow.Delegate
-import dev.kursor.ktensorflow.gpu.GpuDelegate
-import dev.kursor.ktensorflow.gpu.NpuDelegate
+import dev.kursor.ktensorflow.npu.GpuDelegate
+import dev.kursor.ktensorflow.npu.NpuDelegate
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.div

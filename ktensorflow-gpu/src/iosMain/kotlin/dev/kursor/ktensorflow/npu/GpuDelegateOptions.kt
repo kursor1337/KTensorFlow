@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.gpu
+package dev.kursor.ktensorflow.npu
 
 import cocoapods.TensorFlowLiteObjC.TFLMetalDelegateOptions
 

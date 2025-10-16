@@ -14,7 +14,7 @@ import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.gpu.GpuDelegate
+import dev.kursor.ktensorflow.npu.GpuDelegate
 import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
 import kotlinx.coroutines.CoroutineScope

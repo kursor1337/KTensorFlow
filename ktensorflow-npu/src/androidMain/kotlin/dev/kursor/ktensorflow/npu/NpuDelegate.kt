@@ -1,7 +1,7 @@
-package dev.kursor.ktensorflow.gpu
+package dev.kursor.ktensorflow.npu
 
 import dev.kursor.ktensorflow.Delegate
 
 actual fun NpuDelegate(options: NpuDelegateOptions): Delegate {
-    return IosNpuDelegate(options.tflOptions)
+    return AndroidNpuDelegate(options.tflOptions)
 }

@@ -13,8 +13,7 @@ import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.gpu.GpuDelegate
-import dev.kursor.ktensorflow.gpu.NpuDelegate
+import dev.kursor.ktensorflow.npu.NpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
