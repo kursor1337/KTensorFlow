@@ -1,19 +1,39 @@
+import dev.kursor.ktensorflow.Delegate
+import dev.kursor.ktensorflow.gpu.GpuDelegate
+import dev.kursor.ktensorflow.gpu.NpuDelegate
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.div
 import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
 import dev.kursor.ktensorflow.tensor.toFloatTensor
-import kotlin.math.sign
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class InterpreterTest {
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     @Test
     fun testWithCpu() {
-        val interpreter = createInterpreter("mnist", "tflite")
+        test(null)
+    }
+
+    @Test
+    fun testWithGpu() {
+        test(GpuDelegate())
+    }
+
+    @Test
+    fun testWithNpu() {
+        test(NpuDelegate())
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun test(delegate: Delegate?) {
+        val interpreter = createInterpreter(
+            modelFileName = "mnist",
+            modelFileExtension = "tflite",
+            delegate = delegate
+        )
 
         val data = loadDataset("mnist", "csv")
 
