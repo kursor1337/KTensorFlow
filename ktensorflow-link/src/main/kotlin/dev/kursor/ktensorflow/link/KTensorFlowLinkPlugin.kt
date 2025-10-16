@@ -46,6 +46,10 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
 }
 
 val linkerArgs = listOf(
+    "_TfLiteCoreMlDelegateCreate",
+    "_TfLiteCoreMlDelegateDelete",
+    "_OBJC_CLASS_\$_TFLCoreMLDelegate",
+    "_OBJC_CLASS_\$_TFLCoreMLDelegateOptions",
     "_OBJC_CLASS_\$_MLFeatureValue",
     "_OBJC_CLASS_\$_MLModel",
     "_OBJC_CLASS_\$_MLModelConfiguration",
