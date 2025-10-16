@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.android.library)
-    alias(libs.plugins.ktensorflow.link)
 }
 
 kotlin {
@@ -55,6 +54,22 @@ kotlin {
         framework {
             baseName = "shared"
             isStatic = true
+        }
+
+        pod("TensorFlowLiteObjC") {
+            moduleName = "TFLTensorFlowLite"
+            version = "2.17.0"
+            linkOnly = true
+        }
+        pod("TensorFlowLiteObjC/Metal") {
+            moduleName = "TFLTensorFlowLite"
+            version = "2.17.0"
+            linkOnly = true
+        }
+        pod("TensorFlowLiteObjC/CoreML") {
+            moduleName = "TFLTensorFlowLite"
+            version = "2.17.0"
+            linkOnly = true
         }
     }
 
