@@ -1,6 +1,7 @@
 package dev.kursor.chess.features.game.data
 
 import KTensorFlow.samples.`moko-resources`.composeApp.MR
+import dev.kursor.chess.core.utils.async
 import dev.kursor.chess.engine.logic.Move
 import dev.kursor.chess.engine.logic.move_generator.generateLegalMoves
 import dev.kursor.chess.engine.logic.state.GameState
@@ -12,7 +13,7 @@ import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
-import dev.kursor.ktensorflow.gpu.GpuDelegate
+import dev.kursor.ktensorflow.npu.NpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
@@ -20,6 +21,7 @@ import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlin.time.ExperimentalTime
@@ -27,19 +29,21 @@ import kotlin.time.measureTime
 
 class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val interpreter: Interpreter = Interpreter(
-        modelDesc = ModelDesc.FileResource(MR.files.chess_ai_tflite),
-        options = InterpreterOptions(
-            numThreads = 4,
-            useXNNPACK = true,
-            delegates = listOf(GpuDelegate())
+    private val interpreter: Interpreter by coroutineScope.async {
+        Interpreter(
+            modelDesc = ModelDesc.FileResource(MR.files.chess_ai_tflite),
+            options = InterpreterOptions(
+                numThreads = 4,
+                useXNNPACK = true,
+                delegates = listOf(NpuDelegate())
+            )
         )
-    )
+    }
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun getMove(gameState: GameState): Move = withContext(Dispatchers.Default) {
+    override suspend fun getMove(gameState: GameState): Move = withContext(Dispatchers.IO) {
         val output = Tensor<Float>(
             shape = TensorShape(4096)
         )

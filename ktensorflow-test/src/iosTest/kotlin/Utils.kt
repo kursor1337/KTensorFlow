@@ -1,3 +1,4 @@
+import dev.kursor.ktensorflow.Delegate
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
@@ -31,12 +32,17 @@ fun loadDataset(name: String, extension: String): List<Pair<Byte, Array<UByteArr
     return csvDataFrame.extractImages()
 }
 
-fun createInterpreter(modelFileName: String, modelFileExtension: String): Interpreter {
+fun createInterpreter(
+    modelFileName: String,
+    modelFileExtension: String,
+    delegate: Delegate?
+): Interpreter {
     val modelDesc = loadModel(modelFileName, modelFileExtension)
 
     val options = InterpreterOptions(
         numThreads = 4,
-        useXNNPACK = true
+        useXNNPACK = true,
+        delegates = delegate?.let(::listOf).orEmpty()
     )
 
     return Interpreter(modelDesc, options)

@@ -26,7 +26,12 @@ class PipelineTest {
 
     @Test
     fun testSimple() {
-        val interpreter = createInterpreter("mnist", "tflite")
+        val interpreter = createInterpreter(
+            modelFileName = "mnist",
+            modelFileExtension = "tflite",
+            delegate = null
+        )
+
         val pipeline = Pipeline.linear<Array<UByteArray>>()
             .tensorize()
             .floatify()
@@ -45,7 +50,12 @@ class PipelineTest {
 
     @Test
     fun testComplex() {
-        val interpreter = createInterpreter("mnist", "tflite")
+        val interpreter = createInterpreter(
+            modelFileName = "mnist",
+            modelFileExtension = "tflite",
+            delegate = null
+        )
+
         val pipeline = Pipeline
             .input(
                 Stage<Array<UByteArray>>()

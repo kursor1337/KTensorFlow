@@ -6,6 +6,7 @@ import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 private val modulesNeededToBePublished = setOf(
     "ktensorflow-core",
     "ktensorflow-gpu",
+    "ktensorflow-npu",
     "ktensorflow-link",
     "ktensorflow-moko",
     "ktensorflow-pipeline",

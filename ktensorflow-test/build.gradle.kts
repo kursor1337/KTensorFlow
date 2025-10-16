@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ktensorflow.link)
 }
 
 kotlin {
@@ -21,11 +22,19 @@ kotlin {
                 val buildDir = layout.buildDirectory.get().asFile.absolutePath
                 val podsPath = "cocoapods/synthetic/ios/Pods"
                 val tflObjCPath = "$buildDir/$podsPath/TensorFlowLiteObjC"
-                val tflCPath = "$buildDir/$podsPath/TensorFlowLiteC"
+                val tflCPath = "$buildDir/$podsPath/TensorFlowLiteC/Frameworks"
 
                 linkerOpts("-F$tflCPath")
                 linkerOpts("-rpath", tflCPath)
                 linkerOpts("-framework", "TensorFlowLiteC")
+
+                linkerOpts("-F$tflCPath")
+                linkerOpts("-rpath", tflCPath)
+                linkerOpts("-framework", "TensorFlowLiteCMetal")
+
+                linkerOpts("-F$tflCPath")
+                linkerOpts("-rpath", tflCPath)
+                linkerOpts("-framework", "TensorFlowLiteCCoreML")
 
                 linkerOpts("-F$tflObjCPath")
                 linkerOpts("-rpath", tflObjCPath)
@@ -47,15 +56,6 @@ kotlin {
             baseName = "shared"
             isStatic = true
         }
-
-        pod("TensorFlowLiteObjC") {
-            moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
-        }
-        pod("TensorFlowLiteObjC/Metal") {
-            moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
-        }
     }
 
     sourceSets {
@@ -64,6 +64,7 @@ kotlin {
             implementation(projects.ktensorflowMoko)
             implementation(projects.ktensorflowTensor)
             implementation(projects.ktensorflowGpu)
+            implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowPipeline)
         }
 
@@ -87,6 +88,7 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {

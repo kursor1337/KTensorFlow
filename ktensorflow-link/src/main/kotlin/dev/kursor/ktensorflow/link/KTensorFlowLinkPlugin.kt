@@ -20,7 +20,14 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
                     version = tflVersion
                     linkOnly = true
                 }
+
                 pod("TensorFlowLiteObjC/Metal") {
+                    moduleName = "TFLTensorFlowLite"
+                    version = tflVersion
+                    linkOnly = true
+                }
+
+                pod("TensorFlowLiteObjC/CoreML") {
                     moduleName = "TFLTensorFlowLite"
                     version = tflVersion
                     linkOnly = true
@@ -39,6 +46,15 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
 }
 
 val linkerArgs = listOf(
+    "_TfLiteCoreMlDelegateCreate",
+    "_TfLiteCoreMlDelegateDelete",
+    "_OBJC_CLASS_\$_TFLCoreMLDelegate",
+    "_OBJC_CLASS_\$_TFLCoreMLDelegateOptions",
+    "_OBJC_CLASS_\$_MLFeatureValue",
+    "_OBJC_CLASS_\$_MLModel",
+    "_OBJC_CLASS_\$_MLModelConfiguration",
+    "_OBJC_CLASS_\$_MLMultiArray",
+    "_OBJC_CLASS_\$_MLPredictionOptions",
     "_TFLGpuDelegateCreate",
     "_TFLGpuDelegateDelete",
     "_TfLiteInterpreterAllocateTensors",

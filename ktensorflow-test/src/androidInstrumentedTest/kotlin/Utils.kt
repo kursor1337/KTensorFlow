@@ -1,4 +1,5 @@
 import android.content.Context
+import dev.kursor.ktensorflow.Delegate
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
@@ -28,12 +29,17 @@ fun loadDataset(context: Context, fileName: String): List<Pair<Byte, Array<UByte
     return csvDataFrame.extractImages()
 }
 
-fun createInterpreter(context: Context, modelFileName: String): Interpreter {
+fun createInterpreter(
+    context: Context,
+    modelFileName: String,
+    delegate: Delegate?
+): Interpreter {
     val modelDesc = loadModel(context, modelFileName)
 
     val options = InterpreterOptions(
         numThreads = 4,
-        useXNNPACK = true
+        useXNNPACK = true,
+        delegates = delegate?.let(::listOf).orEmpty()
     )
 
     return Interpreter(modelDesc, options)
