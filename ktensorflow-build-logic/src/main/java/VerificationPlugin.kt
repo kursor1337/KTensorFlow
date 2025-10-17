@@ -53,11 +53,16 @@ class VerificationPlugin : Plugin<Project> {
             val runAllTests = gradle.rootProject.tasks.findByPath(runAllTestsPath)
                 ?: throw GradleException("Task '$runAllTestsPath' not found — make sure ktensorflow-test defines it")
 
+            val apiCheckPath = "apiCheck"
+            val apiCheck = gradle.rootProject.tasks.findByPath(apiCheckPath)
+                ?: throw GradleException("Task '$apiCheckPath' not found — make sure ktensorflow-test defines it")
+
             // attach verification & tests to publishing tasks in all subprojects
             rootProject.allprojects.forEach { sub ->
                 sub.tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
                     dependsOn(runAllTests)
                     dependsOn(verifyModulesTask)
+                    dependsOn(apiCheck)
                     println("✔ Linked $runAllTestsPath and :verifyModules to ${sub.path}:$name")
                 }
             }

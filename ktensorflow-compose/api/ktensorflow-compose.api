@@ -1,0 +1,11 @@
+public final class dev/kursor/ktensorflow/compose/ComposeModelDescKt {
+	public static final fun ComposeUri (Ldev/kursor/ktensorflow/ModelDesc$Companion;Ljava/lang/String;)Ldev/kursor/ktensorflow/ModelDesc;
+}
+
+public final class dev/kursor/ktensorflow/compose/ContextInitializer : androidx/startup/Initializer {
+	public fun <init> ()V
+	public fun create (Landroid/content/Context;)Landroid/content/Context;
+	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
+	public fun dependencies ()Ljava/util/List;
+}
+

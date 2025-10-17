@@ -1,0 +1,373 @@
+public final class dev/kursor/ktensorflow/tensor/ArithmeticKt {
+	public static final fun floatTensorDec (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorDivUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorInc (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorMinusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorPlusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorRemUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorTimesUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorUnaryMinus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun floatTensorUnaryPlus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDec (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorDivUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorInc (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorMinusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorPlusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorRemUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorTimesUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorUnaryMinus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun intTensorUnaryPlus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDec (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorDivUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorInc (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorMinusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorPlusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorRemUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorTimesUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorUnaryMinus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun longTensorUnaryPlus (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDec (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorDivUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorInc (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorMinusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorPlusUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorRemUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesFloat (Ldev/kursor/ktensorflow/tensor/Tensor;F)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesInt (Ldev/kursor/ktensorflow/tensor/Tensor;I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesLong (Ldev/kursor/ktensorflow/tensor/Tensor;J)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesUByte (Ldev/kursor/ktensorflow/tensor/Tensor;B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun uByteTensorTimesUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+}
+
+public final class dev/kursor/ktensorflow/tensor/FloatTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun get ([I)Ljava/lang/Float;
+	public synthetic fun get ([I)Ljava/lang/Object;
+	public fun getData ()[B
+	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Float32;
+	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
+	public fun getShape-3K9wa20 ()[I
+	public fun hashCode ()I
+	public fun set ([IF)V
+	public synthetic fun set ([ILjava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/IntTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun get ([I)Ljava/lang/Integer;
+	public synthetic fun get ([I)Ljava/lang/Object;
+	public fun getData ()[B
+	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Int32;
+	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
+	public fun getShape-3K9wa20 ()[I
+	public fun hashCode ()I
+	public fun set ([II)V
+	public synthetic fun set ([ILjava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/InterpreterExtKt {
+	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)V
+	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;)V
+}
+
+public final class dev/kursor/ktensorflow/tensor/LongTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun get ([I)Ljava/lang/Long;
+	public synthetic fun get ([I)Ljava/lang/Object;
+	public fun getData ()[B
+	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Int64;
+	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
+	public fun getShape-3K9wa20 ()[I
+	public fun hashCode ()I
+	public fun set ([IJ)V
+	public synthetic fun set ([ILjava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/kursor/ktensorflow/tensor/Tensor {
+	public abstract fun get ([I)Ljava/lang/Object;
+	public abstract fun getData ()[B
+	public abstract fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
+	public abstract fun getShape-3K9wa20 ()[I
+	public abstract fun set ([ILjava/lang/Object;)V
+}
+
+public abstract interface class dev/kursor/ktensorflow/tensor/TensorDataType {
+	public static final field Companion Ldev/kursor/ktensorflow/tensor/TensorDataType$Companion;
+	public abstract fun getByteSize ()I
+	public abstract fun getKotlinType ()Lkotlin/reflect/KClass;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorDataType$Companion {
+	public final fun of (Lkotlin/reflect/KClass;)Ldev/kursor/ktensorflow/tensor/TensorDataType;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorDataType$Float32 : dev/kursor/ktensorflow/tensor/TensorDataType {
+	public static final field INSTANCE Ldev/kursor/ktensorflow/tensor/TensorDataType$Float32;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getByteSize ()I
+	public fun getKotlinType ()Lkotlin/reflect/KClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorDataType$Int32 : dev/kursor/ktensorflow/tensor/TensorDataType {
+	public static final field INSTANCE Ldev/kursor/ktensorflow/tensor/TensorDataType$Int32;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getByteSize ()I
+	public fun getKotlinType ()Lkotlin/reflect/KClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorDataType$Int64 : dev/kursor/ktensorflow/tensor/TensorDataType {
+	public static final field INSTANCE Ldev/kursor/ktensorflow/tensor/TensorDataType$Int64;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getByteSize ()I
+	public fun getKotlinType ()Lkotlin/reflect/KClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorDataType$UInt8 : dev/kursor/ktensorflow/tensor/TensorDataType {
+	public static final field INSTANCE Ldev/kursor/ktensorflow/tensor/TensorDataType$UInt8;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getByteSize ()I
+	public fun getKotlinType ()Lkotlin/reflect/KClass;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorKt {
+	public static final fun Tensor (Ldev/kursor/ktensorflow/tensor/TensorDataType;Ljava/lang/Object;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun Tensor-EmEXgQc (Ldev/kursor/ktensorflow/tensor/TensorDataType;[I[B)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static synthetic fun Tensor-EmEXgQc$default (Ldev/kursor/ktensorflow/tensor/TensorDataType;[I[BILjava/lang/Object;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun get (Ldev/kursor/ktensorflow/tensor/Tensor;[I)Ljava/lang/Object;
+	public static final fun set (Ldev/kursor/ktensorflow/tensor/Tensor;[ILjava/lang/Object;)V
+	public static final fun toArray (Ldev/kursor/ktensorflow/tensor/Tensor;)Ljava/lang/Object;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorShape {
+	public static final synthetic fun box-impl ([I)Ldev/kursor/ktensorflow/tensor/TensorShape;
+	public static fun constructor-impl ([I)[I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl ([ILjava/lang/Object;)Z
+	public static final fun equals-impl0 ([I[I)Z
+	public final fun getDimensions ()[I
+	public static final fun getFlatSize-impl ([I)I
+	public static final fun getRank-impl ([I)I
+	public fun hashCode ()I
+	public static fun hashCode-impl ([I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl ([I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()[I
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorShapeKt {
+	public static final fun TensorShape ([I)[I
+}
+
+public final class dev/kursor/ktensorflow/tensor/TransformationsKt {
+	public static final fun argMaxFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMaxInt (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMaxLong (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMaxUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMinFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMinInt (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMinLong (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun argMinUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun avgFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)F
+	public static final fun avgInt (Ldev/kursor/ktensorflow/tensor/Tensor;)I
+	public static final fun avgLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
+	public static final fun avgUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
+	public static final fun flatten (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun forEach (Ldev/kursor/ktensorflow/tensor/Tensor;Lkotlin/jvm/functions/Function1;)V
+	public static final fun forEachIndexed (Ldev/kursor/ktensorflow/tensor/Tensor;Lkotlin/jvm/functions/Function2;)V
+	public static final fun map (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/TensorDataType;Lkotlin/jvm/functions/Function1;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun mapInPlace (Ldev/kursor/ktensorflow/tensor/Tensor;Lkotlin/jvm/functions/Function1;)V
+	public static final fun mapInPlaceIndexed (Ldev/kursor/ktensorflow/tensor/Tensor;Lkotlin/jvm/functions/Function2;)V
+	public static final fun mapIndexed (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/TensorDataType;Lkotlin/jvm/functions/Function2;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun maxFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)F
+	public static final fun maxInt (Ldev/kursor/ktensorflow/tensor/Tensor;)I
+	public static final fun maxLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
+	public static final fun maxUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
+	public static final fun minFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)F
+	public static final fun minInt (Ldev/kursor/ktensorflow/tensor/Tensor;)I
+	public static final fun minLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
+	public static final fun minUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
+	public static final fun normalizeFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun reshape-a2X7_dA (Ldev/kursor/ktensorflow/tensor/Tensor;[I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun slice (Ldev/kursor/ktensorflow/tensor/Tensor;[Lkotlin/ranges/IntRange;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun sumFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)F
+	public static final fun sumInt (Ldev/kursor/ktensorflow/tensor/Tensor;)I
+	public static final fun sumLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
+	public static final fun sumUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
+	public static final fun toFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun toIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun toList (Ldev/kursor/ktensorflow/tensor/Tensor;)Ljava/util/List;
+	public static final fun toLongTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun toUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun transpose (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
+}
+
+public final class dev/kursor/ktensorflow/tensor/UByteTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun get ([I)Ljava/lang/Object;
+	public fun get-Wa3L5BU ([I)B
+	public fun getData ()[B
+	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$UInt8;
+	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
+	public fun getShape-3K9wa20 ()[I
+	public fun hashCode ()I
+	public synthetic fun set ([ILjava/lang/Object;)V
+	public fun set-EK-6454 ([IB)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/tensor/UtilsKt {
+	public static final fun toFlatIndex-a2X7_dA ([I[I)I
+	public static final fun toNestedIndex-a2X7_dA (I[I)[I
+}
+

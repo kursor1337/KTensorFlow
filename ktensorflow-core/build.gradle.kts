@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
+    alias(libs.plugins.binary.compatibility.validator)
 }
 
 kotlin {

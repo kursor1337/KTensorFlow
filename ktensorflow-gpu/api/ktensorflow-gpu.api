@@ -1,0 +1,19 @@
+public abstract interface class dev/kursor/ktensorflow/gpu/GpuDelegate : dev/kursor/ktensorflow/Delegate {
+}
+
+public final class dev/kursor/ktensorflow/gpu/GpuDelegateKt {
+	public static final fun GpuDelegate (Ldev/kursor/ktensorflow/gpu/GpuDelegateOptions;)Ldev/kursor/ktensorflow/Delegate;
+	public static synthetic fun GpuDelegate$default (Ldev/kursor/ktensorflow/gpu/GpuDelegateOptions;ILjava/lang/Object;)Ldev/kursor/ktensorflow/Delegate;
+}
+
+public final class dev/kursor/ktensorflow/gpu/GpuDelegateOptions {
+	public fun <init> (Lorg/tensorflow/lite/gpu/GpuDelegateFactory$Options;)V
+	public final fun getTflOptions ()Lorg/tensorflow/lite/gpu/GpuDelegateFactory$Options;
+}
+
+public final class dev/kursor/ktensorflow/gpu/GpuDelegateOptionsKt {
+	public static final fun GpuDelegateOptions ()Ldev/kursor/ktensorflow/gpu/GpuDelegateOptions;
+	public static final fun GpuDelegateOptions (Lkotlin/jvm/functions/Function1;)Ldev/kursor/ktensorflow/gpu/GpuDelegateOptions;
+	public static final fun GpuDelegateOptions (ZZ)Ldev/kursor/ktensorflow/gpu/GpuDelegateOptions;
+}
+

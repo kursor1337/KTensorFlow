@@ -1,0 +1,19 @@
+public abstract interface class dev/kursor/ktensorflow/npu/NpuDelegate : dev/kursor/ktensorflow/Delegate {
+}
+
+public final class dev/kursor/ktensorflow/npu/NpuDelegateKt {
+	public static final fun NpuDelegate (Ldev/kursor/ktensorflow/npu/NpuDelegateOptions;)Ldev/kursor/ktensorflow/Delegate;
+	public static synthetic fun NpuDelegate$default (Ldev/kursor/ktensorflow/npu/NpuDelegateOptions;ILjava/lang/Object;)Ldev/kursor/ktensorflow/Delegate;
+}
+
+public final class dev/kursor/ktensorflow/npu/NpuDelegateOptions {
+	public fun <init> (Lorg/tensorflow/lite/nnapi/NnApiDelegate$Options;)V
+	public final fun getTflOptions ()Lorg/tensorflow/lite/nnapi/NnApiDelegate$Options;
+}
+
+public final class dev/kursor/ktensorflow/npu/NpuDelegateOptionsKt {
+	public static final fun NpuDelegateOptions ()Ldev/kursor/ktensorflow/npu/NpuDelegateOptions;
+	public static final fun NpuDelegateOptions (I)Ldev/kursor/ktensorflow/npu/NpuDelegateOptions;
+	public static final fun NpuDelegateOptions (Lkotlin/jvm/functions/Function1;)Ldev/kursor/ktensorflow/npu/NpuDelegateOptions;
+}
+
