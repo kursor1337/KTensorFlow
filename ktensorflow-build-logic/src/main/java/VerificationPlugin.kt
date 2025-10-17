@@ -9,6 +9,7 @@ private val modulesNeededToBePublished = setOf(
     "ktensorflow-npu",
     "ktensorflow-link",
     "ktensorflow-moko",
+    "ktensorflow-compose",
     "ktensorflow-pipeline",
     "ktensorflow-tensor"
 )

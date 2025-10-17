@@ -1,6 +1,5 @@
 package dev.kursor.chess.features.game.data
 
-import dev.kursor.chess.core.model.ModelLoader
 import dev.kursor.chess.core.utils.async
 import dev.kursor.chess.engine.logic.Move
 import dev.kursor.chess.engine.logic.move_generator.generateLegalMoves
@@ -10,29 +9,32 @@ import dev.kursor.chess.engine.model.Color
 import dev.kursor.chess.engine.model.PieceType
 import dev.kursor.chess.engine.model.Square
 import dev.kursor.chess.features.game.domain.ChessAiMoveRepository
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.compose.ComposeUri
+import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.tensor.run
 import dev.kursor.ktensorflow.tensor.toArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
+import ktensorflow.samples.compose_resources.composeapp.generated.resources.Res
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
-class ChessAiMoveRepositoryImpl(
-    modelLoader: ModelLoader
-) : ChessAiMoveRepository {
+class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
+    @OptIn(ExperimentalKTensorFlowApi::class)
     private val interpreter: Interpreter by coroutineScope.async {
         Interpreter(
-            modelDesc = modelLoader.loadModel(),
+            modelDesc = ModelDesc.ComposeUri(Res.getUri("files/chess-ai.tflite")),
             options = InterpreterOptions(
                 numThreads = 4,
                 useXNNPACK = true,
