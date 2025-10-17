@@ -12,7 +12,7 @@ import org.koin.core.component.get
 import org.koin.dsl.module
 
 val gameModule = module {
-    single<ChessAiMoveRepository> { ChessAiMoveRepositoryImpl(get()) }
+    single<ChessAiMoveRepository> { ChessAiMoveRepositoryImpl() }
 }
 
 fun ComponentFactory.createClassicGameComponent(

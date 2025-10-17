@@ -33,6 +33,7 @@ kotlin {
             implementation(projects.ktensorflowCore)
             implementation(projects.ktensorflowTensor)
             implementation(projects.ktensorflowGpu)
+            implementation(projects.ktensorflowCompose)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
