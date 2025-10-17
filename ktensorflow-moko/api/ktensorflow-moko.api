@@ -1,0 +1,12 @@
+public final class dev/kursor/ktensorflow/moko/ContextInitializer : androidx/startup/Initializer {
+	public fun <init> ()V
+	public fun create (Landroid/content/Context;)Landroid/content/Context;
+	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
+	public fun dependencies ()Ljava/util/List;
+}
+
+public final class dev/kursor/ktensorflow/moko/MokoModelDescKt {
+	public static final fun AssetResource (Ldev/kursor/ktensorflow/ModelDesc$Companion;Ldev/icerock/moko/resources/AssetResource;)Ldev/kursor/ktensorflow/ModelDesc;
+	public static final fun FileResource (Ldev/kursor/ktensorflow/ModelDesc$Companion;Ldev/icerock/moko/resources/FileResource;)Ldev/kursor/ktensorflow/ModelDesc;
+}
+

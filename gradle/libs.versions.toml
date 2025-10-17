@@ -38,6 +38,9 @@ essenty = "2.5.0"
 # KTensorFlow
 ktensorflow = "0.3"
 
+# API Compatibility
+binary-compatibility = "0.18.1"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
@@ -103,6 +106,8 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref="ktensorflow" }
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
+
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref= "binary-compatibility" }
 
 # Convention plugins
 convention-detekt = { id = "convention.detekt" }

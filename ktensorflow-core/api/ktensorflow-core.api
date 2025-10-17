@@ -1,0 +1,69 @@
+public abstract interface class dev/kursor/ktensorflow/Delegate {
+	public abstract fun getTflDelegate ()Lorg/tensorflow/lite/Delegate;
+	public abstract fun isAvailable ()Z
+}
+
+public abstract interface annotation class dev/kursor/ktensorflow/ExperimentalKTensorFlowApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface class dev/kursor/ktensorflow/Interpreter {
+	public abstract fun close ()V
+	public abstract fun run (Ljava/util/List;Ljava/util/Map;)V
+}
+
+public final class dev/kursor/ktensorflow/InterpreterKt {
+	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;[B[B)V
+}
+
+public final class dev/kursor/ktensorflow/InterpreterOptions {
+	public fun <init> (Lorg/tensorflow/lite/Interpreter$Options;)V
+	public final fun component1 ()Lorg/tensorflow/lite/Interpreter$Options;
+	public final fun copy (Lorg/tensorflow/lite/Interpreter$Options;)Ldev/kursor/ktensorflow/InterpreterOptions;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/InterpreterOptions;Lorg/tensorflow/lite/Interpreter$Options;ILjava/lang/Object;)Ldev/kursor/ktensorflow/InterpreterOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTflOptions ()Lorg/tensorflow/lite/Interpreter$Options;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/InterpreterOptionsKt {
+	public static final fun InterpreterOptions ()Ldev/kursor/ktensorflow/InterpreterOptions;
+	public static final fun InterpreterOptions (IZLjava/util/List;)Ldev/kursor/ktensorflow/InterpreterOptions;
+	public static final fun InterpreterOptions (Lkotlin/jvm/functions/Function1;)Ldev/kursor/ktensorflow/InterpreterOptions;
+	public static synthetic fun InterpreterOptions$default (IZLjava/util/List;ILjava/lang/Object;)Ldev/kursor/ktensorflow/InterpreterOptions;
+	public static final fun setDelegates (Lorg/tensorflow/lite/Interpreter$Options;Ljava/util/List;)Lorg/tensorflow/lite/Interpreter$Options;
+}
+
+public final class dev/kursor/ktensorflow/Interpreter_androidKt {
+	public static final fun Interpreter (Ldev/kursor/ktensorflow/ModelDesc;Ldev/kursor/ktensorflow/InterpreterOptions;)Ldev/kursor/ktensorflow/Interpreter;
+}
+
+public abstract interface class dev/kursor/ktensorflow/ModelDesc {
+	public static final field Companion Ldev/kursor/ktensorflow/ModelDesc$Companion;
+}
+
+public final class dev/kursor/ktensorflow/ModelDesc$ByteBuffer : dev/kursor/ktensorflow/ModelDesc {
+	public fun <init> (Ljava/nio/ByteBuffer;)V
+	public final fun component1 ()Ljava/nio/ByteBuffer;
+	public final fun copy (Ljava/nio/ByteBuffer;)Ldev/kursor/ktensorflow/ModelDesc$ByteBuffer;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/ModelDesc$ByteBuffer;Ljava/nio/ByteBuffer;ILjava/lang/Object;)Ldev/kursor/ktensorflow/ModelDesc$ByteBuffer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBuffer ()Ljava/nio/ByteBuffer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/ModelDesc$Companion {
+}
+
+public final class dev/kursor/ktensorflow/ModelDesc$File : dev/kursor/ktensorflow/ModelDesc {
+	public fun <init> (Ljava/io/File;)V
+	public final fun component1 ()Ljava/io/File;
+	public final fun copy (Ljava/io/File;)Ldev/kursor/ktensorflow/ModelDesc$File;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/ModelDesc$File;Ljava/io/File;ILjava/lang/Object;)Ldev/kursor/ktensorflow/ModelDesc$File;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFile ()Ljava/io/File;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
