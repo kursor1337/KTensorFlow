@@ -11,6 +11,7 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 - [Usage](#usage)
   - [Model loading](#load-the-model)
     - [Moko resources extensions](#moko-resources-extensions)
+    - [Compose resources extensions]()
   - [Inference](#run-inference)
     - [Data transformation with Tensors](#data-transformation-with-tensors)
   - [Hardware acceleration](#hardware-acceleration)
@@ -55,7 +56,8 @@ plugins {
 ## Usage
 ### Load the model
 First, you need to create `ModelDesc`, that would provide model to the library. 
-`ModelDesc` needs to be created in platform-specific code, since Android and iOS have different ways of loading the model.
+By default `ModelDesc` needs to be created in platform-specific code, since Android and iOS have different ways of loading the model.
+But there are extensions for Moko and Compose Resources in `ktensorflow-moko` and `ktensorflow-compose` modules.
 
 Android examples with Compose Multiplatform Resources:
 * ModelDesc.File
@@ -73,7 +75,7 @@ val byteBuffer = ByteBuffer.wrap(bytes).apply { order(ByteOrder.nativeOrder()) }
 val modelDesc = ModelDesc.ByteBuffer(byteBuffer)
 ```
 
-iOS examples with Compose Multiplatform Resources:
+iOS example with Compose Multiplatform Resources:
 * ModelDesc.PathInBundle
 ```kotlin
 val modelDesc = ModelDesc.PathInBundle(Res.getUri("files/model.tflite").removePrefix("file://"))
@@ -86,6 +88,10 @@ Module `ktensorflow-moko` contains useful extension functions to create a `Model
 It adds 2 useful functions:
 * `ModelDesc.FileResource(resource: FileResource)` to load a model from moko's `FileResource`
 * `ModelDesc.AssetResource(resource: AssetResource)` to load a model from moko's `AssetResource`
+
+#### Compose resources extensions
+Module `ktensorflow-compose` contains useful extension function to create `ModelDesc` from [compose-resources](https://github.com/JetBrains/compose-multiplatform)
+* `ModelDesc.ComposeUri(uri: String)` to load model with `Res.getUri(<filePath>)`
 
 ### Run inference
 To run the inference, create `Interpreter`:
@@ -113,10 +119,7 @@ val result = output.argmax()[0]
 ```
 
 **Note**
-
-`Tensor` class stores data in a ByteArray. So, if you're using `Tensor(any: Any)` to create a Tensor from multidimensional primitive array, it copies entire array inside a new ByteArray.
-Because of this, it is better to use `Tensor(shape: TensorShape, dataType: TensorDataType)` for output tensors, 
-since it will allow to skip copying of the array and just allocate a ByteArray of the necessary size. It will allocate ByteArray of the size `shape.flatSize * dataType.byteSize`, with data type memory size already taken into account.
+By default, `Interpreter.run` accepts only ByteArray for inputs and output. `Tensor` class is provided as separate module, but is highly recommended to use to ease data manipulation.
 
 #### Data transformation with Tensors
 Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions
