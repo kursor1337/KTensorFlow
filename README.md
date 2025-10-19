@@ -44,7 +44,7 @@ dependencies {
   implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.2")
 
   // compose module, contains extension to load models from compose-resources (ModelDesc.ComposeUri)
-  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.2")
+  implementation("dev.kursor.ktensorflow:ktensorflow-compose:1.2")
 }
 ```
 
