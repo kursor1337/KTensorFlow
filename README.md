@@ -25,37 +25,40 @@ First add dependencies:
 ```kotlin
 dependencies {
   // core module, contains Interpreter and other core classes and functions
-  implementation("dev.kursor.ktensorflow:ktensorflow-core:1.0")
+  implementation("dev.kursor.ktensorflow:ktensorflow-core:1.2")
 
   // tensors module, adds support for Tensors and allows easy data transformation
-  // highly recommended if you don't want to convert your model inputs and outputs to and from ByteArray
-  implementation("dev.kursor.ktensorflow:ktensorflow-tensor:1.0")
+  // highly recommended if you don't want to convert your model inputs and outputs to and from ByteArray manually
+  implementation("dev.kursor.ktensorflow:ktensorflow-tensor:1.2")
 
   // gpu module, contains delegate to run inference on the gpu
-  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:1.0")
+  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:1.2")
 
   // npu module, contains delegate to run inference on the npu
-  implementation("dev.kursor.ktensorflow:ktensorflow-npu:1.0")
+  implementation("dev.kursor.ktensorflow:ktensorflow-npu:1.2")
 
   // pipeline module, contains utils to create pipelines for preprocessing and postprocessing of the data
-  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:1.0")
+  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:1.2")
 
-  // moko module, contains extensions for loading models from moko-resources (ModelDesc.FileResource and ModelDesc.AssetResource)
-  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.0")
+  // moko module, contains extensions to load models from moko-resources (ModelDesc.FileResource and ModelDesc.AssetResource)
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.2")
+
+  // compose module, contains extension to load models from compose-resources (ModelDesc.ComposeUri)
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.2")
 }
 ```
 
 To link TensorFlow Lite binaries to iOS you need to add Linking plugin
 ```kotlin
 plugins {
-  id("dev.kursor.ktensorflow.link") version "0.3"
+  id("dev.kursor.ktensorflow.link") version "1.2"
 }
 ```
 **Currently, this library only supports projects, that are being linked to iOS app via CocoaPods**
 
 ## Usage
 ### Load the model
-First, you need to create `ModelDesc`, that would provide model to the library. 
+First, you need to create `ModelDesc`, that would provide model to the library.
 By default `ModelDesc` needs to be created in platform-specific code, since Android and iOS have different ways of loading the model.
 But there are extensions for Moko and Compose Resources in `ktensorflow-moko` and `ktensorflow-compose` modules.
 
@@ -109,8 +112,8 @@ val inputArray = Array(28) {
     Random.nextFloat()
   }
 }
-val input = Tensor(inputArray)
-val output = Tensor(
+val input = Tensor<Float>(inputArray)
+val output = Tensor<Float>(
   shape = TensorShape(10),
   dataType = TensorDataType.Float32
 )
@@ -119,14 +122,35 @@ val result = output.argmax()[0]
 ```
 
 **Note**
-By default, `Interpreter.run` accepts only ByteArray for inputs and output. `Tensor` class is provided as separate module, but is highly recommended to use to ease data manipulation.
+By default, `Interpreter.run` accepts only `ByteArray` for inputs and output. `Tensor` class is provided as separate module, but is highly recommended to use for easier data manipulation.
 
 #### Data transformation with Tensors
-Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions
+Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions.
+You can create Tensors from multidimensional primitive arrays with:
+- `Tensor<T>(any: Any)` - where `T` is `Float`, `Int`, `UByte`, `Long` and `any: Any` is N-dimensional primitive array of these types, for example: `Array<Array<FloatArray>>`, etc.
+
+And you can transform Tensors to primitive arrays with:
+- `Tensor<T>.toArray<R>()` - returns primitive multidimensional array of type `R` with data from the Tensor
+
+Example:
+```kotlin
+val tensor1: Tensor<Float> = Tensor(Array(28) { FloatArray(28) { Random.nextFloat() } })
+val tensor2: Tensor<Float> = Tensor(Array(28) { FloatArray(28) { Random.nextFloat() } })
+val tensor3: Tensor<Float> = tensor1 + tensor2 
+val array = tensor3.toArray<Array<FloatArray>>()
+val argmax: IntArray = tensor3.argmax()
+```
+
+Tensors support these types which translate to corresponding Kotlin types:
+- `TensorDataType.Float32` -> `Float`
+- `TensorDataType.Int32` -> `Int`
+- `TensorDataType.UInt8` -> `UByte`
+- `TensorDataType.Int64` -> `Long`
+
 
 ### Hardware acceleration
 Hardware acceleration is provided by delegates.
-There are built-in Delegates to run inference on GPU and NPU in modules `ktensorflow-gpu` and `ktensorflow-npu` 
+There are built-in Delegates to run inference on GPU and NPU in modules `ktensorflow-gpu` and `ktensorflow-npu`
 
 Delegates can be provided to interpreter using `InterpreterOptions`
 ```kotlin
@@ -137,7 +161,7 @@ val options = InterpreterOptions(
 )
 ```
 
-Delegates are provided to the `Interpreter` as a list, and only the first available will be used.
+Delegates are provided to the `Interpreter` as a list of possible variants, and only the first available will be used.
 
 ### Providing platform-specific options
 If you need to provide platform specific option to the `Interpreter` or `GpuDelegate` you can use platform-specific builder functions:
@@ -204,7 +228,7 @@ val pipeline = Pipeline
       .floatify()
       .normalize()
       .tensorize()
-    )
+  )
   .inference(interpreter)
   .output(
     index = 0,
