@@ -247,8 +247,6 @@ val output = pipeline.run(input)
 ```
 
 ## Library development plan
-* Add Compose Resources extensions
-* Add support for NPU (CoreML on iOS and NNAPI/QNN on Android)
 * Add utils for media and text processing
 
 If you have any other suggestions, feel free to create an issue, I'd love to hear your thoughts!
