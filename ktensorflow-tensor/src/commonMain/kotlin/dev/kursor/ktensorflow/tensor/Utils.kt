@@ -1,6 +1,16 @@
 package dev.kursor.ktensorflow.tensor
 
-import kotlin.reflect.KClass
+fun IntArray.incrementIndex(shape: TensorShape) {
+    for (d in size - 1 downTo 0) {
+        val next = this[d] + 1
+        if (next < shape.dimensions[d]) {
+            this[d] = next
+            break
+        } else {
+            this[d] = 0
+        }
+    }
+}
 
 fun IntArray.toFlatIndex(shape: TensorShape): Int {
     require(size == shape.rank) {

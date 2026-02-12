@@ -9,7 +9,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
  * 
  * @param T The type of the data.
  */
-sealed interface Tensor<T : Any> {
+interface Tensor<T : Any> {
 
     /**
      * Data type of the [Tensor]

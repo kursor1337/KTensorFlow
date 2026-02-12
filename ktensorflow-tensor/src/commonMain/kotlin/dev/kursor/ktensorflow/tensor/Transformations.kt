@@ -1,6 +1,8 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.tensor.impl.toByteArray
 import kotlin.jvm.JvmName
+import kotlin.math.sqrt
 
 /**
  * Iterates over all elements of the [Tensor].
@@ -8,7 +10,11 @@ import kotlin.jvm.JvmName
  * @param action The action to perform on each element.
  */
 inline fun <T : Any> Tensor<T>.forEach(action: (T) -> Unit) {
-    for (i in 0 until shape.flatSize) action(get(i.toNestedIndex(shape)))
+    val index = IntArray(shape.rank)
+    for (i in 0 until shape.flatSize) {
+        action(get(index))
+        index.incrementIndex(shape)
+    }
 }
 
 /**
@@ -17,9 +23,10 @@ inline fun <T : Any> Tensor<T>.forEach(action: (T) -> Unit) {
  * @param action The action to perform on each element.
  */
 inline fun <T : Any> Tensor<T>.forEachIndexed(action: (IntArray, T) -> Unit) {
+    val index = IntArray(shape.rank)
     for (i in 0 until shape.flatSize) {
-        val index = i.toNestedIndex(shape)
         action(index, get(index))
+        index.incrementIndex(shape)
     }
 }
 
@@ -149,6 +156,16 @@ fun <T : Any> Tensor<T>.slice(ranges: Array<IntRange>): Tensor<T> {
     return result
 }
 
+fun <T : Any> Tensor<T>.squeeze(): Tensor<T> {
+    val newShape = TensorShape(
+        shape
+            .dimensions
+            .filter { it > 1 }
+            .toIntArray()
+    )
+    return reshape(newShape)
+}
+
 /**
  * Returns the sum of all elements in the [Tensor].
  */
@@ -218,7 +235,7 @@ fun Tensor<Long>.avg(): Long = sum() / shape.flatSize
  */
 @JvmName("minFloat")
 fun Tensor<Float>.min(): Float {
-    var min = Float.MAX_VALUE
+    var min = Float.POSITIVE_INFINITY
     forEach { min = minOf(min, it) }
     return min
 }
@@ -258,7 +275,7 @@ fun Tensor<Long>.min(): Long {
  */
 @JvmName("maxFloat")
 fun Tensor<Float>.max(): Float {
-    var max = Float.MIN_VALUE
+    var max = Float.NEGATIVE_INFINITY
     forEach { max = maxOf(max, it) }
     return max
 }
@@ -298,7 +315,7 @@ fun Tensor<Long>.max(): Long {
  */
 @JvmName("argMaxFloat")
 fun Tensor<Float>.argmax(): IntArray {
-    var max = Float.MIN_VALUE
+    var max = Float.NEGATIVE_INFINITY
     var maxIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
         if (value > max) {
@@ -362,7 +379,7 @@ fun Tensor<Long>.argmax(): IntArray {
  */
 @JvmName("argMinFloat")
 fun Tensor<Float>.argmin(): IntArray {
-    var min = Float.MAX_VALUE
+    var min = Float.POSITIVE_INFINITY
     var minIndex = IntArray(shape.rank)
     forEachIndexed { index, value ->
         if (value < min) {
@@ -426,8 +443,12 @@ fun Tensor<Long>.argmin(): IntArray {
  */
 @JvmName("normalizeFloat")
 fun Tensor<Float>.normalize(): Tensor<Float> {
-    val min = min()
-    val max = max()
+    var min = Float.POSITIVE_INFINITY
+    var max = Float.NEGATIVE_INFINITY
+    forEach {
+        if (it < min) min = it
+        if (it > max) max = it
+    }
     return map { (it - min) / (max - min) }
 }
 
@@ -481,4 +502,33 @@ fun <T : Any> Tensor<T>.toList(): List<T> {
     val list = ArrayList<T>(shape.flatSize)
     forEach { list.add(it) }
     return list
+}
+
+@OptIn(ExperimentalUnsignedTypes::class)
+fun <R : Any> Tensor<*>.toFlatArray(): R {
+    return when (dataType) {
+        TensorDataType.Float32 -> {
+            val array = FloatArray(shape.flatSize)
+            forEachIndexed { index, value -> array[index.toFlatIndex(shape)] = value as Float }
+            array
+        }
+
+        TensorDataType.Int32 -> {
+            val array = IntArray(shape.flatSize)
+            forEachIndexed { index, value -> array[index.toFlatIndex(shape)] = value as Int }
+            array
+        }
+
+        TensorDataType.Int64 -> {
+            val array = LongArray(shape.flatSize)
+            forEachIndexed { index, value -> array[index.toFlatIndex(shape)] = value as Long }
+            array
+        }
+
+        TensorDataType.UInt8 -> {
+            val array = UByteArray(shape.flatSize)
+            forEachIndexed { index, value -> array[index.toFlatIndex(shape)] = value as UByte }
+            array
+        }
+    } as R
 }

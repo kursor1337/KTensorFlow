@@ -81,6 +81,7 @@ kotlin {
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowPipeline)
+            implementation(projects.ktensorflowMedia)
         }
 
         commonTest.dependencies {

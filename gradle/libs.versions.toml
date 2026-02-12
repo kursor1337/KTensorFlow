@@ -9,11 +9,17 @@ qnn = "2.39.0"
 
 moko-resources = "0.25.1"
 
+moko-permissions = "0.20.1"
+
 detekt = "1.23.8"
 
 publishing = "0.34.0"
 
 startup = "1.2.0"
+
+camera = "1.5.1"
+
+androidx-core = "1.17.0"
 
 # Tests
 junit = "4.13.2"
@@ -36,7 +42,7 @@ serialization = "1.9.0"
 essenty = "2.5.0"
 
 # KTensorFlow
-ktensorflow = "0.3"
+ktensorflow = "1.2"
 
 # API Compatibility
 binary-compatibility = "0.18.1"
@@ -53,10 +59,20 @@ qnn-litert-delegate = { module = "com.qualcomm.qti:qnn-litert-delegate", version
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "moko-resources" }
 moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "moko-resources" }
 
+moko-permissions-camera = { module = "dev.icerock.moko:permissions-camera", version.ref = "moko-permissions" }
+moko-permissions-compose = { module = "dev.icerock.moko:permissions-compose", version.ref = "moko-permissions" }
+
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 
+camera-core = { module = "androidx.camera:camera-core", version.ref = "camera" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" }
+camera-video = { module = "androidx.camera:camera-video", version.ref = "camera" }
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" }
+
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 # Tests
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
@@ -103,7 +119,7 @@ moko-resources = { id = "dev.icerock.mobile.multiplatform-resources", version.re
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
-ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref="ktensorflow" }
+ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref = "ktensorflow" }
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
