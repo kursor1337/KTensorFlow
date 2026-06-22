@@ -8,6 +8,7 @@ import dev.kursor.ktensorflow.compose.ComposeUri
 import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.media.Image
 import dev.kursor.ktensorflow.media.ImageTensor
+import dev.kursor.ktensorflow.media.ImageTensorLayout
 import dev.kursor.ktensorflow.media.PixelFormat
 import dev.kursor.ktensorflow.media.resize
 import dev.kursor.ktensorflow.media.tensorize
@@ -63,7 +64,10 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         }
         val stage6: ImageTensor<Float>
         val toImageTensor = measureTime {
-            stage6 = stage5.toImageTensor(pixelFormat = PixelFormat.RGBA)
+            stage6 = stage5.toImageTensor(
+                pixelFormat = PixelFormat.RGBA,
+                layout = ImageTensorLayout.NHWC
+            )
         }
 
 

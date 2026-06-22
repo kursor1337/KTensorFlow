@@ -32,6 +32,7 @@ import dev.icerock.moko.permissions.compose.BindEffect
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import dev.kursor.ktensorflow.media.Image
 import dev.kursor.ktensorflow.media.ImageTensor
+import dev.kursor.ktensorflow.media.ImageTensorLayout
 import dev.kursor.ktensorflow.media.PixelFormat
 import dev.kursor.ktensorflow.media.camera.LiveCameraUi
 import dev.kursor.ktensorflow.media.grayscale
@@ -55,7 +56,7 @@ fun LiveDetectionUi(
             ?.grayscale()
             ?.tensorize<Float>()
             ?.normalize()
-            ?.toImageTensor(PixelFormat.Grayscale)
+            ?.toImageTensor(PixelFormat.Grayscale, ImageTensorLayout.NHWC)
     }
 
     val permissionsControllerFactory = rememberPermissionsControllerFactory()

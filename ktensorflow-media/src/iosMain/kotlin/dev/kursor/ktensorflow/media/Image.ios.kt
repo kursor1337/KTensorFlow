@@ -51,19 +51,21 @@ actual class Image(
             }
             is PixelFormat.RGB -> {
                 for (i in out.indices) {
-                    val b = data[pixelFormat.bIndex].toInt() and 0xFF
-                    val g = data[pixelFormat.gIndex].toInt() and 0xFF
-                    val r = data[pixelFormat.rIndex].toInt() and 0xFF
+                    val o = 4 * i
+                    val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
+                    val g = data[o + pixelFormat.gIndex].toInt() and 0xFF
+                    val r = data[o + pixelFormat.rIndex].toInt() and 0xFF
                     val a = 0xFF
                     out[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
                 }
             }
             is PixelFormat.RGBA -> {
                 for (i in out.indices) {
-                    val a = data[pixelFormat.aIndex].toInt() and 0xFF
-                    val b = data[pixelFormat.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    val g = data[pixelFormat.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    val r = data[pixelFormat.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    val o = 4 * i
+                    val a = data[o + pixelFormat.aIndex].toInt() and 0xFF
+                    val b = data[o + pixelFormat.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    val g = data[o + pixelFormat.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    val r = data[o + pixelFormat.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
 
                     out[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
                 }
