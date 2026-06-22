@@ -26,6 +26,14 @@ fun IntArray.toFlatIndex(shape: TensorShape): Int {
     return flatIndex
 }
 
+fun IntArray.toFlatIndex(strides: IntArray): Int {
+    var flatIndex = 0
+    for (i in indices) {
+        flatIndex += this[i] * strides[i]
+    }
+    return flatIndex
+}
+
 fun Int.toNestedIndex(shape: TensorShape): IntArray {
     require(this in 0 until shape.flatSize) {
         "Flat index $this out of bounds for shape $shape"
@@ -38,6 +46,16 @@ fun Int.toNestedIndex(shape: TensorShape): IntArray {
         remainder /= shape.dimensions[i]
     }
     return index
+}
+
+fun TensorShape.strides(): IntArray {
+    val strides = IntArray(rank)
+    var currentStride = 1
+    for (i in rank - 1 downTo 0) {
+        strides[i] = currentStride
+        currentStride *= dimensions[i]
+    }
+    return strides
 }
 
 internal fun ByteArray.readFloat(index: Int): Float {
@@ -59,7 +77,7 @@ internal fun ByteArray.readLong(index: Int): Long {
     return ((this[8 * index].toLong() and 0xFF) or
             ((this[8 * index + 1].toLong() and 0xFF) shl 8) or
             ((this[8 * index + 2].toLong() and 0xFF) shl 16) or
-            ((this[8 * index + 3].toLong()) shl 24) or
+            ((this[8 * index + 3].toLong() and 0xFF) shl 24) or
             ((this[8 * index + 4].toLong() and 0xFF) shl 32) or
             ((this[8 * index + 5].toLong() and 0xFF) shl 40) or
             ((this[8 * index + 6].toLong() and 0xFF) shl 48) or

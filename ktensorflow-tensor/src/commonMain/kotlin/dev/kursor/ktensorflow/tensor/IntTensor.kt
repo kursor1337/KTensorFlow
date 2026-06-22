@@ -13,14 +13,24 @@ class IntTensor(
     override val data: ByteArray
 ) : Tensor<Int> {
 
+    private val strides = shape.strides()
+
     override val dataType = TensorDataType.Int32
 
+    override fun getFlat(index: Int): Int {
+        return data.readInt(index)
+    }
+
+    override fun setFlat(index: Int, value: Int) {
+        data.writeInt(index, value)
+    }
+
     override fun get(index: IntArray): Int {
-        return data.readInt(index.toFlatIndex(shape))
+        return data.readInt(index.toFlatIndex(strides))
     }
 
     override fun set(index: IntArray, value: Int) {
-        data.writeInt(index.toFlatIndex(shape), value)
+        data.writeInt(index.toFlatIndex(strides), value)
     }
 
     override fun equals(other: Any?): Boolean {

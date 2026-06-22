@@ -13,14 +13,24 @@ class LongTensor(
     override val data: ByteArray
 ) : Tensor<Long> {
 
+    private val strides = shape.strides()
+
     override val dataType = TensorDataType.Int64
 
+    override fun getFlat(index: Int): Long {
+        return data.readLong(index)
+    }
+
+    override fun setFlat(index: Int, value: Long) {
+        data.writeLong(index, value)
+    }
+
     override fun get(index: IntArray): Long {
-        return data.readLong(index.toFlatIndex(shape))
+        return data.readLong(index.toFlatIndex(strides))
     }
 
     override fun set(index: IntArray, value: Long) {
-        data.writeLong(index.toFlatIndex(shape), value)
+        data.writeLong(index.toFlatIndex(strides), value)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -41,6 +41,9 @@ interface Tensor<T : Any> {
      * @param value - value to set
      */
     operator fun set(index: IntArray, value: T)
+
+    fun getFlat(index: Int): T
+    fun setFlat(index: Int, value: T)
 }
 
 /**
