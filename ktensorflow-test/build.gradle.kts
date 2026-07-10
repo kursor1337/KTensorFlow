@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithSimulatorTests
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -9,7 +8,10 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
+    android {
+        namespace = "dev.kursor.ktensorflow.test"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -42,7 +44,6 @@ kotlin {
         }
     }
 
-    iosX64(iosConfigure)
     iosArm64(iosConfigure)
     iosSimulatorArm64(iosConfigure)
 
@@ -97,28 +98,6 @@ kotlin {
         }
     }
 }
-
-android {
-    namespace = "dev.kursor.ktensorflow.test"
-
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-val copyIosX64TestResources = tasks.register<Copy>("copyIosX64TestResources") {
-    from("src/iosTest/resources")
-    into("build/bin/iosX64/debugTest/Contents/Resources")
-}
-
-tasks.findByName("iosX64Test")!!.dependsOn(copyIosX64TestResources)
 
 val copyIosSimulatorArm64TestResources = tasks.register<Copy>("copyIosSimulatorArm64TestResources") {
     from("src/iosTest/resources")

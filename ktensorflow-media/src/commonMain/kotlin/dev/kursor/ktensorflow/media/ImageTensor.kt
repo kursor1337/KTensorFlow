@@ -5,6 +5,7 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.reshape
 import dev.kursor.ktensorflow.tensor.squeeze
+import dev.kursor.ktensorflow.tensor.strides
 import kotlin.coroutines.coroutineContext
 
 class ImageTensor<T : Any>(
@@ -12,6 +13,13 @@ class ImageTensor<T : Any>(
     val pixelFormat: PixelFormat,
     val layout: ImageTensorLayout
 ) : Tensor<T> by normalize(tensor, layout) {
+
+    private val strides = shape.strides()
+
+    private val nStride = strides[layout.nIndex]
+    private val hStride = strides[layout.hIndex]
+    private val wStride = strides[layout.wIndex]
+    private val cStride = strides[layout.cIndex]
 
     init {
         require(shape.rank == 4) {
@@ -24,33 +32,16 @@ class ImageTensor<T : Any>(
     val height get() = shape.dimensions[layout.hIndex]
     val channels get() = shape.dimensions[layout.cIndex]
 
-    operator fun get(
-        n: Int,
-        h: Int,
-        w: Int,
-        c: Int
-    ): T {
-        val coords = IntArray(4)
-        coords[layout.nIndex] = n
-        coords[layout.hIndex] = h
-        coords[layout.wIndex] = w
-        coords[layout.cIndex] = c
-        return get(coords)
+    operator fun get(n: Int, h: Int, w: Int, c: Int): T {
+        return getFlat(offset(n, h, w, c))
     }
 
-    operator fun set(
-        n: Int,
-        h: Int,
-        w: Int,
-        c: Int,
-        value: T
-    ) {
-        val coords = IntArray(4)
-        coords[layout.nIndex] = n
-        coords[layout.hIndex] = h
-        coords[layout.wIndex] = w
-        coords[layout.cIndex] = c
-        set(coords, value)
+    operator fun set(n: Int, h: Int, w: Int, c: Int, value: T) {
+        setFlat(offset(n, h, w, c), value)
+    }
+
+    private fun offset(n: Int, h: Int, w: Int, c: Int): Int {
+        return n * nStride + h * hStride + w * wStride + c * cStride
     }
 
     companion object {

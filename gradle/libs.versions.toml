@@ -1,25 +1,25 @@
 [versions]
-agp = "8.13.0"
+agp = "9.2.1"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.2.20"
+kotlin = "2.4.0"
 
 tensorflow-android = "1.4.0"
-qnn = "2.39.0"
+qnn = "2.48.0"
 
-moko-resources = "0.25.1"
+moko-resources = "0.26.4"
 
 moko-permissions = "0.20.1"
 
 detekt = "1.23.8"
 
-publishing = "0.34.0"
+publishing = "0.37.0"
 
 startup = "1.2.0"
 
-camera = "1.5.1"
+camera = "1.6.1"
 
-androidx-core = "1.17.0"
+androidx-core = "1.19.0"
 
 # Tests
 junit = "4.13.2"
@@ -28,17 +28,17 @@ androidx-test-junit = "1.3.0"
 androidx-test-runner = "1.7.0"
 
 # Samples
-android-compileSdk = "36"
+android-compileSdk = "37"
 android-minSdk = "24"
 
-compose = "1.9.0"
-activity-compose = "1.11.0"
+compose = "1.11.1"
+activity-compose = "1.13.0"
 
-coroutines = "1.10.2"
-decompose = "3.4.0"
-koin = "4.1.1"
-kermit = "2.0.8"
-serialization = "1.9.0"
+coroutines = "1.11.0"
+decompose = "3.5.0"
+koin = "4.2.2"
+kermit = "2.1.0"
+serialization = "1.11.0"
 essenty = "2.5.0"
 
 # KTensorFlow
@@ -65,6 +65,13 @@ moko-permissions-compose = { module = "dev.icerock.moko:permissions-compose", ve
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
+
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
+compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose" }
+compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
 
 camera-core = { module = "androidx.camera:camera-core", version.ref = "camera" }
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
@@ -108,7 +115,7 @@ ktensorflow-moko = { module = "dev.kursor.ktensorflow:ktensorflow-moko", version
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-android-library = { id = "com.android.library", version.ref = "agp" }
+android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -40,7 +40,7 @@ actual fun Image.resize(newWidth: Int, newHeight: Int): Image {
         )
     }
 
-    return Image(newWidth, newHeight, pixelFormat, out)
+    return IosImage(newWidth, newHeight, pixelFormat, out)
 }
 
 actual fun Image.crop(rect: Rect): Image {
@@ -68,7 +68,7 @@ actual fun Image.crop(rect: Rect): Image {
         )
     }
 
-    return Image(newWidth, newHeight, pixelFormat, out)
+    return IosImage(newWidth, newHeight, pixelFormat, out)
 }
 
 actual fun Image.rotate(degrees: Float): Image {
@@ -95,7 +95,7 @@ actual fun Image.rotate(degrees: Float): Image {
         )
     }
 
-    return Image(newWidth, newHeight, pixelFormat, out)
+    return IosImage(newWidth, newHeight, pixelFormat, out)
 }
 
 actual fun Image.grayscale(): Image {
@@ -108,9 +108,9 @@ actual fun Image.grayscale(): Image {
     var dst = 0
 
     repeat(width * height) {
-        val r = data[src + rgba.rIndex].toInt() and 0xFF
-        val g = data[src + rgba.gIndex].toInt() and 0xFF
-        val b = data[src + rgba.bIndex].toInt() and 0xFF
+        val r = platformImage[src + rgba.rIndex].toInt() and 0xFF
+        val g = platformImage[src + rgba.gIndex].toInt() and 0xFF
+        val b = platformImage[src + rgba.bIndex].toInt() and 0xFF
 
         out[dst++] =
             (0.299 * r + 0.587 * g + 0.114 * b)
@@ -121,7 +121,7 @@ actual fun Image.grayscale(): Image {
         src += rgba.channels
     }
 
-    return Image(width, height, PixelFormat.Grayscale, out)
+    return IosImage(width, height, PixelFormat.Grayscale, out)
 }
 
 

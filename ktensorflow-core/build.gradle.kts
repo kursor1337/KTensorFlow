@@ -13,13 +13,15 @@ kotlin {
         optIn.addAll("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
-    androidTarget {
+    android {
+        namespace = "dev.kursor.ktensorflow.core"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
@@ -47,19 +49,5 @@ kotlin {
         androidMain.dependencies {
             api(libs.tensorflow)
         }
-    }
-}
-
-android {
-    namespace = "dev.kursor.ktensorflow.core"
-
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

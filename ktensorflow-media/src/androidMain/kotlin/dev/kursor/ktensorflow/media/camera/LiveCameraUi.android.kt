@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.kursor.ktensorflow.media.AndroidImage
 import dev.kursor.ktensorflow.media.Image
 import dev.kursor.ktensorflow.media.PixelFormat
 import dev.kursor.ktensorflow.media.rotate
@@ -52,7 +53,7 @@ actual fun LiveCameraUi(
                         val image = imageProxy
                             .toBitmap()
                             .let {
-                                Image(
+                                AndroidImage(
                                     it,
                                     PixelFormat.ARGB
                                 )
@@ -64,7 +65,6 @@ actual fun LiveCameraUi(
                                     it
                                 }
                             }
-                        // with YUV → RGB conversion
                         onFrame(image)
                     } catch (e: Exception) {
                         Log.e("LiveCameraUi", "Frame error: ${e.message}")

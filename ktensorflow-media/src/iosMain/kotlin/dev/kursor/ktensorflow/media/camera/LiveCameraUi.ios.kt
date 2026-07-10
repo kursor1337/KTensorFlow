@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import dev.kursor.ktensorflow.media.Image
+import dev.kursor.ktensorflow.media.IosImage
 import dev.kursor.ktensorflow.media.PixelFormat
 import kotlinx.cinterop.refTo
 import platform.AVFoundation.AVCaptureConnection
@@ -114,11 +115,11 @@ actual fun LiveCameraUi(
 
                         // ✅ Call onFrame with the proper image
                         onFrame(
-                            Image(
+                            IosImage(
                                 width = width.toInt(),
                                 height = height.toInt(),
                                 pixelFormat = PixelFormat.BGRA, // matches kCGImageAlphaPremultipliedLast
-                                data = out
+                                platformImage = out
                             )
                         )
                     }

@@ -14,45 +14,35 @@ kotlin {
         optIn.addAll("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
-    androidTarget {
+    android {
+        namespace = "dev.kursor.ktensorflow.media"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.core)
-        }
-        commonMain.dependencies {
-            implementation(compose.ui)
-            implementation(compose.runtime)
-            implementation(projects.ktensorflowCore)
-            implementation(projects.ktensorflowTensor)
-            implementation(projects.ktensorflowPipeline)
             implementation(libs.camera.core)
             implementation(libs.camera.camera2)
             implementation(libs.camera.lifecycle)
             implementation(libs.camera.view)
             implementation(libs.camera.video)
         }
-    }
-}
+        commonMain.dependencies {
+            implementation(projects.ktensorflowCore)
+            implementation(projects.ktensorflowTensor)
+            implementation(projects.ktensorflowPipeline)
 
-android {
-    namespace = "dev.kursor.ktensorflow.media"
+            implementation(libs.compose.ui)
+            implementation(libs.compose.runtime)
 
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        }
     }
 }

@@ -5,4 +5,6 @@ data class Rect(
     val top: Int,
     val right: Int,
     val bottom: Int
-)
+) {
+    companion object
+}

@@ -8,38 +8,26 @@ plugins {
 }
 
 kotlin {
-
-    androidTarget {
+    android {
+        namespace = "dev.kursor.ktensorflow.moko"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)
+
             implementation(libs.moko.resources)
         }
         androidMain.dependencies {
             implementation(libs.androidx.startup.runtime)
         }
-    }
-}
-
-android {
-    namespace = "dev.kursor.ktensorflow.moko"
-
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

@@ -7,16 +7,18 @@ import kotlin.math.roundToInt
  * It uses CoreGraphics to extract and manage the pixel buffer in ARGB_8888 format
  * for efficient pixel access.
  */
-actual class Image(
-    actual val width: Int,
-    actual val height: Int,
-    actual val pixelFormat: PixelFormat,
-    val data: ByteArray // alpha always premultiplied
-) {
+class IosImage(
+    override val width: Int,
+    override val height: Int,
+    override val pixelFormat: PixelFormat,
+    override val platformImage: PlatformImage // alpha always premultiplied
+) : Image {
     private val bytesPerPixel = pixelFormat.channels
     private val bytesPerRow = width * bytesPerPixel
 
-    actual operator fun get(x: Int, y: Int): Int {
+    private val data: ByteArray get() = platformImage
+
+    override operator fun get(x: Int, y: Int): Int {
         if (x !in 0 until width || y !in 0 until height) return 0
         val o = y * bytesPerRow + x * bytesPerPixel
         return when (pixelFormat) {
@@ -40,7 +42,7 @@ actual class Image(
         }
     }
 
-    actual fun getPixels(): IntArray {
+    override fun getPixels(): IntArray {
         val out = IntArray(width * height)
 
         when (pixelFormat) {
@@ -73,6 +75,53 @@ actual class Image(
         }
         return out
     }
+
+    override fun release() {
+        // do nothing
+    }
 }
 
 private fun Int.unpremultiplyAlpha(a: Int): Int = (this.toFloat() / a * 255).roundToInt()
+
+actual fun Image(
+    width: Int,
+    height: Int,
+    pixelFormat: PixelFormat,
+    pixels: IntArray
+): Image {
+    val bytes = ByteArray(width * height * pixelFormat.channels)
+
+    when (pixelFormat) {
+        PixelFormat.Grayscale -> {
+            for (i in pixels.indices) {
+                bytes[i] = (pixels[i] and 0xFF).toByte()
+            }
+        }
+        is PixelFormat.RGB -> {
+            for (i in pixels.indices) {
+                val p = pixels[i]
+                val o = i * 3
+                bytes[o + pixelFormat.rIndex] = ((p shr 16) and 0xFF).toByte()
+                bytes[o + pixelFormat.gIndex] = ((p shr 8) and 0xFF).toByte()
+                bytes[o + pixelFormat.bIndex] = (p and 0xFF).toByte()
+            }
+        }
+        is PixelFormat.RGBA -> {
+            for (i in pixels.indices) {
+                val p = pixels[i]
+                val o = i * 4
+                val a = (p shr 24) and 0xFF
+
+                val r = (((p shr 16) and 0xFF) * a / 255)
+                val g = (((p shr 8) and 0xFF) * a / 255)
+                val b = ((p and 0xFF) * a / 255)
+
+                bytes[o + pixelFormat.aIndex] = a.toByte()
+                bytes[o + pixelFormat.rIndex] = r.toByte()
+                bytes[o + pixelFormat.gIndex] = g.toByte()
+                bytes[o + pixelFormat.bIndex] = b.toByte()
+            }
+        }
+    }
+    return IosImage(width, height, pixelFormat, bytes)
+}

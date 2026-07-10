@@ -13,34 +13,34 @@ import dev.kursor.ktensorflow.media.camera.Rect
 actual fun Image.resize(
     newWidth: Int,
     newHeight: Int
-): Image = bitmap
+): Image = platformImage
     .scale(newWidth, newHeight)
-    .let { Image(it, pixelFormat) }
+    .let { AndroidImage(it, pixelFormat) }
 
 
 actual fun Image.crop(rect: Rect): Image = Bitmap
     .createBitmap(
-        bitmap,
+        platformImage,
         rect.left,
         rect.top,
         rect.right - rect.left,
         rect.bottom - rect.top
     )
-    .let { Image(it, pixelFormat) }
+    .let { AndroidImage(it, pixelFormat) }
 
 actual fun Image.rotate(degrees: Float): Image = Bitmap
     .createBitmap(
-        bitmap,
+        platformImage,
         0,
         0,
-        bitmap.width,
-        bitmap.height,
+        platformImage.width,
+        platformImage.height,
         Matrix().apply {
             postRotate(degrees)
         },
         true
     )
-    .let { Image(it, pixelFormat) }
+    .let { AndroidImage(it, pixelFormat) }
 
 actual fun Image.grayscale(): Image {
     val grayBitmap = createBitmap(width, height)
@@ -50,6 +50,6 @@ actual fun Image.grayscale(): Image {
     val colorMatrix = ColorMatrix().apply { setSaturation(0f) }
     paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
 
-    canvas.drawBitmap(bitmap, 0f, 0f, paint)
-    return Image(grayBitmap, PixelFormat.Grayscale)
+    canvas.drawBitmap(platformImage, 0f, 0f, paint)
+    return AndroidImage(grayBitmap, PixelFormat.Grayscale)
 }

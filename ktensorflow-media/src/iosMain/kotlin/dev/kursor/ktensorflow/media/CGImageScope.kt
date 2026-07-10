@@ -40,11 +40,11 @@ private fun Image.toCGImage(): CGImageRef {
         else
             CGColorSpaceCreateDeviceRGB()
 
-    val provider = data.usePinned {
+    val provider = platformImage.usePinned {
         CGDataProviderCreateWithData(
             null,
             it.addressOf(0),
-            data.size.toULong(),
+            platformImage.size.toULong(),
             null
         )
     }!!
