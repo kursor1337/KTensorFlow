@@ -4,7 +4,7 @@ core = "1.6.1"
 junitVersion = "1.2.1"
 kotlin = "2.4.0"
 
-tensorflow-android = "1.4.0"
+tensorflow-android = "1.4.2"
 qnn = "2.48.0"
 
 moko-resources = "0.26.4"
