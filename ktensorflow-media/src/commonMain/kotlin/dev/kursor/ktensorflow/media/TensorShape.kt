@@ -16,19 +16,3 @@ fun TensorShape(
     dims[wIndex] = w
     TensorShape(*dims)
 }
-
-//fun indexOf(
-//    n: Int,
-//    c: Int,
-//    h: Int,
-//    w: Int,
-//    shape: TensorShape,
-//    layout: ImageTensorLayout,
-//): Int = with(layout) {
-//    val coords = IntArray(4)
-//    coords[nIndex] = n
-//    coords[cIndex] = c
-//    coords[hIndex] = h
-//    coords[wIndex] = w
-//    return shape.linearIndex(coords)
-//}

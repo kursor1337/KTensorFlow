@@ -33,6 +33,8 @@ fun Image.resizeWithPad(
         )
     }
 
+    scaledImage.release()
+
     val finalImage = Image(targetWidth, targetHeight, pixelFormat, paddedPixels)
 
     return PaddedImage(

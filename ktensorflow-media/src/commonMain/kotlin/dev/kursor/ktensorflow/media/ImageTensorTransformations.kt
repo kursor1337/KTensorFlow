@@ -55,19 +55,43 @@ fun ImageTensor<Float>.grayscale(
 }
 
 @JvmName("grayscaleUByte")
-fun ImageTensor<UByte>.grayscale(
-    rWeight: Float = 0.299f,
-    gWeight: Float = 0.587f,
-    bWeight: Float = 0.114f
-): ImageTensor<UByte> = this
-    .toFloatTensor()
-    .normalize()
-    .toImageTensor(pixelFormat, layout)
-    .grayscale(rWeight, gWeight, bWeight)
-    .times(255f)
-    .also { tensor -> tensor.mapInPlace { it.coerceIn(0f, 255f) } }
-    .toUByteTensor()
-    .toImageTensor(pixelFormat, layout)
+fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
+    if (pixelFormat == PixelFormat.Grayscale) return this
+
+    val result = ImageTensor<UByte>(width, height, PixelFormat.Grayscale, layout)
+    val total = batch * height * width
+
+    // Рассчитываем веса для целочисленной математики (fixed-point math), чтобы избежать Float
+    // 0.299 * 256 ≈ 77, 0.587 * 256 ≈ 150, 0.114 * 256 ≈ 29
+
+    val rIdx = when (pixelFormat) {
+        is PixelFormat.RGB -> pixelFormat.rIndex
+        is PixelFormat.RGBA -> pixelFormat.rIndex
+    }
+    val gIdx = when (pixelFormat) {
+        is PixelFormat.RGB -> pixelFormat.gIndex
+        is PixelFormat.RGBA -> pixelFormat.gIndex
+    }
+    val bIdx = when (pixelFormat) {
+        is PixelFormat.RGB -> pixelFormat.bIndex
+        is PixelFormat.RGBA -> pixelFormat.bIndex
+    }
+
+    var dstIdx = 0
+    for (n in 0 until batch) {
+        for (h in 0 until height) {
+            for (w in 0 until width) {
+                val r = this[n, h, w, rIdx].toInt() and 0xFF
+                val g = this[n, h, w, gIdx].toInt() and 0xFF
+                val b = this[n, h, w, bIdx].toInt() and 0xFF
+
+                val gray = (r * 77 + g * 150 + b * 29) shr 8
+                result.setFlat(dstIdx++, gray.toUByte())
+            }
+        }
+    }
+    return result
+}
 
 
 /**
@@ -146,15 +170,28 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
 }
 
 @JvmName("resizeUByte")
-fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte> = this
-    .toFloatTensor()
-    .normalize()
-    .toImageTensor(pixelFormat, layout)
-    .resize(newWidth, newHeight)
-    .times(255f)
-    .also { tensor -> tensor.mapInPlace { it.coerceIn(0f, 255f) } }
-    .toUByteTensor()
-    .toImageTensor(pixelFormat, layout)
+fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte> {
+    if (newWidth == width && newHeight == height) return this
+
+    val result = ImageTensor<UByte>(newWidth, newHeight, pixelFormat, layout)
+    val xRatio = width.toFloat() / newWidth
+    val yRatio = height.toFloat() / newHeight
+
+    // Для UInt8 тензоров стандартом является алгоритм Nearest Neighbor,
+    // так как билинейная интерполяция требует конвертации во Float
+    for (n in 0 until batch) {
+        for (h in 0 until newHeight) {
+            val srcH = (h * yRatio).toInt()
+            for (w in 0 until newWidth) {
+                val srcW = (w * xRatio).toInt()
+                for (c in 0 until channels) {
+                    result[n, h, w, c] = this[n, srcH, srcW, c]
+                }
+            }
+        }
+    }
+    return result
+}
 
 fun ImageTensor<UByte>.toFloatImageTensor(): ImageTensor<Float> =
     toFloatTensor()
@@ -172,7 +209,11 @@ fun ImageTensor<Float>.crop(rect: Rect): ImageTensor<Float> = this
 
 @JvmName("cropUByte")
 fun ImageTensor<UByte>.crop(rect: Rect): ImageTensor<UByte> = this
-    .toFloatImageTensor()
-    .crop(rect)
-    .toUByteTensor()
+    .slice(
+        arrayOf(
+            rect.left..<rect.right,
+            rect.top..<rect.bottom,
+            0..<channels
+        )
+    )
     .toImageTensor(this.pixelFormat, layout)

@@ -1,6 +1,7 @@
 package tensor
 
 import dev.kursor.ktensorflow.media.ImageTensor
+import dev.kursor.ktensorflow.media.ImageTensorLayout
 import dev.kursor.ktensorflow.media.PixelFormat
 import dev.kursor.ktensorflow.media.resize
 import dev.kursor.ktensorflow.media.grayscale
@@ -108,6 +109,7 @@ class PerformanceTest {
         }
 
         val imageTensor = ImageTensor(
+            layout = ImageTensorLayout.NHWC,
             pixelFormat = PixelFormat.RGBA,
             data = data
         )
