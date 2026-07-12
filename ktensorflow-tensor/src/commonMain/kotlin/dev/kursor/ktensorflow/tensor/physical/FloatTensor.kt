@@ -1,9 +1,16 @@
-package dev.kursor.ktensorflow.tensor
+package dev.kursor.ktensorflow.tensor.physical
 
+import dev.kursor.ktensorflow.tensor.PhysicalTensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.readFloat
+import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.toFlatIndex
+import dev.kursor.ktensorflow.tensor.writeFloat
 
 /**
- * Represents a [Tensor] of kotlin type [Float] and [TensorDataType.Float32]
+ * Represents a [dev.kursor.ktensorflow.tensor.Tensor] of kotlin type [Float] and [dev.kursor.ktensorflow.tensor.TensorDataType.Float32]
  *
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
@@ -11,7 +18,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 class FloatTensor(
     override val shape: TensorShape,
     override val data: ByteArray
-) : Tensor<Float> {
+) : PhysicalTensor<Float> {
 
     private val strides = shape.strides()
 

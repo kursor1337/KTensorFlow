@@ -2,7 +2,10 @@ package dev.kursor.ktensorflow.tensor
 
 import dev.kursor.ktensorflow.tensor.impl.inferTensorShape
 import dev.kursor.ktensorflow.tensor.impl.toByteArray
-import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.physical.FloatTensor
+import dev.kursor.ktensorflow.tensor.physical.IntTensor
+import dev.kursor.ktensorflow.tensor.physical.LongTensor
+import dev.kursor.ktensorflow.tensor.physical.UByteTensor
 
 /**
  * Represents a [Tensor] - multidimensional array of data
@@ -23,11 +26,6 @@ interface Tensor<T : Any> {
     val shape: TensorShape
 
     /**
-     * Raw data of the [Tensor]
-     */
-    val data: ByteArray
-
-    /**
      * Gets a typed element from this [Tensor]
      * 
      * @param index - coordinates of the element
@@ -44,6 +42,8 @@ interface Tensor<T : Any> {
 
     fun getFlat(index: Int): T
     fun setFlat(index: Int, value: T)
+
+    fun toPhysical(): PhysicalTensor<T>
 }
 
 /**
@@ -78,12 +78,12 @@ fun <T : Any> Tensor(
     dataType: TensorDataType<T>,
     shape: TensorShape,
     data: ByteArray = ByteArray(shape.flatSize * dataType.byteSize)
-): Tensor<T> = when (dataType) {
+): PhysicalTensor<T> = when (dataType) {
     TensorDataType.Float32 -> FloatTensor(shape, data)
     TensorDataType.Int32 -> IntTensor(shape, data)
     TensorDataType.UInt8 -> UByteTensor(shape, data)
     TensorDataType.Int64 -> LongTensor(shape, data)
-} as Tensor<T>
+} as PhysicalTensor<T>
 
 /**
  * Creates a [Tensor] with the specified shape and data.
@@ -95,7 +95,7 @@ fun <T : Any> Tensor(
 inline fun <reified T : Any> Tensor(
     shape: TensorShape,
     data: ByteArray = ByteArray(shape.flatSize * TensorDataType.of<T>().byteSize)
-): Tensor<T> = Tensor(TensorDataType.of<T>(), shape, data)
+): PhysicalTensor<T> = Tensor(TensorDataType.of<T>(), shape, data)
 
 /**
  * Creates a [Tensor] with the specified data type and data.
@@ -111,7 +111,7 @@ inline fun <reified T : Any> Tensor(
 fun <T : Any> Tensor(
     dataType: TensorDataType<T>,
     data: Any
-): Tensor<T> {
+): PhysicalTensor<T> {
     val shape = inferTensorShape(data)
     return when (dataType) {
         TensorDataType.Float32 -> {
@@ -129,7 +129,7 @@ fun <T : Any> Tensor(
         TensorDataType.Int64 -> {
             LongTensor(shape, data.toByteArray(dataType, shape))
         }
-    } as Tensor<T>
+    } as PhysicalTensor<T>
 }
 
 /**
@@ -144,15 +144,6 @@ fun <T : Any> Tensor(
  */
 inline fun <reified T : Any> Tensor(
     data: Any
-): Tensor<T> {
+): PhysicalTensor<T> {
     return Tensor(TensorDataType.of<T>(), data)
 }
-
-/**
- * Converts this [Tensor] to a multidimensional array of type [R].
- *
- * @param R - type of the array
- */
-fun <R : Any> Tensor<*>.toArray(): R =
-    (data.toShapedAndTypedArray(dataType, shape) as? R)
-        ?: throw IllegalArgumentException("Unsupported data type: $dataType")

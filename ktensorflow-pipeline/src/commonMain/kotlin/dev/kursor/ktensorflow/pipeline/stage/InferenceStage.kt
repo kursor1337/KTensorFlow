@@ -32,7 +32,7 @@ class SingleInferenceStage<T : Any>(
 ) : Stage<Tensor<*>, Tensor<T>> {
     override fun run(input: Tensor<*>): Tensor<T> {
         val outputTensor = mapOf(output.index to output.toTensor())
-        interpreter.run(listOf(input), outputTensor)
+        interpreter.run(listOf(input.toPhysical()), outputTensor)
         return outputTensor[output.index]!!
     }
 }
@@ -50,7 +50,7 @@ class MultiInferenceStage(
         val outputTensors = outputs.associate {
             it.index to it.toTensor()
         }
-        interpreter.run(input, outputTensors)
+        interpreter.run(input.map { it.toPhysical() }, outputTensors)
         return outputTensors
     }
 }
