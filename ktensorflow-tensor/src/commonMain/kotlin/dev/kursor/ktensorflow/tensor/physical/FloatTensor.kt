@@ -15,7 +15,7 @@ import dev.kursor.ktensorflow.tensor.writeFloat
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
  */
-class FloatTensor(
+internal class FloatTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : PhysicalTensor<Float> {
