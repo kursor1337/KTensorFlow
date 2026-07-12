@@ -26,16 +26,15 @@ import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.compose.BindEffect
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
-import dev.kursor.ktensorflow.media.Image
-import dev.kursor.ktensorflow.media.ImageTensor
-import dev.kursor.ktensorflow.media.ImageTensorLayout
-import dev.kursor.ktensorflow.media.PixelFormat
+import dev.kursor.ktensorflow.vision.Image
+import dev.kursor.ktensorflow.vision.ImageTensor
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
+import dev.kursor.ktensorflow.vision.PixelFormat
 import dev.kursor.media.core.camera.LiveCameraUi
-import dev.kursor.ktensorflow.media.grayscale
-import dev.kursor.ktensorflow.media.resize
-import dev.kursor.ktensorflow.media.tensorize
-import dev.kursor.ktensorflow.media.toImageTensor
-import dev.kursor.ktensorflow.tensor.get
+import dev.kursor.ktensorflow.vision.grayscale
+import dev.kursor.ktensorflow.vision.resize
+import dev.kursor.ktensorflow.vision.tensorize
+import dev.kursor.ktensorflow.vision.toImageTensor
 import dev.kursor.ktensorflow.tensor.normalize
 
 @Composable

@@ -1,15 +1,15 @@
 package media
 
-import dev.kursor.ktensorflow.media.Image
-import dev.kursor.ktensorflow.media.ImageTensor
-import dev.kursor.ktensorflow.media.ImageTensorLayout
-import dev.kursor.ktensorflow.media.Normalization
-import dev.kursor.ktensorflow.media.PadInfo
-import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.Rect
-import dev.kursor.ktensorflow.media.resizeWithPad
-import dev.kursor.ktensorflow.media.tensorizeFloat
-import dev.kursor.ktensorflow.media.toImage
+import dev.kursor.ktensorflow.vision.Image
+import dev.kursor.ktensorflow.vision.ImageTensor
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
+import dev.kursor.ktensorflow.vision.Normalization
+import dev.kursor.ktensorflow.vision.PadInfo
+import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.Rect
+import dev.kursor.ktensorflow.vision.resizeWithPad
+import dev.kursor.ktensorflow.vision.tensorizeFloat
+import dev.kursor.ktensorflow.vision.toImage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

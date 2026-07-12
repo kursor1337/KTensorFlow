@@ -40,7 +40,7 @@ kotlin {
             implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowCompose)
-            implementation(projects.ktensorflowMedia)
+            implementation(projects.ktensorflowVision)
 
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)

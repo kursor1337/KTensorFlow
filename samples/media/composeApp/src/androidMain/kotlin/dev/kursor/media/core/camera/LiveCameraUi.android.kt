@@ -12,10 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import dev.kursor.ktensorflow.media.AndroidImage
-import dev.kursor.ktensorflow.media.Image
-import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.rotate
+import dev.kursor.ktensorflow.vision.AndroidImage
+import dev.kursor.ktensorflow.vision.Image
+import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.rotate
 
 @Composable
 actual fun LiveCameraUi(
