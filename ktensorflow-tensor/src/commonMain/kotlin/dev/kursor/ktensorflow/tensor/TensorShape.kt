@@ -22,6 +22,8 @@ value class TensorShape(
     val flatSize: Int
         get() = dimensions.reduce { acc, i -> acc * i }
 
+
+
     override fun toString(): String {
         return dimensions.joinToString(prefix = "(", separator = ", ", postfix = ")") { it.toString() }
     }

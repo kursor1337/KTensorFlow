@@ -13,14 +13,24 @@ class UByteTensor(
     override val data: ByteArray
 ) : Tensor<UByte> {
 
+    private val strides = shape.strides()
+
     override val dataType = TensorDataType.UInt8
 
+    override fun getFlat(index: Int): UByte {
+        return data.readUByte(index)
+    }
+
+    override fun setFlat(index: Int, value: UByte) {
+        data.writeUByte(index, value)
+    }
+
     override fun get(index: IntArray): UByte {
-        return data.readUByte(index.toFlatIndex(shape))
+        return data.readUByte(index.toFlatIndex(strides))
     }
 
     override fun set(index: IntArray, value: UByte) {
-        data.writeUByte(index.toFlatIndex(shape), value)
+        data.writeUByte(index.toFlatIndex(strides), value)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -1,6 +1,8 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.tensor.impl.toByteArray
 import kotlin.jvm.JvmName
+import kotlin.math.sqrt
 
 /**
  * Iterates over all elements of the [Tensor].
@@ -8,7 +10,9 @@ import kotlin.jvm.JvmName
  * @param action The action to perform on each element.
  */
 inline fun <T : Any> Tensor<T>.forEach(action: (T) -> Unit) {
-    for (i in 0 until shape.flatSize) action(get(i.toNestedIndex(shape)))
+    for (i in 0 until shape.flatSize) {
+        action(getFlat(i))
+    }
 }
 
 /**
@@ -17,9 +21,10 @@ inline fun <T : Any> Tensor<T>.forEach(action: (T) -> Unit) {
  * @param action The action to perform on each element.
  */
 inline fun <T : Any> Tensor<T>.forEachIndexed(action: (IntArray, T) -> Unit) {
+    val index = IntArray(shape.rank)
     for (i in 0 until shape.flatSize) {
-        val index = i.toNestedIndex(shape)
-        action(index, get(index))
+        action(index, getFlat(i))
+        index.incrementIndex(shape)
     }
 }
 
@@ -34,8 +39,9 @@ inline fun <T : Any, R : Any> Tensor<T>.map(
     crossinline transform: (T) -> R
 ): Tensor<R> {
     val result = Tensor(dataType, shape)
-    forEachIndexed { index, value ->
-        result[index] = transform(value)
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        result.setFlat(i, transform(getFlat(i)))
     }
     return result
 }
@@ -60,8 +66,11 @@ inline fun <T : Any, R : Any> Tensor<T>.mapIndexed(
     crossinline transform: (IntArray, T) -> R
 ): Tensor<R> {
     val result = Tensor(dataType, shape)
-    forEachIndexed { index, value ->
-        result[index] = transform(index, value)
+    val index = IntArray(shape.rank)
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        result.setFlat(i, transform(index, getFlat(i)))
+        index.incrementIndex(shape)
     }
     return result
 }
@@ -81,8 +90,9 @@ inline fun <T : Any, reified R : Any> Tensor<T>.mapIndexed(
  * @param transform The transformation to apply to each element.
  */
 inline fun <T : Any> Tensor<T>.mapInPlace(crossinline transform: (T) -> T) {
-    forEachIndexed { index, value ->
-        this[index] = transform(value)
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        setFlat(i, transform(getFlat(i)))
     }
 }
 
@@ -92,8 +102,11 @@ inline fun <T : Any> Tensor<T>.mapInPlace(crossinline transform: (T) -> T) {
  * @param transform The transformation to apply to each element.
  */
 inline fun <T : Any> Tensor<T>.mapInPlaceIndexed(crossinline transform: (IntArray, T) -> T) {
-    forEachIndexed { index, value ->
-        this[index] = transform(index, value)
+    val index = IntArray(shape.rank)
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        setFlat(i, transform(index, getFlat(i)))
+        index.incrementIndex(shape)
     }
 }
 
@@ -125,9 +138,12 @@ fun <T : Any> Tensor<T>.transpose(): Tensor<T> {
     require(shape.rank == 2) { "Only 2D tensors can be transposed" }
     val (rows, cols) = shape.dimensions
     val result = Tensor(dataType, TensorShape(cols, rows))
-    for (i in 0 until rows) {
-        for (j in 0 until cols) {
-            result[intArrayOf(j, i)] = this[intArrayOf(i, j)]
+
+    for (r in 0 until rows) {
+        for (c in 0 until cols) {
+            val srcFlat = r * cols + c
+            val dstFlat = c * rows + r
+            result.setFlat(dstFlat, getFlat(srcFlat))
         }
     }
     return result
@@ -147,6 +163,16 @@ fun <T : Any> Tensor<T>.slice(ranges: Array<IntRange>): Tensor<T> {
         result[idx] = this[srcIndex]
     }
     return result
+}
+
+fun <T : Any> Tensor<T>.squeeze(): Tensor<T> {
+    val newShape = TensorShape(
+        shape
+            .dimensions
+            .filter { it > 1 }
+            .toIntArray()
+    )
+    return reshape(newShape)
 }
 
 /**
@@ -218,7 +244,7 @@ fun Tensor<Long>.avg(): Long = sum() / shape.flatSize
  */
 @JvmName("minFloat")
 fun Tensor<Float>.min(): Float {
-    var min = Float.MAX_VALUE
+    var min = Float.POSITIVE_INFINITY
     forEach { min = minOf(min, it) }
     return min
 }
@@ -258,7 +284,7 @@ fun Tensor<Long>.min(): Long {
  */
 @JvmName("maxFloat")
 fun Tensor<Float>.max(): Float {
-    var max = Float.MIN_VALUE
+    var max = Float.NEGATIVE_INFINITY
     forEach { max = maxOf(max, it) }
     return max
 }
@@ -298,15 +324,17 @@ fun Tensor<Long>.max(): Long {
  */
 @JvmName("argMaxFloat")
 fun Tensor<Float>.argmax(): IntArray {
-    var max = Float.MIN_VALUE
-    var maxIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value > max) {
-            max = value
-            maxIndex = index
+    var max = Float.NEGATIVE_INFINITY
+    var maxIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v > max) {
+            max = v
+            maxIndex = i
         }
     }
-    return maxIndex
+    return maxIndex.toNestedIndex(shape)
 }
 
 /**
@@ -315,14 +343,16 @@ fun Tensor<Float>.argmax(): IntArray {
 @JvmName("argMaxInt")
 fun Tensor<Int>.argmax(): IntArray {
     var max = Int.MIN_VALUE
-    var maxIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value > max) {
-            max = value
-            maxIndex = index
+    var maxIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v > max) {
+            max = v
+            maxIndex = i
         }
     }
-    return maxIndex
+    return maxIndex.toNestedIndex(shape)
 }
 
 /**
@@ -331,14 +361,16 @@ fun Tensor<Int>.argmax(): IntArray {
 @JvmName("argMaxUByte")
 fun Tensor<UByte>.argmax(): IntArray {
     var max = UByte.MIN_VALUE
-    var maxIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value > max) {
-            max = value
-            maxIndex = index
+    var maxIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v > max) {
+            max = v
+            maxIndex = i
         }
     }
-    return maxIndex
+    return maxIndex.toNestedIndex(shape)
 }
 
 /**
@@ -347,14 +379,16 @@ fun Tensor<UByte>.argmax(): IntArray {
 @JvmName("argMaxLong")
 fun Tensor<Long>.argmax(): IntArray {
     var max = Long.MIN_VALUE
-    var maxIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value > max) {
-            max = value
-            maxIndex = index
+    var maxIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v > max) {
+            max = v
+            maxIndex = i
         }
     }
-    return maxIndex
+    return maxIndex.toNestedIndex(shape)
 }
 
 /**
@@ -362,15 +396,17 @@ fun Tensor<Long>.argmax(): IntArray {
  */
 @JvmName("argMinFloat")
 fun Tensor<Float>.argmin(): IntArray {
-    var min = Float.MAX_VALUE
-    var minIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value < min) {
-            min = value
-            minIndex = index
+    var min = Float.POSITIVE_INFINITY
+    var minIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v < min) {
+            min = v
+            minIndex = i
         }
     }
-    return minIndex
+    return minIndex.toNestedIndex(shape)
 }
 
 /**
@@ -379,14 +415,16 @@ fun Tensor<Float>.argmin(): IntArray {
 @JvmName("argMinInt")
 fun Tensor<Int>.argmin(): IntArray {
     var min = Int.MAX_VALUE
-    var minIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value < min) {
-            min = value
-            minIndex = index
+    var minIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v < min) {
+            min = v
+            minIndex = i
         }
     }
-    return minIndex
+    return minIndex.toNestedIndex(shape)
 }
 
 /**
@@ -395,14 +433,16 @@ fun Tensor<Int>.argmin(): IntArray {
 @JvmName("argMinUByte")
 fun Tensor<UByte>.argmin(): IntArray {
     var min = UByte.MAX_VALUE
-    var minIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value < min) {
-            min = value
-            minIndex = index
+    var minIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v < min) {
+            min = v
+            minIndex = i
         }
     }
-    return minIndex
+    return minIndex.toNestedIndex(shape)
 }
 
 /**
@@ -411,14 +451,16 @@ fun Tensor<UByte>.argmin(): IntArray {
 @JvmName("argMinLong")
 fun Tensor<Long>.argmin(): IntArray {
     var min = Long.MAX_VALUE
-    var minIndex = IntArray(shape.rank)
-    forEachIndexed { index, value ->
-        if (value < min) {
-            min = value
-            minIndex = index
+    var minIndex = 0
+    val size = shape.flatSize
+    for (i in 0 until size) {
+        val v = getFlat(i)
+        if (v < min) {
+            min = v
+            minIndex = i
         }
     }
-    return minIndex
+    return minIndex.toNestedIndex(shape)
 }
 
 /**
@@ -426,8 +468,12 @@ fun Tensor<Long>.argmin(): IntArray {
  */
 @JvmName("normalizeFloat")
 fun Tensor<Float>.normalize(): Tensor<Float> {
-    val min = min()
-    val max = max()
+    var min = Float.POSITIVE_INFINITY
+    var max = Float.NEGATIVE_INFINITY
+    forEach {
+        if (it < min) min = it
+        if (it > max) max = it
+    }
     return map { (it - min) / (max - min) }
 }
 
@@ -481,4 +527,44 @@ fun <T : Any> Tensor<T>.toList(): List<T> {
     val list = ArrayList<T>(shape.flatSize)
     forEach { list.add(it) }
     return list
+}
+
+@Suppress("UNCHECKED_CAST")
+@OptIn(ExperimentalUnsignedTypes::class)
+@JvmName("toFlatArrayFloat")
+fun Tensor<Float>.toFlatArray(): FloatArray {
+    val size = shape.flatSize
+    val array = FloatArray(size)
+    for (i in 0 until size) array[i] = getFlat(i)
+    return array
+}
+
+@Suppress("UNCHECKED_CAST")
+@OptIn(ExperimentalUnsignedTypes::class)
+@JvmName("toFlatArrayInt")
+fun Tensor<Int>.toFlatArray(): IntArray {
+    val size = shape.flatSize
+    val array = IntArray(size)
+    for (i in 0 until size) array[i] = getFlat(i)
+    return array
+}
+
+@Suppress("UNCHECKED_CAST")
+@OptIn(ExperimentalUnsignedTypes::class)
+@JvmName("toFlatArrayUByte")
+fun Tensor<UByte>.toFlatArray(): UByteArray {
+    val size = shape.flatSize
+    val array = UByteArray(size)
+    for (i in 0 until size) array[i] = getFlat(i)
+    return array
+}
+
+@Suppress("UNCHECKED_CAST")
+@OptIn(ExperimentalUnsignedTypes::class)
+@JvmName("toFlatArrayLong")
+fun Tensor<Long>.toFlatArray(): LongArray {
+    val size = shape.flatSize
+    val array = LongArray(size)
+    for (i in 0 until size) array[i] = getFlat(i)
+    return array
 }

@@ -13,13 +13,15 @@ kotlin {
         optIn.addAll("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
-    androidTarget {
+    android {
+        namespace = "dev.kursor.ktensorflow.npu"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
 
@@ -47,20 +49,8 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.tensorflow.gpu)
             implementation(libs.tensorflow.gpu.api)
+
             implementation(projects.ktensorflowCore)
         }
-    }
-}
-
-android {
-    namespace = "dev.kursor.ktensorflow.npu"
-
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

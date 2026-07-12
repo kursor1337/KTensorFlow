@@ -1,0 +1,114 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.cocoapods)
+    alias(libs.plugins.ktensorflow.link)
+}
+
+kotlin {
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    iosArm64()
+    iosSimulatorArm64()
+
+    sourceSets {
+
+        androidMain.dependencies {
+            implementation(libs.compose.preview)
+            implementation(libs.androidx.activity.compose)
+
+            implementation(libs.camera.core)
+            implementation(libs.camera.camera2)
+            implementation(libs.camera.lifecycle)
+            implementation(libs.camera.view)
+            implementation(libs.camera.video)
+        }
+        commonMain.dependencies {
+            implementation(projects.samples.chessEngine)
+            implementation(projects.ktensorflowCore)
+            implementation(projects.ktensorflowTensor)
+            implementation(projects.ktensorflowNpu)
+            implementation(projects.ktensorflowGpu)
+            implementation(projects.ktensorflowCompose)
+            implementation(projects.ktensorflowMedia)
+
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.preview)
+
+            api(libs.decompose.core)
+            implementation(libs.decompose.compose)
+            implementation(libs.koin.core)
+            implementation(libs.kermit.logger)
+            implementation(libs.serialization)
+            implementation(libs.moko.permissions.camera)
+            implementation(libs.moko.permissions.compose)
+        }
+    }
+
+    cocoapods {
+        version = "1.0"
+        summary = "Some description for a Kotlin/Native module"
+        homepage = "Link to a Kotlin/Native module homepage"
+
+        name = "ComposeApp"
+
+        framework {
+            baseName = "ComposeApp"
+            isStatic = true
+            export(libs.decompose.core)
+            export(libs.essenty.lifecycle)
+        }
+
+        // Maps custom Xcode configuration to NativeBuildType
+        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
+        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
+
+        ios.deploymentTarget = "13.0"
+
+        podfile = project.file("../iosApp/Podfile")
+    }
+}
+
+android {
+    namespace = "dev.kursor.media"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    defaultConfig {
+        applicationId = "dev.kursor.media"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.compileSdk.get().toInt()
+        versionCode = 1
+        versionName = "1.0"
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}

@@ -9,7 +9,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
  * 
  * @param T The type of the data.
  */
-sealed interface Tensor<T : Any> {
+interface Tensor<T : Any> {
 
     /**
      * Data type of the [Tensor]
@@ -41,6 +41,9 @@ sealed interface Tensor<T : Any> {
      * @param value - value to set
      */
     operator fun set(index: IntArray, value: T)
+
+    fun getFlat(index: Int): T
+    fun setFlat(index: Int, value: T)
 }
 
 /**
