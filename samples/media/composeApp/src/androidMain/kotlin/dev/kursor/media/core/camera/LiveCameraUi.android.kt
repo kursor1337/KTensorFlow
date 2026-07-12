@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.media.camera
+package dev.kursor.media.core.camera
 
 import android.util.Log
 import androidx.camera.core.AspectRatio

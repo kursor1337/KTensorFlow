@@ -18,11 +18,11 @@ fun Interpreter.run(
 )
 
 /**
- * Runs model inference for multiple inputs and outputs.
- * Result of the inference will be written to the output [Tensor]s, which should be
+ * Runs model inference for single input and output.
+ * Result of the inference will be written to the output [Tensor], which should be
  * allocated beforehand and passed to this method.
- * @param inputs List of input [Tensor]s.
- * @param outputs Map of output [Tensor]s, key is index of the output [Tensor]
+ * @param input input [Tensor].
+ * @param output output [Tensor]
  */
 fun Interpreter.run(
     input: Tensor<*>,

@@ -5,10 +5,10 @@ data class Normalization(
     val meanR: Float = 0f,
     val meanG: Float = 0f,
     val meanB: Float = 0f,
+    val meanA: Float = 0f,
     val stdR: Float = 1f,
     val stdG: Float = 1f,
     val stdB: Float = 1f,
-    val meanA: Float = 0f,
     val stdA: Float = 1f
 ) {
     companion object {

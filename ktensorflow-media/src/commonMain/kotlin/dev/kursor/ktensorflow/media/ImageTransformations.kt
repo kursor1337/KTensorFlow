@@ -1,7 +1,5 @@
 package dev.kursor.ktensorflow.media
 
-import dev.kursor.ktensorflow.media.camera.Rect
-
 expect fun Image.resize(
     newWidth: Int,
     newHeight: Int

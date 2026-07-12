@@ -1,16 +1,19 @@
-package dev.kursor.ktensorflow.media.camera
+package dev.kursor.media.core.camera
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.readValue
 import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureVideoDataOutput
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.CoreGraphics.CGRectZero
 import platform.UIKit.UIView
+import platform.darwin.NSObject
 
+@OptIn(ExperimentalForeignApi::class)
 class CameraView : UIView {
     lateinit var session: AVCaptureSession
     lateinit var output: AVCaptureVideoDataOutput
-    lateinit var delegate: platform.darwin.NSObject
+    lateinit var delegate: NSObject
 
     var previewLayer: AVCaptureVideoPreviewLayer? = null
 

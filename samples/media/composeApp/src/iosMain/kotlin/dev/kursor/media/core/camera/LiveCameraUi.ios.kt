@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.media.camera
+package dev.kursor.media.core.camera
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -6,6 +6,7 @@ import androidx.compose.ui.viewinterop.UIKitView
 import dev.kursor.ktensorflow.media.Image
 import dev.kursor.ktensorflow.media.IosImage
 import dev.kursor.ktensorflow.media.PixelFormat
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.refTo
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
@@ -43,6 +44,7 @@ import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_queue_create
 
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun LiveCameraUi(
     modifier: Modifier,

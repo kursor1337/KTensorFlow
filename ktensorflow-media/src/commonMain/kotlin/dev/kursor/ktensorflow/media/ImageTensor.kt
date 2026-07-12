@@ -2,67 +2,31 @@ package dev.kursor.ktensorflow.media
 
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
-import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.reshape
-import dev.kursor.ktensorflow.tensor.squeeze
-import dev.kursor.ktensorflow.tensor.strides
-import kotlin.coroutines.coroutineContext
 
-class ImageTensor<T : Any>(
-    tensor: Tensor<T>,
-    val pixelFormat: PixelFormat,
+interface ImageTensor<T : Any> : Tensor<T> {
+    val pixelFormat: PixelFormat
     val layout: ImageTensorLayout
-) : Tensor<T> by normalize(tensor, layout) {
 
-    private val strides = shape.strides()
+    val batches: Int
+    val width: Int
+    val height: Int
+    val channels: Int
 
-    private val nStride = strides[layout.nIndex]
-    private val hStride = strides[layout.hIndex]
-    private val wStride = strides[layout.wIndex]
-    private val cStride = strides[layout.cIndex]
-
-    init {
-        require(shape.rank == 4) {
-            "ImageTensor must have 4 dimensions: batch, width, height, channels"
-        }
-    }
-
-    val batch get() = shape.dimensions[layout.nIndex]
-    val width get() = shape.dimensions[layout.wIndex]
-    val height get() = shape.dimensions[layout.hIndex]
-    val channels get() = shape.dimensions[layout.cIndex]
-
-    operator fun get(n: Int, h: Int, w: Int, c: Int): T {
-        return getFlat(offset(n, h, w, c))
-    }
-
-    operator fun set(n: Int, h: Int, w: Int, c: Int, value: T) {
-        setFlat(offset(n, h, w, c), value)
-    }
-
-    private fun offset(n: Int, h: Int, w: Int, c: Int): Int {
-        return n * nStride + h * hStride + w * wStride + c * cStride
-    }
-
-    companion object {
-        private fun <T : Any> normalize(tensor: Tensor<T>, layout: ImageTensorLayout): Tensor<T> {
-            return when (tensor.shape.rank) {
-                4 -> tensor
-                3 -> {
-                    val expanded = with(tensor.shape.dimensions) {
-                        take(layout.nIndex) + 1 + takeLast(lastIndex - layout.nIndex)
-                    }
-                        .toIntArray()
-                        .let(::TensorShape)
-                    tensor.reshape(expanded)
-                }
-                else -> throw IllegalArgumentException(
-                    "ImageTensor must have 3 or 4 dimensions: batch, width, height, channels"
-                )
-            }
-        }
-    }
+    operator fun get(n: Int, h: Int, w: Int, c: Int): T
+    operator fun get(h: Int, w: Int, c: Int) = get(0, h, w, c)
+    operator fun set(n: Int, h: Int, w: Int, c: Int, value: T)
+    operator fun set(h: Int, w: Int, c: Int, value: T) = set(0, h, w, c, value)
 }
+
+fun <T : Any> ImageTensor(
+    tensor: Tensor<T>,
+    pixelFormat: PixelFormat,
+    layout: ImageTensorLayout
+): ImageTensor<T> = ImageTensorImpl(
+    tensor = tensor,
+    pixelFormat = pixelFormat,
+    layout = layout
+)
 
 inline fun <reified T : Any> ImageTensor(
     width: Int,

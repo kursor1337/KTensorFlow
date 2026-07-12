@@ -1,8 +1,5 @@
 package dev.kursor.ktensorflow.media
 
-import dev.kursor.ktensorflow.Delegate
-import dev.kursor.ktensorflow.media.camera.Rect
-
 data class PadInfo(
     val originalWidth: Int,
     val originalHeight: Int,

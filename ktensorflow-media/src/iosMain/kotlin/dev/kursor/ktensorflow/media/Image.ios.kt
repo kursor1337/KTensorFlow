@@ -44,39 +44,42 @@ class IosImage(
 
     override fun getPixels(): IntArray {
         val out = IntArray(width * height)
+        getPixels(out)
+        return out
+    }
 
+    override fun getPixels(buffer: IntArray) {
         when (pixelFormat) {
             PixelFormat.Grayscale -> {
-                for (i in out.indices) {
-                    out[i] = data[i].toInt() and 0xFF
+                for (i in buffer.indices) {
+                    buffer[i] = data[i].toInt() and 0xFF
                 }
             }
             is PixelFormat.RGB -> {
-                for (i in out.indices) {
-                    val o = 4 * i
+                for (i in buffer.indices) {
+                    val o = 3 * i
                     val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
                     val g = data[o + pixelFormat.gIndex].toInt() and 0xFF
                     val r = data[o + pixelFormat.rIndex].toInt() and 0xFF
                     val a = 0xFF
-                    out[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
                 }
             }
             is PixelFormat.RGBA -> {
-                for (i in out.indices) {
+                for (i in buffer.indices) {
                     val o = 4 * i
                     val a = data[o + pixelFormat.aIndex].toInt() and 0xFF
                     val b = data[o + pixelFormat.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
                     val g = data[o + pixelFormat.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
                     val r = data[o + pixelFormat.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
 
-                    out[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
                 }
             }
         }
-        return out
     }
 
-    override fun release() {
+    override fun close() {
         // do nothing
     }
 }

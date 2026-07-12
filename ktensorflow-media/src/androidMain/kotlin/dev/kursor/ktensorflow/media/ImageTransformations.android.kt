@@ -8,7 +8,6 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
-import dev.kursor.ktensorflow.media.camera.Rect
 
 actual fun Image.resize(
     newWidth: Int,

@@ -6,8 +6,7 @@ import dev.kursor.ktensorflow.media.ImageTensorLayout
 import dev.kursor.ktensorflow.media.Normalization
 import dev.kursor.ktensorflow.media.PadInfo
 import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.camera.Rect
-import dev.kursor.ktensorflow.media.fromNormalized
+import dev.kursor.ktensorflow.media.Rect
 import dev.kursor.ktensorflow.media.resizeWithPad
 import dev.kursor.ktensorflow.media.tensorizeFloat
 import dev.kursor.ktensorflow.media.toImage
@@ -34,7 +33,7 @@ class MediaModuleTests {
             batchSize = 2
         )
 
-        assertEquals(2, tensor.batch)
+        assertEquals(2, tensor.batches)
         assertEquals(100, tensor.width)
         assertEquals(100, tensor.height)
         assertEquals(3, tensor.channels)
@@ -54,7 +53,7 @@ class MediaModuleTests {
         )
 
         // Проверяем, что API правильно мапит оси, независимо от внутреннего Shape
-        assertEquals(1, tensor.batch)
+        assertEquals(1, tensor.batches)
         assertEquals(4, tensor.channels)
         assertEquals(60, tensor.height)
         assertEquals(50, tensor.width)

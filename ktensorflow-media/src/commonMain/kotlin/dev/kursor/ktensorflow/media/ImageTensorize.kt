@@ -124,7 +124,6 @@ fun <T : Any> List<Image>.tensorizeBatch(
     val c = pf.channels
     val n = size
 
-    // 🔥 одна аллокация
     val tensor = ImageTensor(
         tensor = Tensor(
             dataType = dataType,
@@ -279,10 +278,6 @@ fun <T : Any> TensorDataType<T>.converter(): (Int) -> T = when (this) {
     TensorDataType.UInt8   -> { v: Int -> v.toUByte() as T }
 }
 
-/**
- * Превращает ImageTensor обратно в Image.
- * @param normalization Конфигурация, которая использовалась при тензоризации (применится в обратном порядке)
- */
 fun ImageTensor<Float>.toImage(
     normalization: Normalization = Normalization.None,
     batchIndex: Int = 0

@@ -29,11 +29,6 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.core)
-            implementation(libs.camera.core)
-            implementation(libs.camera.camera2)
-            implementation(libs.camera.lifecycle)
-            implementation(libs.camera.view)
-            implementation(libs.camera.video)
         }
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)

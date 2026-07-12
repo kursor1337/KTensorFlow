@@ -3,15 +3,11 @@ package dev.kursor.media.features.live.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,14 +30,13 @@ import dev.kursor.ktensorflow.media.Image
 import dev.kursor.ktensorflow.media.ImageTensor
 import dev.kursor.ktensorflow.media.ImageTensorLayout
 import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.camera.LiveCameraUi
+import dev.kursor.media.core.camera.LiveCameraUi
 import dev.kursor.ktensorflow.media.grayscale
 import dev.kursor.ktensorflow.media.resize
 import dev.kursor.ktensorflow.media.tensorize
 import dev.kursor.ktensorflow.media.toImageTensor
 import dev.kursor.ktensorflow.tensor.get
 import dev.kursor.ktensorflow.tensor.normalize
-import dev.kursor.ktensorflow.tensor.toFloatTensor
 
 @Composable
 fun LiveDetectionUi(
@@ -118,7 +113,7 @@ private fun ImageTensorUi(
             Row {
                 for (x in 0 until imageTensor.width) {
                     Pixel(
-                        grayscaleValue = imageTensor[y, x, 0],
+                        grayscaleValue = imageTensor[0, y, x, 0],
                         modifier = Modifier.size(8.dp)
                     )
                 }

@@ -20,10 +20,15 @@ class AndroidImage(
 
     override fun getPixels(): IntArray {
         val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        getPixels(pixels)
         return pixels
     }
-    override fun release() {
+
+    override fun getPixels(buffer: IntArray) {
+        bitmap.getPixels(buffer, 0, width, 0, 0, width, height)
+    }
+
+    override fun close() {
         if (!bitmap.isRecycled) {
             bitmap.recycle()
         }

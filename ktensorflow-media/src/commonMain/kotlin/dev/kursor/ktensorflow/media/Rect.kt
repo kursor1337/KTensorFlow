@@ -1,6 +1,4 @@
-package dev.kursor.ktensorflow.media.camera
-
-import dev.kursor.ktensorflow.media.PadInfo
+package dev.kursor.ktensorflow.media
 
 data class Rect(
     val left: Int,
@@ -8,14 +6,9 @@ data class Rect(
     val right: Int,
     val bottom: Int
 ) {
-    // Площадь прямоугольника
     val area: Int
         get() = maxOf(0, right - left) * maxOf(0, bottom - top)
 
-    /**
-     * Вычисляет IoU (Intersection over Union) с другим Rect.
-     * Метрика от 0.0f до 1.0f.
-     */
     fun intersectionOverUnion(other: Rect): Float {
         val iLeft = maxOf(this.left, other.left)
         val iTop = maxOf(this.top, other.top)
@@ -30,9 +23,7 @@ data class Rect(
     }
 
     companion object {
-        /**
-         * Переводит нормализованные координаты (0.0..1.0) в пиксели исходного изображения.
-         */
+
         fun fromNormalized(
             ymin: Float,
             xmin: Float,
@@ -55,6 +46,41 @@ data class Rect(
                 top = origTop.coerceIn(0, padInfo.originalHeight),
                 right = origRight.coerceIn(0, padInfo.originalWidth),
                 bottom = origBottom.coerceIn(0, padInfo.originalHeight)
+            )
+        }
+
+        fun fromYolo(
+            cx: Float,
+            cy: Float,
+            w: Float,
+            h: Float,
+            padInfo: PadInfo
+        ): Rect {
+            return fromNormalized(
+                ymin = cy - (h / 2f),
+                xmin = cx - (w / 2f),
+                ymax = cy + (h / 2f),
+                xmax = cx + (w / 2f),
+                padInfo = padInfo
+            )
+        }
+
+        /**
+         * Декодирует формат COCO (верхний левый угол и размеры) в пиксели исходного изображения.
+         */
+        fun fromCoco(
+            x: Float,
+            y: Float,
+            w: Float,
+            h: Float,
+            padInfo: PadInfo
+        ): Rect {
+            return fromNormalized(
+                ymin = y,
+                xmin = x,
+                ymax = y + h,
+                xmax = x + w,
+                padInfo = padInfo
             )
         }
     }

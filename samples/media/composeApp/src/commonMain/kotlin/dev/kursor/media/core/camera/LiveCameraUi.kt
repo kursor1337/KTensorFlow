@@ -1,4 +1,4 @@
-package dev.kursor.ktensorflow.media.camera
+package dev.kursor.media.core.camera
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

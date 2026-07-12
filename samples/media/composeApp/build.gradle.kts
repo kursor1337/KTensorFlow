@@ -26,6 +26,12 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.preview)
             implementation(libs.androidx.activity.compose)
+
+            implementation(libs.camera.core)
+            implementation(libs.camera.camera2)
+            implementation(libs.camera.lifecycle)
+            implementation(libs.camera.view)
+            implementation(libs.camera.video)
         }
         commonMain.dependencies {
             implementation(projects.samples.chessEngine)
