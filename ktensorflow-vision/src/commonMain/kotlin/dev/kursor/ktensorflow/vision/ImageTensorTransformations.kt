@@ -4,6 +4,24 @@ import dev.kursor.ktensorflow.tensor.slice
 import dev.kursor.ktensorflow.tensor.toFloatTensor
 import kotlin.jvm.JvmName
 
+/**
+ * Converts the [ImageTensor] to a grayscale representation using weighted channel summation.
+ *
+ * This method calculates the luminance of each pixel by applying the provided weights to the
+ * red, green, and blue channels. If the source is in RGBA format, the resulting luminance
+ * is additionally multiplied by the alpha channel value. If the source is already in
+ * [PixelFormat.Grayscale], the original tensor is returned.
+ *
+ * Default weights follow the ITU-R 601 standard for luma:
+ * - Red: 0.299
+ * - Green: 0.587
+ * - Blue: 0.114
+ *
+ * @param rWeight The weight applied to the red channel.
+ * @param gWeight The weight applied to the green channel.
+ * @param bWeight The weight applied to the blue channel.
+ * @return A new [ImageTensor] with [PixelFormat.Grayscale] containing the calculated luminance.
+ */
 fun ImageTensor<Float>.grayscale(
     rWeight: Float = 0.299f,
     gWeight: Float = 0.587f,
@@ -22,7 +40,7 @@ fun ImageTensor<Float>.grayscale(
         is PixelFormat.RGB -> {
             for (i in 0..<width) {
                 for (j in 0..<height) {
-                    for (b in 0..<batches) {
+                    for (b in 0..<batch) {
                         val a = rWeight * this[b, j, i, pf.rIndex] +
                                 gWeight * this[b, j, i, pf.gIndex] +
                                 bWeight * this[b, j, i, pf.bIndex]
@@ -35,7 +53,7 @@ fun ImageTensor<Float>.grayscale(
         is PixelFormat.RGBA -> {
             for (i in 0..<width) {
                 for (j in 0..<height) {
-                    for (b in 0..<batches) {
+                    for (b in 0..<batch) {
                         result[b, j, i, 0] = (rWeight * this[b, j, i, pf.rIndex] +
                                 gWeight * this[b, j, i, pf.gIndex] +
                                 bWeight * this[b, j, i, pf.bIndex]) *
@@ -49,6 +67,21 @@ fun ImageTensor<Float>.grayscale(
     return result
 }
 
+/**
+ * Converts the [UByte] based [ImageTensor] to a grayscale representation.
+ *
+ * This method uses a fixed-point integer approximation of the ITU-R 601 luma weights
+ * to perform the conversion efficiently:
+ * - Red: ~0.30 (77/256)
+ * - Green: ~0.59 (150/256)
+ * - Blue: ~0.11 (29/256)
+ *
+ * If the source is already in [PixelFormat.Grayscale], the original tensor is returned.
+ * Note: Unlike the [Float] version, this implementation does not currently account
+ * for the alpha channel in RGBA tensors.
+ *
+ * @return A new [ImageTensor] with [PixelFormat.Grayscale] containing the calculated luminance.
+ */
 @JvmName("grayscaleUByte")
 fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
     val pf = pixelFormat
@@ -70,7 +103,7 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
     }
 
     var dstIdx = 0
-    for (n in 0 until batches) {
+    for (n in 0 until batch) {
         for (h in 0 until height) {
             for (w in 0 until width) {
                 val r = this[n, h, w, rIdx].toInt() and 0xFF
@@ -115,7 +148,7 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
 
     for (ny in 0 until newHeight) {
         for (nx in 0 until newWidth) {
-            for (nb in 0 until batches) {
+            for (nb in 0 until batch) {
 
                 // 1. Calculate the corresponding float coordinates in the original image
                 val ox = nx * xRatio
@@ -161,6 +194,16 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
     return ImageTensor(layout, pixelFormat, resizedData)
 }
 
+/**
+ * Resizes the image tensor to the specified dimensions using Nearest Neighbor interpolation.
+ *
+ * This implementation uses nearest-neighbor scaling for [UByte] tensors to maintain efficiency
+ * and avoid the floating-point conversions required for bilinear interpolation.
+ *
+ * @param newWidth The desired width of the resulting image.
+ * @param newHeight The desired height of the resulting image.
+ * @return A new [ImageTensor] with the specified dimensions, or the original tensor if dimensions are unchanged.
+ */
 @JvmName("resizeUByte")
 fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte> {
     if (newWidth == width && newHeight == height) return this
@@ -171,7 +214,7 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
 
     // For UInt8 use Nearest Neighbor,
     // since bilinear interpolation requires converting to float
-    for (n in 0 until batches) {
+    for (n in 0 until batch) {
         for (h in 0 until newHeight) {
             val srcH = (h * yRatio).toInt()
             for (w in 0 until newWidth) {
@@ -185,22 +228,13 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
     return result
 }
 
-fun ImageTensor<UByte>.toFloatImageTensor(): ImageTensor<Float> =
-    toFloatTensor()
-        .toImageTensor(pixelFormat, layout)
-
-fun ImageTensor<Float>.crop(rect: Rect): ImageTensor<Float> = this
-    .slice(
-        arrayOf(
-            rect.left..<rect.right,
-            rect.top..<rect.bottom,
-            0..<channels
-        )
-    )
-    .toImageTensor(this.pixelFormat, layout)
-
-@JvmName("cropUByte")
-fun ImageTensor<UByte>.crop(rect: Rect): ImageTensor<UByte> = this
+/**
+ * Crops the [ImageTensor] to the specified rectangle.
+ *
+ * @param rect The rectangle to crop the image to.
+ * @return A new [ImageTensor] containing the cropped region.
+ */
+fun <T : Any> ImageTensor<T>.crop(rect: Rect): ImageTensor<T> = this
     .slice(
         arrayOf(
             rect.left..<rect.right,

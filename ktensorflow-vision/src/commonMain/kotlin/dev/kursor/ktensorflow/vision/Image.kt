@@ -44,7 +44,6 @@ interface Image : AutoCloseable {
     /**
      * Manually releases any native resources held by this image.
      * Prefer using [use] blocks over calling this directly.
-     * Implementation of [AutoCloseable.close] that delegates to [release].
      */
     override fun close()
 }

@@ -28,7 +28,7 @@ internal class ImageTensorImpl<T : Any>(
         }
     }
 
-    override val batches: Int
+    override val batch: Int
         get() = shape.dimensions[layout.nIndex]
 
     override val width: Int
