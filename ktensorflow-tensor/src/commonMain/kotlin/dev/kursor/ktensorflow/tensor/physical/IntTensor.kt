@@ -1,9 +1,16 @@
-package dev.kursor.ktensorflow.tensor
+package dev.kursor.ktensorflow.tensor.physical
 
+import dev.kursor.ktensorflow.tensor.PhysicalTensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.readInt
+import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.toFlatIndex
+import dev.kursor.ktensorflow.tensor.writeInt
 
 /**
- * Represents a [Tensor] of kotlin type [Int] and [TensorDataType.Int32]
+ * Represents a [dev.kursor.ktensorflow.tensor.Tensor] of kotlin type [Int] and [dev.kursor.ktensorflow.tensor.TensorDataType.Int32]
  *
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
@@ -11,7 +18,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 class IntTensor(
     override val shape: TensorShape,
     override val data: ByteArray
-) : Tensor<Int> {
+) : PhysicalTensor<Int> {
 
     private val strides = shape.strides()
 

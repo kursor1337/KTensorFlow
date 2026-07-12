@@ -1,8 +1,9 @@
 package dev.kursor.ktensorflow.tensor
 
-import dev.kursor.ktensorflow.tensor.impl.toByteArray
+import dev.kursor.ktensorflow.tensor.views.PermutedTensorView
+import dev.kursor.ktensorflow.tensor.views.ReshapedTensorView
+import dev.kursor.ktensorflow.tensor.views.SlicedTensorView
 import kotlin.jvm.JvmName
-import kotlin.math.sqrt
 
 /**
  * Iterates over all elements of the [Tensor].
@@ -112,68 +113,76 @@ inline fun <T : Any> Tensor<T>.mapInPlaceIndexed(crossinline transform: (IntArra
 
 /**
  * Creates a new [Tensor] out of this [Tensor] with the new shape.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
  *
  * @param newShape The new shape of the [Tensor].
  */
 fun <T : Any> Tensor<T>.reshape(newShape: TensorShape): Tensor<T> {
-    require(newShape.flatSize == shape.flatSize) {
-        "Cannot reshape tensor of shape $shape to $newShape (different element count)"
-    }
-    return Tensor(dataType, newShape, data.copyOf())
+    if (this.shape == newShape) return this
+    return ReshapedTensorView(this, newShape)
 }
 
 /**
  * Creates a new [Tensor] out of this [Tensor] with the flattened shape.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
  */
 fun <T : Any> Tensor<T>.flatten(): Tensor<T> =
     reshape(TensorShape(shape.flatSize))
 
 /**
+ * Creates a new [Tensor] out of this [Tensor] with the permuted axes.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
+ */
+fun <T : Any> Tensor<T>.permuted(vararg axes: Int): Tensor<T> {
+    require(axes.size == shape.rank) { "Axes length must match tensor rank" }
+    return PermutedTensorView(this, axes)
+}
+
+/**
  * Creates a new [Tensor] out of this [Tensor] with the transposed shape.
  * Only 2D tensors can be transposed.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
  *
  * @throws IllegalArgumentException if the [Tensor] is not 2D.
  */
 fun <T : Any> Tensor<T>.transpose(): Tensor<T> {
-    require(shape.rank == 2) { "Only 2D tensors can be transposed" }
-    val (rows, cols) = shape.dimensions
-    val result = Tensor(dataType, TensorShape(cols, rows))
-
-    for (r in 0 until rows) {
-        for (c in 0 until cols) {
-            val srcFlat = r * cols + c
-            val dstFlat = c * rows + r
-            result.setFlat(dstFlat, getFlat(srcFlat))
-        }
-    }
-    return result
+    require(shape.rank >= 2) { "Tensor must have at least 2 dimensions to be transposed" }
+    val axes = IntArray(shape.rank) { it }
+    axes[shape.rank - 1] = shape.rank - 2
+    axes[shape.rank - 2] = shape.rank - 1
+    return permuted(*axes)
 }
 
 /**
  * Creates a new [Tensor] out of this [Tensor] with the specified ranges.
- *
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
  * @param ranges The ranges to use for slicing.
  */
+@JvmName("sliceArray")
 fun <T : Any> Tensor<T>.slice(ranges: Array<IntRange>): Tensor<T> {
-    require(ranges.size == shape.rank)
-    val newShape = TensorShape(*ranges.map { it.last - it.first + 1 }.toIntArray())
-    val result = Tensor(dataType, newShape)
-    result.forEachIndexed { idx, _ ->
-        val srcIndex = IntArray(shape.rank) { d -> ranges[d].first + idx[d] }
-        result[idx] = this[srcIndex]
-    }
-    return result
+    return SlicedTensorView(this, ranges)
 }
 
-fun <T : Any> Tensor<T>.squeeze(): Tensor<T> {
-    val newShape = TensorShape(
+/**
+ * Creates a new [Tensor] out of this [Tensor] with the specified ranges.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
+ * @param ranges The ranges to use for slicing.
+ */
+fun <T : Any> Tensor<T>.slice(vararg ranges: IntRange): Tensor<T> =
+    slice(arrayOf(*ranges))
+
+/**
+ * Creates a new [Tensor] out of this [Tensor] with the squeezed shape.
+ * Does not create a new [PhysicalTensor], instead creates a view of the original tensor
+ */
+fun <T : Any> Tensor<T>.squeeze(): Tensor<T> = reshape(
+    TensorShape(
         shape
             .dimensions
             .filter { it > 1 }
             .toIntArray()
     )
-    return reshape(newShape)
-}
+)
 
 /**
  * Returns the sum of all elements in the [Tensor].

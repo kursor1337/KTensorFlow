@@ -1,9 +1,16 @@
-package dev.kursor.ktensorflow.tensor
+package dev.kursor.ktensorflow.tensor.physical
 
+import dev.kursor.ktensorflow.tensor.PhysicalTensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.readUByte
+import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.toFlatIndex
+import dev.kursor.ktensorflow.tensor.writeUByte
 
 /**
- * Represents a [Tensor] of kotlin type [UByte] and [TensorDataType.UInt8]
+ * Represents a [dev.kursor.ktensorflow.tensor.Tensor] of kotlin type [UByte] and [dev.kursor.ktensorflow.tensor.TensorDataType.UInt8]
  *
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
@@ -11,7 +18,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 class UByteTensor(
     override val shape: TensorShape,
     override val data: ByteArray
-) : Tensor<UByte> {
+) : PhysicalTensor<UByte> {
 
     private val strides = shape.strides()
 

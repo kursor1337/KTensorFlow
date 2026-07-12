@@ -100,7 +100,7 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         )
 
         val inferenceTime = measureTime {
-            interpreter.run(stage6, output)
+            interpreter.run(stage6.toPhysical(), output)
         }
         val end = Clock.System.now().toEpochMilliseconds()
         println("inference time: $inferenceTime")
