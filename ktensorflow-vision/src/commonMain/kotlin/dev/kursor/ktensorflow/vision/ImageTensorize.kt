@@ -11,13 +11,16 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
  *
  * @param T The numeric type of the tensor elements.
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @return An [ImageTensor] containing the pixel data of this image.
  */
 inline fun <reified T : Any> Image.tensorize(
-    layout: ImageTensorLayout = ImageTensorLayout.NHWC
+    layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.pixelFormat
 ) = tensorize(
     dataType = TensorDataType.of<T>(),
-    layout = layout
+    layout = layout,
+    pixelFormat = pixelFormat
 )
 
 /**
@@ -29,12 +32,14 @@ inline fun <reified T : Any> Image.tensorize(
  *
  * @param T The desired primitive type for the tensor elements (e.g., [Float], [Int], [UByte]).
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @return An [ImageTensor] containing the pixel data of this image.
  * @throws IllegalArgumentException If the provided [dataType] is not supported.
  */
 fun <T : Any> Image.tensorize(
     dataType: TensorDataType<T>,
-    layout: ImageTensorLayout = ImageTensorLayout.NHWC
+    layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.pixelFormat
 ): ImageTensor<T> {
 
     val tensor = ImageTensor(
@@ -45,7 +50,6 @@ fun <T : Any> Image.tensorize(
         layout = layout
     )
 
-    val pixelFormat = pixelFormat
     val pixels = getPixels()
     val total = width * height
 
@@ -61,36 +65,29 @@ fun <T : Any> Image.tensorize(
         }
 
         is PixelFormat.RGB -> {
-            val rShift = pixelFormat.rIndex * 8
-            val gShift = pixelFormat.gIndex * 8
-            val bShift = pixelFormat.bIndex * 8
 
             for (idx in 0 until total) {
                 val p = pixels[idx]
                 val w = idx % width
                 val h = idx / width
 
-                tensor[0, h, w, pixelFormat.rIndex] = dataType.converter((p shr rShift) and 0xFF)
-                tensor[0, h, w, pixelFormat.gIndex] = dataType.converter((p shr gShift) and 0xFF)
-                tensor[0, h, w, pixelFormat.bIndex] = dataType.converter((p shr bShift) and 0xFF)
+                tensor[0, h, w, pixelFormat.rIndex] = dataType.converter((p shr 16) and 0xFF)
+                tensor[0, h, w, pixelFormat.gIndex] = dataType.converter((p shr 8) and 0xFF)
+                tensor[0, h, w, pixelFormat.bIndex] = dataType.converter((p shr 0) and 0xFF)
             }
         }
 
         is PixelFormat.RGBA -> {
-            val rShift = pixelFormat.rIndex * 8
-            val gShift = pixelFormat.gIndex * 8
-            val bShift = pixelFormat.bIndex * 8
-            val aShift = pixelFormat.aIndex * 8
 
             for (idx in 0 until total) {
                 val p = pixels[idx]
                 val w = idx % width
                 val h = idx / width
 
-                tensor[0, h, w, pixelFormat.rIndex] = dataType.converter((p shr rShift) and 0xFF)
-                tensor[0, h, w, pixelFormat.gIndex] = dataType.converter((p shr gShift) and 0xFF)
-                tensor[0, h, w, pixelFormat.bIndex] = dataType.converter((p shr bShift) and 0xFF)
-                tensor[0, h, w, pixelFormat.aIndex] = dataType.converter((p shr aShift) and 0xFF)
+                tensor[0, h, w, pixelFormat.rIndex] = dataType.converter((p shr 16) and 0xFF)
+                tensor[0, h, w, pixelFormat.gIndex] = dataType.converter((p shr 8) and 0xFF)
+                tensor[0, h, w, pixelFormat.bIndex] = dataType.converter((p shr 0) and 0xFF)
+                tensor[0, h, w, pixelFormat.aIndex] = dataType.converter((p shr 24) and 0xFF)
             }
         }
     }
@@ -106,14 +103,17 @@ fun <T : Any> Image.tensorize(
  *
  * @param T The numeric type of the tensor elements (e.g., [Float], [Int], [UByte]).
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @return An [ImageTensor] containing the pixel data of all images in the batch.
  * @throws IllegalArgumentException If the list is empty or images have mismatched dimensions.
  */
 inline fun <reified T : Any> List<Image>.tensorizeBatch(
-    layout: ImageTensorLayout = ImageTensorLayout.NHWC
+    layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.firstOrNull()?.pixelFormat ?: PixelFormat.ARGB
 ): ImageTensor<T> = tensorizeBatch(
     dataType = TensorDataType.of<T>(),
-    layout = layout
+    layout = layout,
+    pixelFormat = pixelFormat
 )
 
 /**
@@ -126,12 +126,14 @@ inline fun <reified T : Any> List<Image>.tensorizeBatch(
  * @param T The desired primitive type for the tensor data.
  * @param dataType The [TensorDataType] representing the type [T].
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @return An [ImageTensor] containing the batched pixel data from all images in the list.
  * @throws IllegalArgumentException If the list is empty or if images have inconsistent dimensions.
  */
 fun <T : Any> List<Image>.tensorizeBatch(
     dataType: TensorDataType<T>,
-    layout: ImageTensorLayout = ImageTensorLayout.NHWC
+    layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.firstOrNull()?.pixelFormat ?: PixelFormat.ARGB
 ): ImageTensor<T> {
 
     require(isNotEmpty()) { "Empty image batch" }
@@ -161,7 +163,8 @@ fun <T : Any> List<Image>.tensorizeBatch(
             image = image,
             tensor = tensor,
             batchIndex = batchIndex,
-            convert = dataType.converter
+            convert = dataType.converter,
+            pixelFormat = pixelFormat
         )
     }
 
@@ -172,15 +175,15 @@ private inline fun <T : Any> writeImageInto(
     image: Image,
     tensor: ImageTensor<T>,
     batchIndex: Int,
+    pixelFormat: PixelFormat,
     convert: (Int) -> T
 ) {
     val width = image.width
     val height = image.height
-    val pf = image.pixelFormat
     val pixels = image.getPixels()
     val total = width * height
 
-    when (pf) {
+    when (pixelFormat) {
 
         PixelFormat.Grayscale -> {
             for (idx in 0 until total) {
@@ -193,36 +196,29 @@ private inline fun <T : Any> writeImageInto(
         }
 
         is PixelFormat.RGB -> {
-            val rShift = pf.rIndex * 8
-            val gShift = pf.gIndex * 8
-            val bShift = pf.bIndex * 8
 
             for (idx in 0 until total) {
                 val p = pixels[idx]
                 val w = idx % width
                 val h = idx / width
 
-                tensor[batchIndex, pf.rIndex, h, w] = convert((p shr rShift) and 0xFF)
-                tensor[batchIndex, pf.gIndex, h, w] = convert((p shr gShift) and 0xFF)
-                tensor[batchIndex, pf.bIndex, h, w] = convert((p shr bShift) and 0xFF)
+                tensor[batchIndex, pixelFormat.rIndex, h, w] = convert((p shr 16) and 0xFF)
+                tensor[batchIndex, pixelFormat.gIndex, h, w] = convert((p shr 8) and 0xFF)
+                tensor[batchIndex, pixelFormat.bIndex, h, w] = convert((p shr 0) and 0xFF)
             }
         }
 
         is PixelFormat.RGBA -> {
-            val rShift = pf.rIndex * 8
-            val gShift = pf.gIndex * 8
-            val bShift = pf.bIndex * 8
-            val aShift = pf.aIndex * 8
 
             for (idx in 0 until total) {
                 val p = pixels[idx]
                 val w = idx % width
                 val h = idx / width
 
-                tensor[batchIndex, pf.rIndex, h, w] = convert((p shr rShift) and 0xFF)
-                tensor[batchIndex, pf.gIndex, h, w] = convert((p shr gShift) and 0xFF)
-                tensor[batchIndex, pf.bIndex, h, w] = convert((p shr bShift) and 0xFF)
-                tensor[batchIndex, pf.aIndex, h, w] = convert((p shr aShift) and 0xFF)
+                tensor[batchIndex, pixelFormat.rIndex, h, w] = convert((p shr 16) and 0xFF)
+                tensor[batchIndex, pixelFormat.gIndex, h, w] = convert((p shr 8) and 0xFF)
+                tensor[batchIndex, pixelFormat.bIndex, h, w] = convert((p shr 0) and 0xFF)
+                tensor[batchIndex, pixelFormat.aIndex, h, w] = convert((p shr 24) and 0xFF)
             }
         }
     }
@@ -236,12 +232,14 @@ private inline fun <T : Any> writeImageInto(
  * formula `(value - mean) / std` to each channel during the conversion process.
  *
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @param normalization The [Normalization] parameters (mean and standard deviation) to apply
  * to the pixel values (defaults to [Normalization.None], which performs no scaling).
  * @return An [ImageTensor] containing the normalized floating-point pixel data.
  */
 fun Image.tensorizeFloat(
     layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.pixelFormat,
     normalization: Normalization = Normalization.None
 ): ImageTensor<Float> {
     val tensor = ImageTensor(
@@ -255,7 +253,7 @@ fun Image.tensorizeFloat(
     val pixels = getPixels()
     val total = width * height
 
-    when (val pf = pixelFormat) {
+    when (pixelFormat) {
         PixelFormat.Grayscale -> {
             for (idx in 0 until total) {
                 val w = idx % width
@@ -276,9 +274,9 @@ fun Image.tensorizeFloat(
                 val g = ((p shr 8) and 0xFF).toFloat()
                 val b = (p and 0xFF).toFloat()
 
-                tensor[0, h, w, pf.rIndex] = (r - normalization.meanR) / normalization.stdR
-                tensor[0, h, w, pf.gIndex] = (g - normalization.meanG) / normalization.stdG
-                tensor[0, h, w, pf.bIndex] = (b - normalization.meanB) / normalization.stdB
+                tensor[0, h, w, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
+                tensor[0, h, w, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
+                tensor[0, h, w, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
             }
         }
 
@@ -293,10 +291,10 @@ fun Image.tensorizeFloat(
                 val g = ((p shr 8) and 0xFF).toFloat()
                 val b = (p and 0xFF).toFloat()
 
-                tensor[0, h, w, pf.rIndex] = (r - normalization.meanR) / normalization.stdR
-                tensor[0, h, w, pf.gIndex] = (g - normalization.meanG) / normalization.stdG
-                tensor[0, h, w, pf.bIndex] = (b - normalization.meanB) / normalization.stdB
-                tensor[0, h, w, pf.aIndex] = (a - normalization.meanA) / normalization.stdA
+                tensor[0, h, w, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
+                tensor[0, h, w, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
+                tensor[0, h, w, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
+                tensor[0, h, w, pixelFormat.aIndex] = (a - normalization.meanA) / normalization.stdA
             }
         }
     }
@@ -310,12 +308,14 @@ fun Image.tensorizeFloat(
  * All images in the list must have identical dimensions (width and height).
  *
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
+ * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
  * @param normalization The normalization parameters to apply to each pixel.
  * @return An [ImageTensor] of type [Float] containing the normalized batched pixel data.
  * @throws IllegalArgumentException If the list is empty or if images have inconsistent dimensions.
  */
 fun List<Image>.tensorizeBatchFloat(
     layout: ImageTensorLayout = ImageTensorLayout.NHWC,
+    pixelFormat: PixelFormat = this.firstOrNull()?.pixelFormat ?: PixelFormat.ARGB,
     normalization: Normalization = Normalization.None
 ): ImageTensor<Float> {
     require(isNotEmpty()) { "Empty image batch" }
@@ -343,7 +343,7 @@ fun List<Image>.tensorizeBatchFloat(
         val pixels = image.getPixels()
         val total = w * h
 
-        when (pf) {
+        when (pixelFormat) {
             PixelFormat.Grayscale -> {
                 for (idx in 0 until total) {
                     val pxW = idx % w
@@ -364,9 +364,9 @@ fun List<Image>.tensorizeBatchFloat(
                     val g = ((p shr 8) and 0xFF).toFloat()
                     val b = (p and 0xFF).toFloat()
 
-                    tensor[batchIndex, pxH, pxW, pf.rIndex] = (r - normalization.meanR) / normalization.stdR
-                    tensor[batchIndex, pxH, pxW, pf.gIndex] = (g - normalization.meanG) / normalization.stdG
-                    tensor[batchIndex, pxH, pxW, pf.bIndex] = (b - normalization.meanB) / normalization.stdB
+                    tensor[batchIndex, pxH, pxW, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
+                    tensor[batchIndex, pxH, pxW, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
+                    tensor[batchIndex, pxH, pxW, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
                 }
             }
 
@@ -381,10 +381,10 @@ fun List<Image>.tensorizeBatchFloat(
                     val g = ((p shr 8) and 0xFF).toFloat()
                     val b = (p and 0xFF).toFloat()
 
-                    tensor[batchIndex, pxH, pxW, pf.rIndex] = (r - normalization.meanR) / normalization.stdR
-                    tensor[batchIndex, pxH, pxW, pf.gIndex] = (g - normalization.meanG) / normalization.stdG
-                    tensor[batchIndex, pxH, pxW, pf.bIndex] = (b - normalization.meanB) / normalization.stdB
-                    tensor[batchIndex, pxH, pxW, pf.aIndex] = (a - normalization.meanA) / normalization.stdA
+                    tensor[batchIndex, pxH, pxW, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
+                    tensor[batchIndex, pxH, pxW, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
+                    tensor[batchIndex, pxH, pxW, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
+                    tensor[batchIndex, pxH, pxW, pixelFormat.aIndex] = (a - normalization.meanA) / normalization.stdA
                 }
             }
         }

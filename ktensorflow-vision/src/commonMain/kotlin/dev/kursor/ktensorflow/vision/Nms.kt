@@ -12,17 +12,18 @@ package dev.kursor.ktensorflow.vision
  * (Multi-class NMS). Otherwise, it is applied globally across all items.
  *
  * @param T The type of elements in the collection.
+ * @param C The type of class labels.
  * @param iouThreshold The threshold for the Intersection over Union (IoU) metric. Boxes with an IoU
  * higher than this value relative to a higher-scoring box will be suppressed. Defaults to 0.45.
  * @param scoreThreshold The minimum confidence score required to keep a box. Defaults to 0.25.
  * @param scoreSelector A function to extract the confidence score from an element.
  */
-fun <T> Iterable<T>.nms(
+fun <T, C> Iterable<T>.nms(
     iouThreshold: Float = 0.45f,
     scoreThreshold: Float = 0.25f,
     scoreSelector: (T) -> Float,
     boxSelector: (T) -> Rect,
-    classSelector: ((T) -> Int)? = null
+    classSelector: ((T) -> C)? = null
 ): List<T> {
     val validItems = this.filter { scoreSelector(it) >= scoreThreshold }
     if (validItems.isEmpty()) return emptyList()

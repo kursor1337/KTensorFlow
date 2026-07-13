@@ -84,7 +84,11 @@ class IosImage(
     }
 }
 
-private fun Int.unpremultiplyAlpha(a: Int): Int = (this.toFloat() / a * 255).roundToInt()
+private fun Int.unpremultiplyAlpha(a: Int): Int = if (a == 0) {
+    0
+} else {
+    (this.toFloat() / a * 255).roundToInt()
+}
 
 actual fun Image(
     width: Int,

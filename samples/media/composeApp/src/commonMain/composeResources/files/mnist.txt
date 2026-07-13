@@ -1,4 +1,0 @@
-Copy:
-- files/models/mnist.tflite
-- files/data/mnist.csv
-from repository root to this directory

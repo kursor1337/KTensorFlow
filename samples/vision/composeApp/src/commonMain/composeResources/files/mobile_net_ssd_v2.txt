@@ -1,0 +1,3 @@
+Copy:
+- files/models/mobile_net_ssd_v2.tflite
+from repository root to this directory
