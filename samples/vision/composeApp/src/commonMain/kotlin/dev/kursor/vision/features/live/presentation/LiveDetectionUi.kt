@@ -49,11 +49,6 @@ fun LiveDetectionUi(
 ) {
     val detectionResult by component.detectionResults.collectAsState()
     var frame by remember { mutableStateOf<Image?>(null) }
-    val imageTensor = remember(frame) {
-        frame
-            ?.resizeWithPad(320, 320)
-            ?.tensorize<UByte>()
-    }
 
     val permissionsControllerFactory = rememberPermissionsControllerFactory()
     val permissionsController = remember(permissionsControllerFactory) {
@@ -98,17 +93,6 @@ fun LiveDetectionUi(
                     style = Stroke(width = 3.dp.toPx()) // Толщина линии рамки
                 )
             }
-        }
-
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(bottom = 20.dp)
-        ) {
-            imageTensor
-                ?.let { ImageTensorUi(imageTensor = it) }
-                ?: Box(modifier = Modifier.weight(1f))
         }
     }
 }

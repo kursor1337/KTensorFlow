@@ -11,13 +11,18 @@ import androidx.core.graphics.scale
 
 actual fun Image.resize(
     newWidth: Int,
-    newHeight: Int
+    newHeight: Int,
+    closeOriginal: Boolean
 ): Image = platformImage
     .scale(newWidth, newHeight)
     .let { AndroidImage(it, pixelFormat) }
+    .also { if (closeOriginal) close() }
 
 
-actual fun Image.crop(rect: Rect): Image = Bitmap
+actual fun Image.crop(
+    rect: Rect,
+    closeOriginal: Boolean
+): Image = Bitmap
     .createBitmap(
         platformImage,
         rect.left,
@@ -26,8 +31,12 @@ actual fun Image.crop(rect: Rect): Image = Bitmap
         rect.bottom - rect.top
     )
     .let { AndroidImage(it, pixelFormat) }
+    .also { if (closeOriginal) close() }
 
-actual fun Image.rotate(degrees: Float): Image = Bitmap
+actual fun Image.rotate(
+    degrees: Float,
+    closeOriginal: Boolean
+): Image = Bitmap
     .createBitmap(
         platformImage,
         0,
@@ -40,8 +49,11 @@ actual fun Image.rotate(degrees: Float): Image = Bitmap
         true
     )
     .let { AndroidImage(it, pixelFormat) }
+    .also { if (closeOriginal) close() }
 
-actual fun Image.grayscale(): Image {
+actual fun Image.grayscale(
+    closeOriginal: Boolean
+): Image {
     val grayBitmap = createBitmap(width, height)
 
     val canvas = Canvas(grayBitmap)
@@ -50,5 +62,6 @@ actual fun Image.grayscale(): Image {
     paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
 
     canvas.drawBitmap(platformImage, 0f, 0f, paint)
+    if (closeOriginal) close()
     return AndroidImage(grayBitmap, PixelFormat.Grayscale)
 }

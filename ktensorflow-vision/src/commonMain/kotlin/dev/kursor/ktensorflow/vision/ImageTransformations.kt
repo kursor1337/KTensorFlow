@@ -9,7 +9,8 @@ package dev.kursor.ktensorflow.vision
  */
 expect fun Image.resize(
     newWidth: Int,
-    newHeight: Int
+    newHeight: Int,
+    closeOriginal: Boolean = true
 ): Image
 
 /**
@@ -18,7 +19,7 @@ expect fun Image.resize(
  * @param rect The rectangle to crop the image to.
  * @return A new [Image] containing the cropped region.
  */
-expect fun Image.crop(rect: Rect): Image
+expect fun Image.crop(rect: Rect, closeOriginal: Boolean = true): Image
 
 /**
  * Rotates the image by the specified angle.
@@ -26,11 +27,11 @@ expect fun Image.crop(rect: Rect): Image
  * @param degrees The angle to rotate the image by.
  * @return A new [Image] containing the rotated image.
  */
-expect fun Image.rotate(degrees: Float): Image
+expect fun Image.rotate(degrees: Float, closeOriginal: Boolean = true): Image
 
 /**
  * Converts the image to grayscale.
  *
  * @return A new [Image] containing the grayscale image.
  */
-expect fun Image.grayscale(): Image
+expect fun Image.grayscale(closeOriginal: Boolean = true): Image

@@ -57,41 +57,46 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
             useXNNPACK = true
         )
     )
+        .apply {
+            resizeInput(0, intArrayOf(1, 300, 300, 3))
+        }
 
     private val pipeline = Pipeline
         .input(
             preprocessing = Stage<PaddedImage>()
-                .then {
-                    it.tensorize<UByte>(
-                        layout = ImageTensorLayout.NHWC,
-                        pixelFormat = PixelFormat.RGB
-                    )
+                .then { paddedImage ->
+                    paddedImage.use {
+                        it.tensorize<UByte>(
+                            layout = ImageTensorLayout.NHWC,
+                            pixelFormat = PixelFormat.RGB
+                        )
+                    }
                 }
         )
         .inference(interpreter)
         .output(
-            index = 0,
+            index = 2,
             dataType = TensorDataType.Float32,
             shape = TensorShape(1),
             postprocessing = Stage<Tensor<Float>>()
                 .toDetectionCount()
         )
         .output(
-            index = 1,
+            index = 4,
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS, 4),
             postprocessing = Stage<Tensor<Float>>()
                 .toBoundingBoxes(MAX_DETECTIONS)
         )
         .output(
-            index = 2,
+            index = 5,
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
                 .toClassIds(MAX_DETECTIONS)
         )
         .output(
-            index = 3,
+            index = 6,
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
@@ -100,20 +105,21 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         .build()
 
 
+    val dispatcher = Dispatchers.Default.limitedParallelism(1)
     @OptIn(ExperimentalTime::class)
     override suspend fun detectObjects(image: Image): DetectionResult =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             val detectionResult: DetectionResult
             val time = measureTime {
 
-                val paddedImage = image.resizeWithPad(320, 320)
+                val paddedImage = image.resizeWithPad(300, 300)
                 val inferenceResult = pipeline.run(Tuple.One(paddedImage))
                 val count = inferenceResult.first
                 val boxes = inferenceResult.second
                 val classIds = inferenceResult.third
                 val scores = inferenceResult.fourth
                 detectionResult = mapToDetectionResult(
-                     count = count,
+                    count = count,
                     boxes = boxes,
                     classes = classIds,
                     scores = scores,

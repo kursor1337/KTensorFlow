@@ -24,6 +24,31 @@ internal class AndroidInterpreter(
         )
     }
 
+    override val inputTensorCount: Int
+        get() = tensorFlowInterpreter.inputTensorCount
+
+    override val outputTensorCount: Int
+        get() = tensorFlowInterpreter.outputTensorCount
+
+    init {
+        tensorFlowInterpreter.allocateTensors()
+
+        val outputCount = tensorFlowInterpreter.outputTensorCount
+
+        println("=== СКАНИРОВАНИЕ ВЫХОДОВ TFLITE НА IOS ===")
+        for (i in 0 until outputCount) {
+            val tensor = tensorFlowInterpreter.getOutputTensor(i)
+
+            println("Anddroid Index: $i | Name: ${tensor.name()} | Real Byte Size: ${tensor.numBytes()}")
+        }
+        println("=========================================")
+    }
+
+    override fun resizeInput(index: Int, dims: IntArray) {
+        tensorFlowInterpreter.resizeInput(index, dims)
+        tensorFlowInterpreter.allocateTensors()
+    }
+
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun run(inputs: List<ByteArray>, outputs: Map<Int, ByteArray>) {
         val inputsArray = inputs
