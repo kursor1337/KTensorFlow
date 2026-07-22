@@ -78,28 +78,28 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         )
         .inference(interpreter)
         .output(
-            index = 2,
+            name = "StatefulPartitionedCall:5",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1),
             postprocessing = Stage<Tensor<Float>>()
                 .toDetectionCount()
         )
         .output(
-            index = 4,
+            name = "StatefulPartitionedCall:1",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS, 4),
             postprocessing = Stage<Tensor<Float>>()
                 .toBoundingBoxes(MAX_DETECTIONS)
         )
         .output(
-            index = 5,
+            name = "StatefulPartitionedCall:2",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
                 .toClassIds(MAX_DETECTIONS)
         )
         .output(
-            index = 6,
+            name = "StatefulPartitionedCall:4",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
