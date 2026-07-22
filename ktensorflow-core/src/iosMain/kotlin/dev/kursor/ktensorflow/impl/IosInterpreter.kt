@@ -2,10 +2,12 @@ package dev.kursor.ktensorflow.impl
 
 import cocoapods.TensorFlowLiteObjC.TFLInterpreter
 import cocoapods.TensorFlowLiteObjC.TFLTensor
-import cocoapods.TensorFlowLiteObjC.TFLTensorDataType
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.ModelMeta
+import dev.kursor.ktensorflow.ModelTensorData
+import dev.kursor.ktensorflow.toKTensorFlow
 import kotlin.math.min
 
 // private val on options because it is required to keep references so that they are not
@@ -32,15 +34,6 @@ internal class IosInterpreter(
         checkError { errPtr ->
             tflInterpreter.allocateTensorsWithError(errPtr)
         }
-
-        val outputCount = tflInterpreter.outputTensorCount.toInt()
-
-        println("=== СКАНИРОВАНИЕ ВЫХОДОВ TFLITE НА IOS ===")
-        for (i in 0 until outputCount) {
-            val tensor = getOutputTensor(i)
-            println("iOS Index: $i | Name: ${tensor.name()} | Real Byte Size: ${tensor.byteSize()}")
-        }
-        println("=========================================")
     }
 
     override val inputTensorCount: Int
@@ -48,6 +41,30 @@ internal class IosInterpreter(
 
     override val outputTensorCount: Int
         get() = tflInterpreter.outputTensorCount.toInt()
+
+    override fun getModelMeta(): ModelMeta {
+        val inputs = (0 until inputTensorCount).map { i ->
+            val tensor = getInputTensor(i)
+            ModelTensorData(
+                index = i,
+                name = tensor.name(),
+                dataType = tensor.dataType.toKTensorFlow(),
+                shape = tensor.shape().map { (it as Number).toInt() }
+            )
+        }
+
+        val outputs = (0 until outputTensorCount).map { i ->
+            val tensor = getOutputTensor(i)
+            ModelTensorData(
+                index = i,
+                name = tensor.name(),
+                dataType = tensor.dataType().toKTensorFlow(),
+                shape = tensor.shape().map { (it as Number).toInt() }
+            )
+        }
+
+        return ModelMeta(inputs, outputs)
+    }
 
     private fun getInputTensor(index: Int): TFLTensor {
         return checkError { errPtr ->
@@ -118,18 +135,8 @@ internal class IosInterpreter(
     }
 }
 
-fun TFLTensor.byteSize(): Int {
-    val shape = checkError { errPtr ->
+fun TFLTensor.shape(): List<Int> {
+    return checkError { errPtr ->
         this.shapeWithError(errPtr)
     }.map { (it as Number).toInt() }
-
-    val dataTypeSize = when (this.dataType) {
-        TFLTensorDataType.TFLTensorDataTypeFloat32 -> 4
-        TFLTensorDataType.TFLTensorDataTypeInt32 -> 4
-        TFLTensorDataType.TFLTensorDataTypeInt64 -> 8
-        TFLTensorDataType.TFLTensorDataTypeUInt8 -> 1
-        else -> 0
-    }
-
-    return shape.reduce { acc, dim -> acc * dim } * dataTypeSize
 }

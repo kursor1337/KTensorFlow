@@ -3,6 +3,9 @@ package dev.kursor.ktensorflow.impl
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
+import dev.kursor.ktensorflow.ModelTensorData
+import dev.kursor.ktensorflow.ModelMeta
+import dev.kursor.ktensorflow.toKTensorFlow
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import org.tensorflow.lite.Interpreter as TFLInterpreter
@@ -30,18 +33,30 @@ internal class AndroidInterpreter(
     override val outputTensorCount: Int
         get() = tensorFlowInterpreter.outputTensorCount
 
-    init {
-        tensorFlowInterpreter.allocateTensors()
+    override fun getModelMeta(): ModelMeta {
+        val inputs = (0..<inputTensorCount)
+            .map(tensorFlowInterpreter::getInputTensor)
+            .map {
+                ModelTensorData(
+                    index = it.index(),
+                    name = it.name(),
+                    dataType = it.dataType().toKTensorFlow(),
+                    shape = it.shape().toList()
+                )
+            }
 
-        val outputCount = tensorFlowInterpreter.outputTensorCount
+        val outputs = (0..<outputTensorCount)
+            .map(tensorFlowInterpreter::getOutputTensor)
+            .map {
+                ModelTensorData(
+                    index = it.index(),
+                    name = it.name(),
+                    dataType = it.dataType().toKTensorFlow(),
+                    shape = it.shape().toList()
+                )
+            }
 
-        println("=== СКАНИРОВАНИЕ ВЫХОДОВ TFLITE НА IOS ===")
-        for (i in 0 until outputCount) {
-            val tensor = tensorFlowInterpreter.getOutputTensor(i)
-
-            println("Anddroid Index: $i | Name: ${tensor.name()} | Real Byte Size: ${tensor.numBytes()}")
-        }
-        println("=========================================")
+        return ModelMeta(inputs, outputs)
     }
 
     override fun resizeInput(index: Int, dims: IntArray) {

@@ -60,6 +60,9 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         .apply {
             resizeInput(0, intArrayOf(1, 300, 300, 3))
         }
+        .also {
+            println("kursor1337: modelMeta: ${it.getModelMeta()}")
+        }
 
     private val pipeline = Pipeline
         .input(
