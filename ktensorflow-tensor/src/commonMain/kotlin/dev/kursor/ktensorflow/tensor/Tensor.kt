@@ -40,9 +40,29 @@ interface Tensor<T : Any> {
      */
     operator fun set(index: IntArray, value: T)
 
+    /**
+     * Gets a typed element from this [Tensor] using its flat index.
+     *
+     * @param index the linear index of the element
+     */
     fun getFlat(index: Int): T
+
+    /**
+     * Sets a typed element in this [Tensor] using its flattened index.
+     *
+     * @param index - the 1D index of the element
+     * @param value - value to set
+     */
     fun setFlat(index: Int, value: T)
 
+    /**
+     * Converts this [Tensor] to a [PhysicalTensor].
+     *
+     * If this tensor is already a [PhysicalTensor], it may return itself.
+     * Otherwise, it creates a new [PhysicalTensor] containing the same data.
+     *
+     * @return A [PhysicalTensor] representation of this tensor.
+     */
     fun toPhysical(): PhysicalTensor<T>
 }
 

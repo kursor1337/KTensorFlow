@@ -2,6 +2,14 @@ package dev.kursor.ktensorflow.tensor
 
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 
+/**
+ * Represents a [Tensor] that is physically backed by a [ByteArray].
+ *
+ * Unlike tensor views, a [PhysicalTensor] contains the actual raw data
+ * in memory, allowing for direct access and conversion to multidimensional arrays.
+ *
+ * @param T the type of the elements contained in this tensor.
+ */
 interface PhysicalTensor<T : Any> : Tensor<T> {
     /**
      * Raw data of the [Tensor]

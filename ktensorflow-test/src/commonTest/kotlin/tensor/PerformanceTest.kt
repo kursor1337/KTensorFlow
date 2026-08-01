@@ -1,10 +1,10 @@
 package tensor
 
-import dev.kursor.ktensorflow.media.ImageTensor
-import dev.kursor.ktensorflow.media.ImageTensorLayout
-import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.resize
-import dev.kursor.ktensorflow.media.grayscale
+import dev.kursor.ktensorflow.vision.ImageTensor
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
+import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.resize
+import dev.kursor.ktensorflow.vision.grayscale
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.forEachIndexed

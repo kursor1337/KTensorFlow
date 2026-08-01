@@ -15,7 +15,7 @@ import dev.kursor.ktensorflow.tensor.writeInt
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
  */
-class IntTensor(
+internal class IntTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : PhysicalTensor<Int> {

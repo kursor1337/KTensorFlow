@@ -7,7 +7,7 @@ import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
 import dev.kursor.ktensorflow.tensor.toNestedIndex
 
-class PermutedTensorView<T : Any>(
+internal class PermutedTensorView<T : Any>(
     override val delegate: Tensor<T>,
     private val permuteAxes: IntArray
 ) : TensorView<T> {

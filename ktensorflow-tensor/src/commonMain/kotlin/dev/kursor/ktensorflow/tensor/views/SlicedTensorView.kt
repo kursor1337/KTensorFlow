@@ -7,7 +7,7 @@ import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
 import dev.kursor.ktensorflow.tensor.toNestedIndex
 
-class SlicedTensorView<T : Any>(
+internal class SlicedTensorView<T : Any>(
     override val delegate: Tensor<T>,
     private val ranges: Array<IntRange>
 ) : TensorView<T> {

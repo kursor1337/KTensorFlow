@@ -15,7 +15,7 @@ import dev.kursor.ktensorflow.tensor.writeUByte
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
  */
-class UByteTensor(
+internal class UByteTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : PhysicalTensor<UByte> {
