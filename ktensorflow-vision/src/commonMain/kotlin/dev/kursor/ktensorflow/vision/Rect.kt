@@ -28,9 +28,15 @@ data class Rect(
     val area: Int
         get() = maxOf(0, right - left) * maxOf(0, bottom - top)
 
+    /**
+     * The width of the rectangle.
+     */
     val width: Int
         get() = maxOf(0, right - left)
 
+    /**
+     * The height of the rectangle.
+     */
     val height: Int
         get() = maxOf(0, bottom - top)
 
@@ -158,6 +164,23 @@ fun Rect.intersectionOverUnion(other: Rect): Float {
     return iArea.toFloat() / unionArea.toFloat()
 }
 
+/**
+ * Scales the coordinates of this rectangle to fit within the specified [containerWidth] and
+ * [containerHeight] while maintaining the aspect ratio of the original rectangle.
+ *
+ * If [isCrop] is true, the rectangle will be scaled to fit the container while maintaining the
+ * original aspect ratio. This results in a centered crop of the original rectangle within the
+ * container. If [isCrop] is false, the rectangle will be scaled to fit the container while
+ * preserving the original aspect ratio and maintaining the top-left corner of the original
+ * rectangle.
+ *
+ * @param originalContainerWidth The width of the original container.
+ * @param originalContainerHeight The height of the original container.
+ * @param containerWidth The width of the container to scale the rectangle to.
+ * @param containerHeight The height of the container to scale the rectangle to.
+ * @param isCrop Whether to crop the rectangle to fit the container.
+ * @return A new [Rect] with the scaled coordinates.
+ */
 fun Rect.scaleForContainer(
     originalContainerWidth: Int,
     originalContainerHeight: Int,
