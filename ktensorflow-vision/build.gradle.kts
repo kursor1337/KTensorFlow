@@ -5,8 +5,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
     alias(libs.plugins.binary.compatibility.validator)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.compose.multiplatform)
 }
 
 kotlin {
@@ -34,10 +32,6 @@ kotlin {
             implementation(projects.ktensorflowCore)
             implementation(projects.ktensorflowTensor)
             implementation(projects.ktensorflowPipeline)
-
-            implementation(libs.compose.ui)
-            implementation(libs.compose.runtime)
-
         }
     }
 }

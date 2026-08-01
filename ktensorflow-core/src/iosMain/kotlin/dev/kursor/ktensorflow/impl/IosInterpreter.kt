@@ -43,27 +43,81 @@ internal class IosInterpreter(
         get() = tflInterpreter.outputTensorCount.toInt()
 
     override fun getModelMeta(): ModelMeta {
-        val inputs = (0 until inputTensorCount).map { i ->
-            val tensor = getInputTensor(i)
-            ModelTensorData(
-                index = i,
-                name = tensor.name(),
-                dataType = tensor.dataType.toKTensorFlow(),
-                shape = tensor.shape().map { (it as Number).toInt() }
-            )
+        val rawInputs = (0 until inputTensorCount).map { i ->
+            i to getInputTensor(i)
+        }
+        val rawOutputs = (0 until outputTensorCount).map { i ->
+            i to getOutputTensor(i)
         }
 
-        val outputs = (0 until outputTensorCount).map { i ->
-            val tensor = getOutputTensor(i)
-            ModelTensorData(
-                index = i,
-                name = tensor.name(),
-                dataType = tensor.dataType().toKTensorFlow(),
-                shape = tensor.shape().map { (it as Number).toInt() }
-            )
+        @Suppress("UNCHECKED_CAST")
+        val signatureKeys = tflInterpreter.signatureKeys() as? List<String>
+        val defaultSignature = signatureKeys?.firstOrNull()
+
+        if (defaultSignature != null) {
+            val runner = checkError { err ->
+                tflInterpreter.signatureRunnerWithKey(defaultSignature, err)
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val sigInputs = runner.inputs() as? List<String> ?: emptyList()
+            val inputs = sigInputs.map { sigName ->
+                val sigTensor = checkError { err ->
+                    runner.inputTensorWithName(sigName, err)
+                }
+                val internalName = sigTensor.name()
+                val index = rawInputs.first { it.second.name() == internalName }.first
+
+                ModelTensorData(
+                    index = index,
+                    name = sigName,
+                    internalName = sigTensor.name(),
+                    dataType = sigTensor.dataType().toKTensorFlow(),
+                    shape = sigTensor.shape().map { (it as Number).toInt() }
+                )
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val sigOutputs = runner.outputs() as? List<String> ?: emptyList()
+            val outputs = sigOutputs.map { sigName ->
+                val sigTensor = checkError { err ->
+                    runner.outputTensorWithName(sigName, err)
+                }
+                val internalName = sigTensor.name()
+                val index = rawOutputs.first { it.second.name() == internalName }.first
+
+                ModelTensorData(
+                    index = index,
+                    name = sigName,
+                    internalName = sigTensor.name(),
+                    dataType = sigTensor.dataType().toKTensorFlow(),
+                    shape = sigTensor.shape().map { (it as Number).toInt() }
+                )
+            }
+
+            return ModelMeta(inputs, outputs)
         }
 
-        return ModelMeta(inputs, outputs)
+        return ModelMeta(
+            inputData = rawInputs.map { (index, tensor) ->
+                ModelTensorData(
+                    index = index,
+                    name = tensor.name(),
+                    internalName = tensor.name(),
+                    dataType = tensor.dataType().toKTensorFlow(),
+                    shape = tensor.shape().map { (it as Number).toInt() }
+                )
+            },
+            outputData = rawOutputs.map { (index, tensor) ->
+                ModelTensorData(
+                    index = index,
+                    name = tensor.name(),
+                    internalName = tensor.name(),
+                    dataType = tensor.dataType().toKTensorFlow(),
+                    shape = tensor.shape().map { (it as Number).toInt() }
+                )
+            }
+        )
     }
 
     private fun getInputTensor(index: Int): TFLTensor {
@@ -120,9 +174,6 @@ internal class IosInterpreter(
             }
                 .toByteArray()
 
-            println("i: $i")
-            println("array.size: ${array.size}")
-            println("byteArray.size: ${byteArray.size}")
             array.copyInto(
                 destination = byteArray,
                 endIndex = min(array.size, byteArray.size)

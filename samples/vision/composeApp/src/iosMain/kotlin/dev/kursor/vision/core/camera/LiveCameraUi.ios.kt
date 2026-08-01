@@ -27,8 +27,6 @@ import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGImageRelease
-import platform.CoreGraphics.CGRectGetHeight
-import platform.CoreGraphics.CGRectGetWidth
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.kCGBitmapByteOrder32Little
 import platform.CoreImage.CIContext
@@ -133,10 +131,6 @@ actual fun LiveCameraUi(
             val previewLayer = AVCaptureVideoPreviewLayer(session = session).apply {
                 videoGravity = AVLayerVideoGravityResizeAspectFill
                 frame = view.bounds
-
-                val width = CGRectGetWidth(view.bounds)
-                val height = CGRectGetHeight(view.bounds)
-                println("view.bounds: ${width}x$height")
             }
 
             view.layer.addSublayer(previewLayer)

@@ -9,5 +9,7 @@ data class DetectionResult(
 data class DetectedObject(
     val label: String,
     val confidence: Float,
-    val boundingBox: Rect
+    val boundingBox: Rect,
+    val imageHeight: Int,
+    val imageWidth: Int
 )

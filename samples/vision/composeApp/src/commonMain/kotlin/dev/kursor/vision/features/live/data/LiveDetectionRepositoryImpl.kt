@@ -14,35 +14,24 @@ import dev.kursor.ktensorflow.pipeline.builder.input
 import dev.kursor.ktensorflow.pipeline.builder.output
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.then
-import dev.kursor.ktensorflow.vision.Image
-import dev.kursor.ktensorflow.vision.ImageTensor
-import dev.kursor.ktensorflow.vision.ImageTensorLayout
-import dev.kursor.ktensorflow.vision.PixelFormat
-import dev.kursor.ktensorflow.vision.resize
-import dev.kursor.ktensorflow.vision.tensorize
-import dev.kursor.ktensorflow.vision.grayscale
-import dev.kursor.ktensorflow.vision.toImageTensor
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.argmax
 import dev.kursor.ktensorflow.tensor.get
-import dev.kursor.ktensorflow.tensor.normalize
-import dev.kursor.ktensorflow.tensor.run
-import dev.kursor.ktensorflow.tensor.toArray
-import dev.kursor.ktensorflow.tensor.toFlatArray
+import dev.kursor.ktensorflow.vision.Image
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
 import dev.kursor.ktensorflow.vision.PadInfo
 import dev.kursor.ktensorflow.vision.PaddedImage
+import dev.kursor.ktensorflow.vision.PixelFormat
 import dev.kursor.ktensorflow.vision.Rect
 import dev.kursor.ktensorflow.vision.nms
 import dev.kursor.ktensorflow.vision.resizeWithPad
-import dev.kursor.ktensorflow.vision.tensorizeFloat
+import dev.kursor.ktensorflow.vision.tensorize
 import dev.kursor.vision.features.live.domain.DetectedObject
 import dev.kursor.vision.features.live.domain.DetectionResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ktensorflow.samples.vision.composeapp.generated.resources.Res
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -60,46 +49,36 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         .apply {
             resizeInput(0, intArrayOf(1, 300, 300, 3))
         }
-        .also {
-            println("kursor1337: modelMeta: ${it.getModelMeta()}")
-        }
 
     private val pipeline = Pipeline
         .input(
             preprocessing = Stage<PaddedImage>()
-                .then { paddedImage ->
-                    paddedImage.use {
-                        it.tensorize<UByte>(
-                            layout = ImageTensorLayout.NHWC,
-                            pixelFormat = PixelFormat.RGB
-                        )
-                    }
-                }
+                .tensorize()
         )
         .inference(interpreter)
         .output(
-            name = "StatefulPartitionedCall:5",
+            name = "num_detections",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1),
             postprocessing = Stage<Tensor<Float>>()
                 .toDetectionCount()
         )
         .output(
-            name = "StatefulPartitionedCall:1",
+            name = "detection_boxes",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS, 4),
             postprocessing = Stage<Tensor<Float>>()
                 .toBoundingBoxes(MAX_DETECTIONS)
         )
         .output(
-            name = "StatefulPartitionedCall:2",
+            name = "detection_classes",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
                 .toClassIds(MAX_DETECTIONS)
         )
         .output(
-            name = "StatefulPartitionedCall:4",
+            name = "detection_scores",
             dataType = TensorDataType.Float32,
             shape = TensorShape(1, MAX_DETECTIONS),
             postprocessing = Stage<Tensor<Float>>()
@@ -109,31 +88,55 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
 
 
     val dispatcher = Dispatchers.Default.limitedParallelism(1)
+
     @OptIn(ExperimentalTime::class)
     override suspend fun detectObjects(image: Image): DetectionResult =
         withContext(dispatcher) {
             val detectionResult: DetectionResult
             val time = measureTime {
+                val paddedImage: PaddedImage
+                val paddedTime = measureTime {
+                    paddedImage = image.resizeWithPad(300, 300)
+                }
+                val inferenceResult: Tuple.Four<Int, Array<FloatArray>, IntArray, FloatArray>
+                val inferenceTime = measureTime {
+                    inferenceResult = pipeline.run(Tuple.One(paddedImage))
+                }
 
-                val paddedImage = image.resizeWithPad(300, 300)
-                val inferenceResult = pipeline.run(Tuple.One(paddedImage))
                 val count = inferenceResult.first
                 val boxes = inferenceResult.second
                 val classIds = inferenceResult.third
                 val scores = inferenceResult.fourth
-                detectionResult = mapToDetectionResult(
-                    count = count,
-                    boxes = boxes,
-                    classes = classIds,
-                    scores = scores,
-                    padInfo = paddedImage.info,
-                    labels = Labels
-                )
+
+
+                val mapTime = measureTime {
+                    detectionResult = mapToDetectionResult(
+                        count = count,
+                        boxes = boxes,
+                        classes = classIds,
+                        scores = scores,
+                        padInfo = paddedImage.info,
+                        labels = Labels
+                    )
+                }
+                println("paddedTime: $paddedTime")
+                println("inferenceTime: $inferenceTime")
+                println("mapTime: $mapTime")
             }
             println("time: $time")
             detectionResult
         }
 }
+
+private fun <I> Stage<I, PaddedImage>.tensorize(): Stage<I, Tensor<UByte>> =
+    this.then { paddedImage ->
+        paddedImage.use {
+            it.tensorize<UByte>(
+                layout = ImageTensorLayout.NHWC,
+                pixelFormat = PixelFormat.RGB
+            )
+        }
+    }
 
 private fun <I> Stage<I, Tensor<Float>>.toDetectionCount(): Stage<I, Int> = this.then { tensor ->
     tensor[0].toInt()
@@ -175,9 +178,7 @@ fun mapToDetectionResult(
     padInfo: PadInfo,
     labels: List<String>,
 ): DetectionResult {
-    val detectedObjects = mutableListOf<DetectedObject>()
-
-    for (i in 0 until count) {
+    val detectedObjects = (0 until count).map { i ->
         val score = scores[i]
 
         val classId = classes[i]
@@ -192,12 +193,12 @@ fun mapToDetectionResult(
             padInfo = padInfo
         )
 
-        detectedObjects.add(
-            DetectedObject(
-                label = label,
-                confidence = score,
-                boundingBox = rect
-            )
+        DetectedObject(
+            label = label,
+            confidence = score,
+            boundingBox = rect,
+            imageHeight = padInfo.originalHeight,
+            imageWidth = padInfo.originalHeight
         )
     }
 

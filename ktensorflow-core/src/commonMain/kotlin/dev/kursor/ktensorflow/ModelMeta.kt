@@ -24,6 +24,7 @@ data class ModelMeta(
 data class ModelTensorData(
     val index: Int,
     val name: String,
+    val internalName: String,
     val dataType: DataType,
     val shape: List<Int>
 ) {

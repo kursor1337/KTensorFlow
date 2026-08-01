@@ -1,5 +1,7 @@
 package dev.kursor.ktensorflow.vision
 
+import kotlin.math.roundToInt
+
 /**
  * Represents a rectangular bounding box in 2D integer pixel coordinates.
  *
@@ -25,6 +27,12 @@ data class Rect(
      */
     val area: Int
         get() = maxOf(0, right - left) * maxOf(0, bottom - top)
+
+    val width: Int
+        get() = maxOf(0, right - left)
+
+    val height: Int
+        get() = maxOf(0, bottom - top)
 
     companion object {
 
@@ -56,12 +64,14 @@ data class Rect(
             val origRight = ((absRight - padInfo.padX) / padInfo.scale).toInt()
             val origBottom = ((absBottom - padInfo.padY) / padInfo.scale).toInt()
 
-            return Rect(
+            val rect = Rect(
                 left = origLeft.coerceIn(0, padInfo.originalWidth),
                 top = origTop.coerceIn(0, padInfo.originalHeight),
                 right = origRight.coerceIn(0, padInfo.originalWidth),
                 bottom = origBottom.coerceIn(0, padInfo.originalHeight)
             )
+
+            return rect
         }
 
         /**
@@ -146,4 +156,33 @@ fun Rect.intersectionOverUnion(other: Rect): Float {
 
     val unionArea = this.area + other.area - iArea
     return iArea.toFloat() / unionArea.toFloat()
+}
+
+fun Rect.scaleForContainer(
+    originalContainerWidth: Int,
+    originalContainerHeight: Int,
+    containerWidth: Float,
+    containerHeight: Float,
+    isCrop: Boolean = true
+): Rect {
+    if (originalContainerWidth == 0 || originalContainerHeight == 0) {
+        return Rect(0, 0, 0, 0)
+    }
+    val scaleX = containerWidth / originalContainerWidth
+    val scaleY = containerHeight / originalContainerHeight
+
+    val scale = if (isCrop) maxOf(scaleX, scaleY) else minOf(scaleX, scaleY)
+
+    val scaledImageWidth = originalContainerWidth * scale
+    val scaledImageHeight = originalContainerHeight * scale
+
+    val offsetX = (containerWidth - scaledImageWidth) / 2f
+    val offsetY = (containerHeight - scaledImageHeight) / 2f
+
+    return Rect(
+        left = (this.left * scale + offsetX).roundToInt(),
+        top = (this.top * scale + offsetY).roundToInt(),
+        right = (this.right * scale + offsetX).roundToInt(),
+        bottom = (this.bottom * scale + offsetY).roundToInt()
+    )
 }

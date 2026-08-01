@@ -3,44 +3,36 @@ package dev.kursor.vision.features.live.presentation
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.camera.CAMERA
 import dev.icerock.moko.permissions.compose.BindEffect
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
-import dev.kursor.ktensorflow.vision.Image
 import dev.kursor.ktensorflow.vision.ImageTensor
-import dev.kursor.ktensorflow.vision.ImageTensorLayout
-import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.scaleForContainer
 import dev.kursor.vision.core.camera.LiveCameraUi
-import dev.kursor.ktensorflow.vision.grayscale
-import dev.kursor.ktensorflow.vision.resize
-import dev.kursor.ktensorflow.vision.tensorize
-import dev.kursor.ktensorflow.vision.toImageTensor
-import dev.kursor.ktensorflow.tensor.normalize
-import dev.kursor.ktensorflow.vision.resizeWithPad
+import dev.kursor.vision.core.utils.toComposeRect
+import kotlin.math.roundToInt
 
 @Composable
 fun LiveDetectionUi(
@@ -48,12 +40,13 @@ fun LiveDetectionUi(
     modifier: Modifier = Modifier
 ) {
     val detectionResult by component.detectionResults.collectAsState()
-    var frame by remember { mutableStateOf<Image?>(null) }
 
     val permissionsControllerFactory = rememberPermissionsControllerFactory()
     val permissionsController = remember(permissionsControllerFactory) {
         permissionsControllerFactory.createPermissionsController()
     }
+
+    val textMeasurer = rememberTextMeasurer()
 
     BindEffect(permissionsController)
 
@@ -67,30 +60,84 @@ fun LiveDetectionUi(
         }
     }
 
-    Box(modifier) {
+    BoxWithConstraints(modifier) {
         LiveCameraUi(
-            onFrame = {
-                frame = it
-                component.onFrame(it)
-            },
+            onFrame = component::onFrame,
             modifier = Modifier.fillMaxSize()
         )
 
-        // Добавленный Canvas для отрисовки Bounding Boxes поверх камеры
         Canvas(modifier = Modifier.fillMaxSize()) {
-            detectionResult?.objects?.forEach { detectedObject ->
-                val box = detectedObject.boundingBox
-                val left = box.left.toFloat()
-                val top = box.top.toFloat()
-                val width = (box.right - box.left).toFloat()
-                val height = (box.bottom - box.top).toFloat()
+            val canvasWidth = size.width
+            val canvasHeight = size.height
 
-                // Отрисовка прямоугольника
+            detectionResult.objects.forEach { detectedObject ->
+                val box = detectedObject
+                    .boundingBox
+                    .scaleForContainer(
+                        originalContainerWidth = detectedObject.imageWidth,
+                        originalContainerHeight = detectedObject.imageHeight,
+                        containerWidth = canvasWidth,
+                        containerHeight = canvasHeight
+                    )
+                    .toComposeRect()
+
+                val strokeWidth = 3.dp.toPx()
+
                 drawRect(
                     color = Color.Green,
-                    topLeft = Offset(x = left, y = top),
-                    size = Size(width = width, height = height),
-                    style = Stroke(width = 3.dp.toPx()) // Толщина линии рамки
+                    topLeft = box.topLeft,
+                    size = box.size,
+                    style = Stroke(width = strokeWidth)
+                )
+
+                val confidencePercent = (detectedObject.confidence * 100).roundToInt()
+                val text = "${detectedObject.label} $confidencePercent%"
+
+                val textLayoutResult = textMeasurer.measure(
+                    text = text,
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+
+                val textPadding = 4.dp.toPx()
+                val bgWidth = textLayoutResult.size.width + (textPadding * 2)
+                val bgHeight = textLayoutResult.size.height + (textPadding * 2)
+
+                var textTopY = box.top - bgHeight - (strokeWidth / 2)
+
+                if (textTopY < 0f) {
+                    textTopY = box.top + (strokeWidth / 2)
+                }
+
+                if (textTopY + bgHeight > canvasHeight) {
+                    textTopY = canvasHeight - bgHeight
+                }
+
+                var textLeftX = box.left
+
+                if (textLeftX + bgWidth > canvasWidth) {
+                    textLeftX = canvasWidth - bgWidth
+                }
+
+                if (textLeftX < 0f) {
+                    textLeftX = 0f
+                }
+
+                drawRect(
+                    color = Color.Green,
+                    topLeft = Offset(x = textLeftX, y = textTopY),
+                    size = Size(width = bgWidth, height = bgHeight)
+                )
+
+                drawText(
+                    textLayoutResult = textLayoutResult,
+                    topLeft = Offset(
+                        x = textLeftX + textPadding,
+                        y = textTopY + textPadding
+                    )
                 )
             }
         }

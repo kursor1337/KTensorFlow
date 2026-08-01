@@ -6,9 +6,11 @@ import dev.kursor.vision.core.utils.componentScope
 import dev.kursor.vision.features.live.data.LiveDetectionRepository
 import dev.kursor.vision.features.live.domain.DetectionResult
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
+@OptIn(ExperimentalAtomicApi::class)
 class RealLiveDetectionComponent(
     componentContext: ComponentContext,
     private val liveDetectionRepository: LiveDetectionRepository
@@ -16,9 +18,21 @@ class RealLiveDetectionComponent(
 
     override val detectionResults = MutableStateFlow(DetectionResult(emptyList()))
 
+    private val isProcessing = AtomicBoolean(false)
+
     override fun onFrame(image: Image) {
+        if (!isProcessing.compareAndSet(expectedValue = false, newValue = true)) {
+            image.close()
+            return
+        }
+
         componentScope.launch {
-            detectionResults.value = liveDetectionRepository.detectObjects(image)
+            try {
+                detectionResults.value = liveDetectionRepository.detectObjects(image)
+            } finally {
+                image.close()
+                isProcessing.store(false)
+            }
         }
     }
 }
