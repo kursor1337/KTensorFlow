@@ -11,6 +11,7 @@ repositories {
 dependencies {
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.publishing.gradle.plugin)
+    implementation(libs.binary.compatibility.gradle.plugin)
 
     // Workaround for version catalog working inside precompiled scripts
     // Issue - https://github.com/gradle/gradle/issues/15383
@@ -30,6 +31,10 @@ gradlePlugin {
         register("verify") {
             id = "convention.verify"
             implementationClass = "VerificationPlugin"
+        }
+        register("binaryCompatibility") {
+            id = "convention.binaryCompatibility"
+            implementationClass = "BinaryCompatibilityPlugin"
         }
     }
 }

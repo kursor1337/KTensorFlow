@@ -109,6 +109,8 @@ detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plu
 
 publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
 
+binary-compatibility-gradle-plugin = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "binary-compatibility" }
+
 # KTensorFlow
 ktensorflow-core = { module = "dev.kursor.ktensorflow:ktensorflow-core", version.ref="ktensorflow" }
 ktensorflow-moko = { module = "dev.kursor.ktensorflow:ktensorflow-moko", version.ref="ktensorflow" }
@@ -136,3 +138,4 @@ binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibil
 convention-detekt = { id = "convention.detekt" }
 convention-publishing = { id = "convention.publishing" }
 convention-verify = { id = "convention.verify" }
+convention-binary-compatibility = { id = "convention.binaryCompatibility" }

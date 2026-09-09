@@ -1,0 +1,27 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KTensorFlow:ktensorflow-gpu>
+abstract interface dev.kursor.ktensorflow.gpu/GpuDelegate : dev.kursor.ktensorflow/Delegate // dev.kursor.ktensorflow.gpu/GpuDelegate|null[0]
+
+final class dev.kursor.ktensorflow.gpu/GpuDelegateOptions { // dev.kursor.ktensorflow.gpu/GpuDelegateOptions|null[0]
+    constructor <init>(cocoapods.TensorFlowLiteObjC/TFLMetalDelegateOptions) // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.<init>|<init>(cocoapods.TensorFlowLiteObjC.TFLMetalDelegateOptions){}[0]
+
+    final val tflOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.tflOptions|{}tflOptions[0]
+        final fun <get-tflOptions>(): cocoapods.TensorFlowLiteObjC/TFLMetalDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.tflOptions.<get-tflOptions>|<get-tflOptions>(){}[0]
+
+    final fun component1(): cocoapods.TensorFlowLiteObjC/TFLMetalDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.component1|component1(){}[0]
+    final fun copy(cocoapods.TensorFlowLiteObjC/TFLMetalDelegateOptions = ...): dev.kursor.ktensorflow.gpu/GpuDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.copy|copy(cocoapods.TensorFlowLiteObjC.TFLMetalDelegateOptions){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kursor.ktensorflow.gpu/GpuDelegateOptions.toString|toString(){}[0]
+}
+
+final fun dev.kursor.ktensorflow.gpu/GpuDelegate(dev.kursor.ktensorflow.gpu/GpuDelegateOptions = ...): dev.kursor.ktensorflow/Delegate // dev.kursor.ktensorflow.gpu/GpuDelegate|GpuDelegate(dev.kursor.ktensorflow.gpu.GpuDelegateOptions){}[0]
+final fun dev.kursor.ktensorflow.gpu/GpuDelegateOptions(): dev.kursor.ktensorflow.gpu/GpuDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions|GpuDelegateOptions(){}[0]
+final fun dev.kursor.ktensorflow.gpu/GpuDelegateOptions(kotlin/Boolean, kotlin/Boolean): dev.kursor.ktensorflow.gpu/GpuDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions|GpuDelegateOptions(kotlin.Boolean;kotlin.Boolean){}[0]
+final fun dev.kursor.ktensorflow.gpu/GpuDelegateOptions(kotlin/Function1<cocoapods.TensorFlowLiteObjC/TFLMetalDelegateOptions, kotlin/Unit>): dev.kursor.ktensorflow.gpu/GpuDelegateOptions // dev.kursor.ktensorflow.gpu/GpuDelegateOptions|GpuDelegateOptions(kotlin.Function1<cocoapods.TensorFlowLiteObjC.TFLMetalDelegateOptions,kotlin.Unit>){}[0]

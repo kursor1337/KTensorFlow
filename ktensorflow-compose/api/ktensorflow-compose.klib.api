@@ -1,0 +1,9 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KTensorFlow:ktensorflow-compose>
+final fun (dev.kursor.ktensorflow/ModelDesc.Companion).dev.kursor.ktensorflow.compose/ComposeUri(kotlin/String): dev.kursor.ktensorflow/ModelDesc // dev.kursor.ktensorflow.compose/ComposeUri|ComposeUri@dev.kursor.ktensorflow.ModelDesc.Companion(kotlin.String){}[0]
