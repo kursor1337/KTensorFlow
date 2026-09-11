@@ -48,7 +48,7 @@ class InterpreterTest {
         data.forEachIndexed { i, pair ->
             val (label, image) = pair
 
-            val input = Tensor<UByte>(image).toFloatTensor() / 255f
+            val input = (Tensor<UByte>(image).toFloatTensor() / 255f).toPhysical()
             val output = Tensor<Float>(
                 shape = TensorShape(10)
             )

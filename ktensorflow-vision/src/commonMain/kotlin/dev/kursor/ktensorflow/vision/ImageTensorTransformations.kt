@@ -1,7 +1,6 @@
 package dev.kursor.ktensorflow.vision
 
 import dev.kursor.ktensorflow.tensor.slice
-import dev.kursor.ktensorflow.tensor.toFloatTensor
 import kotlin.jvm.JvmName
 
 /**
@@ -234,12 +233,18 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
  * @param rect The rectangle to crop the image to.
  * @return A new [ImageTensor] containing the cropped region.
  */
-fun <T : Any> ImageTensor<T>.crop(rect: Rect): ImageTensor<T> = this
-    .slice(
-        arrayOf(
-            rect.left..<rect.right,
-            rect.top..<rect.bottom,
-            0..<channels
-        )
-    )
-    .toImageTensor(this.pixelFormat, layout)
+fun <T : Any> ImageTensor<T>.crop(rect: Rect): ImageTensor<T> {
+    val ranges = Array(4) { index ->
+        when (index) {
+            layout.nIndex -> 0..<batch
+            layout.hIndex -> rect.top..<rect.bottom
+            layout.wIndex -> rect.left..<rect.right
+            layout.cIndex -> 0..<channels
+            else -> error("Unreachable: ImageTensorLayout must map to exactly 4 distinct indices")
+        }
+    }
+
+    return this
+        .slice(ranges)
+        .toImageTensor(this.pixelFormat, layout)
+}

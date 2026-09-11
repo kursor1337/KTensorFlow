@@ -1,7 +1,8 @@
 package dev.kursor.ktensorflow.vision
 
+import kotlinx.cinterop.Pinned
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.pin
 import platform.CoreGraphics.CGColorRenderingIntent
 import platform.CoreGraphics.CGColorSpaceCreateDeviceGray
 import platform.CoreGraphics.CGColorSpaceCreateDeviceRGB
@@ -11,41 +12,49 @@ import platform.CoreGraphics.CGImageRef
 import platform.CoreGraphics.CGImageRelease
 
 class CGImageScope(
-    val cgImage: CGImageRef
+    val cgImage: CGImageRef,
+    private val pinnedData: Pinned<ByteArray>
 ) : AutoCloseable {
 
     override fun close() {
         CGImageRelease(cgImage)
+        pinnedData.unpin()
     }
 }
 
-fun Image.asCGImage(): CGImageScope =
-    CGImageScope(toCGImage())
+fun Image.asCGImage(): CGImageScope {
+    val pinnedData = platformImage.pin()
+    return CGImageScope(createCGImage(pinnedData), pinnedData)
+}
 
-fun <T> Image.withCGImage(block: (CGImageRef) -> T) {
-    val cgImage = toCGImage()
+fun <T> Image.withCGImage(block: (CGImageRef) -> T): T {
+    val pinnedData = platformImage.pin()
+    val cgImage = createCGImage(pinnedData)
     try {
-        block(cgImage)
+        return block(cgImage)
     } finally {
         CGImageRelease(cgImage)
+        pinnedData.unpin()
     }
 }
 
-private fun Image.toCGImage(): CGImageRef {
+// Данные должны оставаться запиненными (pinned) до тех пор, пока CGImage реально
+// не прочитан CoreGraphics (например, внутри CGContextDrawImage) - если распиновать
+// сразу после CGImageCreate, GC Kotlin/Native может переместить память ДО чтения,
+// и CGImage окажется битым/пустым (было воспроизведено на неоднородных изображениях).
+private fun Image.createCGImage(pinnedData: Pinned<ByteArray>): CGImageRef {
     val colorSpace =
         if (pixelFormat == PixelFormat.Grayscale)
             CGColorSpaceCreateDeviceGray()
         else
             CGColorSpaceCreateDeviceRGB()
 
-    val provider = platformImage.usePinned {
-        CGDataProviderCreateWithData(
-            null,
-            it.addressOf(0),
-            platformImage.size.toULong(),
-            null
-        )
-    }!!
+    val provider = CGDataProviderCreateWithData(
+        null,
+        pinnedData.addressOf(0),
+        platformImage.size.toULong(),
+        null
+    )!!
 
     return CGImageCreate(
         width.toULong(),
@@ -61,5 +70,3 @@ private fun Image.toCGImage(): CGImageRef {
         CGColorRenderingIntent.kCGRenderingIntentDefault
     )!!
 }
-
-

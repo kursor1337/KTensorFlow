@@ -65,7 +65,7 @@ internal class ImageTensorImpl<T : Any>(
                 4 -> tensor
                 3 -> {
                     val expanded = with(tensor.shape.dimensions) {
-                        take(layout.nIndex) + 1 + takeLast(lastIndex - layout.nIndex)
+                        take(layout.nIndex) + 1 + drop(layout.nIndex)
                     }
                         .toIntArray()
                         .let(::TensorShape)

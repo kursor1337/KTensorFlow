@@ -1,32 +1,30 @@
 package dev.kursor.ktensorflow.vision
 
-import platform.CoreGraphics.*
+import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.kCGBitmapByteOrder32Big
 import platform.CoreGraphics.kCGBitmapByteOrder32Little
 
 val PixelFormat.cgBitmapInfo: UInt
     get() = when (this) {
         is PixelFormat.RGBA -> {
-            val littleEndian = rIndex != 0
+            // swapped == true means blue comes before red in memory (BGRA/ABGR),
+            // which reverses the visual meaning of "alpha first/last" once combined
+            // with the corresponding 32-bit byte order - see Apple's documented
+            // CGBitmapInfo combinations: RGBA=Last|Big, ARGB=First|Big,
+            // BGRA=First|Little, ABGR=Last|Little.
+            val swapped = rIndex > bIndex
+            val alphaFirst = (aIndex == 0) xor swapped
 
-            val alpha = when (aIndex) {
-                0 -> if (littleEndian) {
-                    CGImageAlphaInfo.kCGImageAlphaPremultipliedLast
-                } else {
-                    CGImageAlphaInfo.kCGImageAlphaPremultipliedFirst
-                }
-                3 -> if (littleEndian) {
-                    CGImageAlphaInfo.kCGImageAlphaPremultipliedFirst
-                } else {
-                    CGImageAlphaInfo.kCGImageAlphaPremultipliedLast
-                }
-                else -> error("Unsupported alpha index: $aIndex")
+            val alpha = if (alphaFirst) {
+                CGImageAlphaInfo.kCGImageAlphaPremultipliedFirst
+            } else {
+                CGImageAlphaInfo.kCGImageAlphaPremultipliedLast
             }
 
-            val byteOrder = if (littleEndian) {
-                kCGBitmapByteOrder32Big
-            } else {
+            val byteOrder = if (swapped) {
                 kCGBitmapByteOrder32Little
+            } else {
+                kCGBitmapByteOrder32Big
             }
 
             alpha.value or byteOrder

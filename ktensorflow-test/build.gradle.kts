@@ -15,6 +15,15 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        // Без этого androidDeviceTest не подключается ни к одной Kotlin-компиляции
+        // (регрессия после миграции на com.android.kotlin.multiplatform.library) -
+        // sourceSetTreeName = "test" подмешивает commonTest в device-тесты.
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     val iosConfigure: KotlinNativeTarget.() -> Unit = {
@@ -89,12 +98,14 @@ kotlin {
             implementation(libs.kotlin.test)
         }
 
-        androidInstrumentedTest.dependencies {
-            implementation(libs.junit)
-            implementation(libs.androidx.test.core)
-            implementation(libs.androidx.test.junit)
-            implementation(libs.androidx.test.runner)
-            implementation(libs.kotlin.test)
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.kotlin.test)
+            }
         }
     }
 }
