@@ -28,7 +28,7 @@ First add dependencies:
 
 ```kotlin
 dependencies {
-  val ktfVersion = "2.0-alpha1"
+  val ktfVersion = "2.0"
 
   // Core module, contains Interpreter and model loading functions
   implementation("dev.kursor.ktensorflow:ktensorflow-core:$ktfVersion")
@@ -60,7 +60,7 @@ dependencies {
 To link TensorFlow Lite binaries to iOS you need to add Linking plugin
 ```kotlin
 plugins {
-  id("dev.kursor.ktensorflow.link") version "2.0-alpha1"
+  id("dev.kursor.ktensorflow.link") version "2.0"
 }
 ```
 **Currently, this library only supports projects that are being linked to iOS app via CocoaPods**
@@ -115,7 +115,7 @@ val slicedView = tensor.slice(0..13, 0..27)
 
 // Extract data
 val argmax: IntArray = tensor.argmax()
-val array = tensor.toArray<Array<FloatArray>>()
+val array = tensor.toPhysical().toArray<Array<FloatArray>>()
 ```
 
 ### Computer Vision (Vision Module)
@@ -174,7 +174,7 @@ val result = pipeline.runSuspend(image)
 #### Real-time Video Stream Processing (Backpressure / Frame Dropping)
 If your camera produces 60 FPS, but your ML model can only process 15 FPS, your app will run out of memory (OOM) because unprocessed frames accumulate.
 
-Use **`processImageFlowDropping`** to automatically discard camera frames when the ML Pipeline is busy. It takes full ownership of the `AutoCloseable` memory, preventing memory leaks!
+Use **`processFlowDropping`** to automatically discard camera frames when the ML Pipeline is busy. It takes full ownership of the `AutoCloseable` memory, preventing memory leaks!
 
 ```kotlin
 // Your camera frames flow
@@ -182,7 +182,7 @@ val frameFlow: Flow<Image> = // ...
 
 val detectionResultsFlow = pipeline
     // Automatic Frame Dropping! Zero latency, zero OOMs.
-    .processImageFlowDropping(
+    .processFlowDropping(
         // Use mapAndClose to avoid leaking the original frame after resizing
         inputFlow = frameFlow.mapAndClose { it.resizeWithPad(300, 300) }
     )
@@ -196,24 +196,25 @@ You can create declarative pipelines to encapsulate pre/post-processing. KTensor
 
 ```kotlin
 val detectionPipeline = Pipeline
-  .input(Stage<PaddedImage>().tensorize())
+  .input(Stage<PaddedImage>().then { it.tensorizeFloat() })
   .inference(interpreter)
   .output(
     name = "detection_boxes", // Fetches correct index from ModelMeta dynamically!
     dataType = TensorDataType.Float32,
     shape = TensorShape(1, 100, 4),
-    postprocessing = Stage<Tensor<Float>>().toBoundingBoxes()
+    postprocessing = Stage<Tensor<Float>>().then { toBoundingBoxes(it) }
   )
   .output(
     name = "detection_classes",
     dataType = TensorDataType.Float32,
     shape = TensorShape(1, 100),
-    postprocessing = Stage<Tensor<Float>>().toClassIds()
+    postprocessing = Stage<Tensor<Float>>().then { toClassIds(it) }
   )
   .build()
 
 // Run pipeline
-val (boxes, classes) = detectionPipeline.run(paddedImage)
+// Билдер строит Pipeline<Tuple.One<PaddedImage>, ...>, поэтому вход оборачивается в tuple()
+val (boxes, classes) = detectionPipeline.run(tuple(paddedImage))
 ```
 
 ### Hardware acceleration

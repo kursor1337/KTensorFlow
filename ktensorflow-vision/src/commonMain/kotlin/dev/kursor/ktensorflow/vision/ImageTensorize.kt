@@ -251,56 +251,173 @@ fun Image.tensorizeFloat(
     )
 
     val pixels = getPixels()
-    val total = width * height
 
+    // При NHWC плоский индекс элемента [0, h, w, c] равен (h * width + w) * channels + c,
+    // то есть его можно наращивать по ходу обхода и писать через setFlat, полностью минуя
+    // пересчёт offset'а по страйдам на каждый канал.
+    val sequential = layout == ImageTensorLayout.NHWC
+
+    // Циклы вынесены в отдельные небольшие функции намеренно: ART не оптимизирует крупные
+    // методы, а один when со всеми вариантами делал тензоризацию именно таким методом.
     when (pixelFormat) {
         PixelFormat.Grayscale -> {
-            for (idx in 0 until total) {
-                val w = idx % width
-                val h = idx / width
-                val p = pixels[idx]
-                val v = (p and 0xFF).toFloat()
-                tensor[0, h, w, 0] = (v - normalization.meanR) / normalization.stdR
+            if (sequential) {
+                fillGrayscaleSequential(tensor, pixels, normalization)
+            } else {
+                fillGrayscale(tensor, pixels, width, normalization)
             }
         }
 
         is PixelFormat.RGB -> {
-            for (idx in 0 until total) {
-                val p = pixels[idx]
-                val w = idx % width
-                val h = idx / width
-
-                val r = ((p shr 16) and 0xFF).toFloat()
-                val g = ((p shr 8) and 0xFF).toFloat()
-                val b = (p and 0xFF).toFloat()
-
-                tensor[0, h, w, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
-                tensor[0, h, w, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
-                tensor[0, h, w, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
+            if (sequential) {
+                fillRgbSequential(tensor, pixels, pixelFormat, normalization)
+            } else {
+                fillRgb(tensor, pixels, width, pixelFormat, normalization)
             }
         }
 
         is PixelFormat.RGBA -> {
-            for (idx in 0 until total) {
-                val p = pixels[idx]
-                val w = idx % width
-                val h = idx / width
-
-                val a = ((p shr 24) and 0xFF).toFloat()
-                val r = ((p shr 16) and 0xFF).toFloat()
-                val g = ((p shr 8) and 0xFF).toFloat()
-                val b = (p and 0xFF).toFloat()
-
-                tensor[0, h, w, pixelFormat.rIndex] = (r - normalization.meanR) / normalization.stdR
-                tensor[0, h, w, pixelFormat.gIndex] = (g - normalization.meanG) / normalization.stdG
-                tensor[0, h, w, pixelFormat.bIndex] = (b - normalization.meanB) / normalization.stdB
-                tensor[0, h, w, pixelFormat.aIndex] = (a - normalization.meanA) / normalization.stdA
+            if (sequential) {
+                fillRgbaSequential(tensor, pixels, pixelFormat, normalization)
+            } else {
+                fillRgba(tensor, pixels, width, pixelFormat, normalization)
             }
         }
     }
     return tensor
 }
 
+private fun fillGrayscaleSequential(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    normalization: Normalization
+) {
+    val mean = normalization.meanR
+    val std = normalization.stdR
+    for (idx in pixels.indices) {
+        tensor.setFlat(idx, ((pixels[idx] and 0xFF).toFloat() - mean) / std)
+    }
+}
+
+private fun fillGrayscale(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    width: Int,
+    normalization: Normalization
+) {
+    val mean = normalization.meanR
+    val std = normalization.stdR
+    for (idx in pixels.indices) {
+        tensor[0, idx / width, idx % width, 0] = ((pixels[idx] and 0xFF).toFloat() - mean) / std
+    }
+}
+
+private fun fillRgbSequential(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    pixelFormat: PixelFormat.RGB,
+    normalization: Normalization
+) {
+    val rIndex = pixelFormat.rIndex
+    val gIndex = pixelFormat.gIndex
+    val bIndex = pixelFormat.bIndex
+    val meanR = normalization.meanR
+    val meanG = normalization.meanG
+    val meanB = normalization.meanB
+    val stdR = normalization.stdR
+    val stdG = normalization.stdG
+    val stdB = normalization.stdB
+
+    var base = 0
+    for (idx in pixels.indices) {
+        val p = pixels[idx]
+        tensor.setFlat(base + rIndex, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
+        tensor.setFlat(base + gIndex, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
+        tensor.setFlat(base + bIndex, ((p and 0xFF).toFloat() - meanB) / stdB)
+        base += 3
+    }
+}
+
+private fun fillRgb(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    width: Int,
+    pixelFormat: PixelFormat.RGB,
+    normalization: Normalization
+) {
+    val rIndex = pixelFormat.rIndex
+    val gIndex = pixelFormat.gIndex
+    val bIndex = pixelFormat.bIndex
+
+    for (idx in pixels.indices) {
+        val p = pixels[idx]
+        val w = idx % width
+        val h = idx / width
+        tensor[0, h, w, rIndex] =
+            (((p shr 16) and 0xFF).toFloat() - normalization.meanR) / normalization.stdR
+        tensor[0, h, w, gIndex] =
+            (((p shr 8) and 0xFF).toFloat() - normalization.meanG) / normalization.stdG
+        tensor[0, h, w, bIndex] =
+            ((p and 0xFF).toFloat() - normalization.meanB) / normalization.stdB
+    }
+}
+
+private fun fillRgbaSequential(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    pixelFormat: PixelFormat.RGBA,
+    normalization: Normalization
+) {
+    val rIndex = pixelFormat.rIndex
+    val gIndex = pixelFormat.gIndex
+    val bIndex = pixelFormat.bIndex
+    val aIndex = pixelFormat.aIndex
+    val meanR = normalization.meanR
+    val meanG = normalization.meanG
+    val meanB = normalization.meanB
+    val meanA = normalization.meanA
+    val stdR = normalization.stdR
+    val stdG = normalization.stdG
+    val stdB = normalization.stdB
+    val stdA = normalization.stdA
+
+    var base = 0
+    for (idx in pixels.indices) {
+        val p = pixels[idx]
+        tensor.setFlat(base + rIndex, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
+        tensor.setFlat(base + gIndex, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
+        tensor.setFlat(base + bIndex, ((p and 0xFF).toFloat() - meanB) / stdB)
+        tensor.setFlat(base + aIndex, (((p shr 24) and 0xFF).toFloat() - meanA) / stdA)
+        base += 4
+    }
+}
+
+private fun fillRgba(
+    tensor: ImageTensor<Float>,
+    pixels: IntArray,
+    width: Int,
+    pixelFormat: PixelFormat.RGBA,
+    normalization: Normalization
+) {
+    val rIndex = pixelFormat.rIndex
+    val gIndex = pixelFormat.gIndex
+    val bIndex = pixelFormat.bIndex
+    val aIndex = pixelFormat.aIndex
+
+    for (idx in pixels.indices) {
+        val p = pixels[idx]
+        val w = idx % width
+        val h = idx / width
+        tensor[0, h, w, rIndex] =
+            (((p shr 16) and 0xFF).toFloat() - normalization.meanR) / normalization.stdR
+        tensor[0, h, w, gIndex] =
+            (((p shr 8) and 0xFF).toFloat() - normalization.meanG) / normalization.stdG
+        tensor[0, h, w, bIndex] =
+            ((p and 0xFF).toFloat() - normalization.meanB) / normalization.stdB
+        tensor[0, h, w, aIndex] =
+            (((p shr 24) and 0xFF).toFloat() - normalization.meanA) / normalization.stdA
+    }
+}
 /**
  * Converts a list of [Image] objects into a single batched [ImageTensor] of type [Float]
  * while applying the specified [Normalization].

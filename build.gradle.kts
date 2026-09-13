@@ -15,4 +15,4 @@ plugins {
 }
 
 group = "dev.kursor.ktensorflow"
-version = "2.0-alpha1"
+version = "2.0"

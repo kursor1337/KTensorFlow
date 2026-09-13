@@ -49,31 +49,49 @@ class IosImage(
     }
 
     override fun getPixels(buffer: IntArray) {
+        // data - это геттер поверх platformImage, а индексы каналов лежат в data-классе:
+        // в горячем цикле и то, и другое поднято в локальные переменные.
+        val bytes = data
+
         when (pixelFormat) {
             PixelFormat.Grayscale -> {
                 for (i in buffer.indices) {
-                    buffer[i] = data[i].toInt() and 0xFF
+                    buffer[i] = bytes[i].toInt() and 0xFF
                 }
             }
             is PixelFormat.RGB -> {
+                val rIndex = pixelFormat.rIndex
+                val gIndex = pixelFormat.gIndex
+                val bIndex = pixelFormat.bIndex
                 for (i in buffer.indices) {
                     val o = 3 * i
-                    val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
-                    val g = data[o + pixelFormat.gIndex].toInt() and 0xFF
-                    val r = data[o + pixelFormat.rIndex].toInt() and 0xFF
-                    val a = 0xFF
-                    buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    val b = bytes[o + bIndex].toInt() and 0xFF
+                    val g = bytes[o + gIndex].toInt() and 0xFF
+                    val r = bytes[o + rIndex].toInt() and 0xFF
+                    buffer[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
                 }
             }
             is PixelFormat.RGBA -> {
+                val rIndex = pixelFormat.rIndex
+                val gIndex = pixelFormat.gIndex
+                val bIndex = pixelFormat.bIndex
+                val aIndex = pixelFormat.aIndex
                 for (i in buffer.indices) {
                     val o = 4 * i
-                    val a = data[o + pixelFormat.aIndex].toInt() and 0xFF
-                    val b = data[o + pixelFormat.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    val g = data[o + pixelFormat.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    val r = data[o + pixelFormat.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-
-                    buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    val a = bytes[o + aIndex].toInt() and 0xFF
+                    if (a == 0xFF) {
+                        // Непрозрачный пиксель - обратное умножение на альфу тождественно,
+                        // поэтому три float-деления с округлением можно не делать вовсе.
+                        val b = bytes[o + bIndex].toInt() and 0xFF
+                        val g = bytes[o + gIndex].toInt() and 0xFF
+                        val r = bytes[o + rIndex].toInt() and 0xFF
+                        buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    } else {
+                        val b = bytes[o + bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                        val g = bytes[o + gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                        val r = bytes[o + rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                        buffer[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                    }
                 }
             }
         }

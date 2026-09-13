@@ -51,12 +51,15 @@ class PaddedImage(
  * @param targetWidth The desired width of the resulting image.
  * @param targetHeight The desired height of the resulting image.
  * @param padColorArgb The color to use for padding the image.
+ * @param closeOriginal Whether to release this image once the padded copy is produced.
+ * Defaults to `true`, consistent with [resize], [crop] and [rotate].
  * @return A [PaddedImage] containing the resized and padded image.
  */
 fun Image.resizeWithPad(
     targetWidth: Int,
     targetHeight: Int,
-    padColorArgb: Int = 0xFF000000.toInt()
+    padColorArgb: Int = 0xFF000000.toInt(),
+    closeOriginal: Boolean = true
 ): PaddedImage {
     val scale = minOf(
         targetWidth.toFloat() / width.toFloat(),
@@ -69,7 +72,10 @@ fun Image.resizeWithPad(
     val padX = (targetWidth - scaledWidth) / 2
     val padY = (targetHeight - scaledHeight) / 2
 
-    val scaledImage = this.resize(scaledWidth, scaledHeight)
+    // Нельзя закрывать исходник здесь: если масштабирование не требуется, платформа
+    // (например, Bitmap.createScaledBitmap) возвращает ТОТ ЖЕ буфер, и закрытие исходника
+    // сделало бы scaledImage нечитаемым.
+    val scaledImage = this.resize(scaledWidth, scaledHeight, closeOriginal = false)
     val scaledPixels = scaledImage.getPixels()
 
     val paddedPixels = IntArray(targetWidth * targetHeight) { padColorArgb }
@@ -77,7 +83,7 @@ fun Image.resizeWithPad(
     for (y in 0 until scaledHeight) {
         val srcOffset = y * scaledWidth
         val dstOffset = (y + padY) * targetWidth + padX
-        
+
         scaledPixels.copyInto(
             destination = paddedPixels,
             destinationOffset = dstOffset,
@@ -86,7 +92,12 @@ fun Image.resizeWithPad(
         )
     }
 
-    scaledImage.close()
+    if (scaledImage.platformImage !== platformImage) {
+        scaledImage.close()
+    }
+    if (closeOriginal) {
+        close()
+    }
 
     val finalImage = Image(targetWidth, targetHeight, pixelFormat, paddedPixels)
 

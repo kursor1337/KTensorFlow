@@ -70,7 +70,7 @@ class VisionModuleTests {
     // --- 1. ТЕСТЫ НА IMAGETENSOR И LAYOUT ---
 
     @Test
-    fun `ImageTensor validates dimensions upon creation`() {
+    fun imageTensorValidatesDimensionsUponCreation() {
         val tensor = ImageTensor<Float>(
             width = 100,
             height = 100,
@@ -89,7 +89,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `ImageTensor works correctly with NCHW layout`() {
+    fun imageTensorWorksCorrectlyWithNCHWLayout() {
         val tensor = ImageTensor<Float>(
             width = 50,
             height = 60,
@@ -111,7 +111,7 @@ class VisionModuleTests {
     // --- 2. ТЕСТЫ НА LETTERBOXING (RESIZE WITH PAD) ---
 
     @Test
-    fun `resizeWithPad scales wide image into square properly`() {
+    fun resizeWithPadScalesWideImageIntoSquareProperly() {
         // Исходник: Широкий 200x100
         val original = createSolidImage(200, 100, 0xFFFFFFFF.toInt())
 
@@ -132,7 +132,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `resizeWithPad scales tall image into square properly`() {
+    fun resizeWithPadScalesTallImageIntoSquareProperly() {
         // Исходник: Высокий 100x400
         val original = createSolidImage(100, 400, 0xFFFFFFFF.toInt())
 
@@ -149,7 +149,7 @@ class VisionModuleTests {
     // --- 3. ТЕСТЫ НА TENSORIZE И NORMALIZATION ---
 
     @Test
-    fun `tensorizeFloat correctly applies mean and std`() {
+    fun tensorizeFloatCorrectlyAppliesMeanAndStd() {
         // Цвет (ARGB): A=255, R=100, G=150, B=200
         val color = (255 shl 24) or (100 shl 16) or (150 shl 8) or 200
         val img = createSolidImage(2, 2, color)
@@ -176,7 +176,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `toImage correctly denormalizes and clamps out-of-bound pixels`() {
+    fun toImageCorrectlyDenormalizesAndClampsOutOfBoundPixels() {
         val tensor = ImageTensor<Float>(1, 1, PixelFormat.RGB)
 
         // Значения, которые при денормализации выйдут за пределы 0..255
@@ -201,7 +201,7 @@ class VisionModuleTests {
     // --- 4. ТЕСТЫ НА МАППИНГ КООРДИНАТ (BOUNDING BOXES) ---
 
     @Test
-    fun `Rect fromNormalized translates coordinates removing padding`() {
+    fun rectFromNormalizedTranslatesCoordinatesRemovingPadding() {
         val padInfo = PadInfo(
             originalWidth = 200,
             originalHeight = 100,
@@ -231,7 +231,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Rect fromNormalized coerces bounds correctly`() {
+    fun rectFromNormalizedCoercesBoundsCorrectly() {
         val padInfo = PadInfo(
             originalWidth = 100,
             originalHeight = 100,
@@ -259,7 +259,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Rect fromYolo converts center-size coordinates correctly`() {
+    fun rectFromYoloConvertsCenterSizeCoordinatesCorrectly() {
         val padInfo = PadInfo(100, 100, 100, 100, 0, 0, 1.0f)
 
         val rect = Rect.fromYolo(cx = 0.5f, cy = 0.5f, w = 0.4f, h = 0.2f, padInfo = padInfo)
@@ -268,7 +268,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Rect fromCoco converts top-left-size coordinates correctly`() {
+    fun rectFromCocoConvertsTopLeftSizeCoordinatesCorrectly() {
         val padInfo = PadInfo(100, 100, 100, 100, 0, 0, 1.0f)
 
         val rect = Rect.fromCoco(x = 0.1f, y = 0.2f, w = 0.3f, h = 0.4f, padInfo = padInfo)
@@ -277,7 +277,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `intersectionOverUnion computes correct ratio for partially overlapping rects`() {
+    fun intersectionOverUnionComputesCorrectRatioForPartiallyOverlappingRects() {
         val a = Rect(0, 0, 10, 10)
         val b = Rect(5, 5, 15, 15)
 
@@ -285,7 +285,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `intersectionOverUnion is zero for non overlapping rects`() {
+    fun intersectionOverUnionIsZeroForNonOverlappingRects() {
         val a = Rect(0, 0, 10, 10)
         val b = Rect(20, 20, 30, 30)
 
@@ -293,7 +293,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `scaleForContainer maps rect for crop and fit modes`() {
+    fun scaleForContainerMapsRectForCropAndFitModes() {
         val rect = Rect(10, 10, 20, 20)
 
         // Контейнер шире оригинала (200x100 из 100x100) - isCrop заполняет весь контейнер,
@@ -319,7 +319,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `scaleForContainer returns empty rect for zero-size original container`() {
+    fun scaleForContainerReturnsEmptyRectForZeroSizeOriginalContainer() {
         val rect = Rect(1, 1, 2, 2).scaleForContainer(0, 0, 100f, 100f)
 
         assertEquals(Rect(0, 0, 0, 0), rect)
@@ -330,7 +330,7 @@ class VisionModuleTests {
     private data class Detection(val rect: Rect, val score: Float, val cls: Int = 0)
 
     @Test
-    fun `nms suppresses heavily overlapping boxes keeping the highest score`() {
+    fun nmsSuppressesHeavilyOverlappingBoxesKeepingTheHighestScore() {
         val a = Detection(Rect(0, 0, 10, 10), 0.9f)
         val b = Detection(Rect(1, 1, 10, 10), 0.8f) // IoU с a = 0.81 > 0.45
         val c = Detection(Rect(50, 50, 60, 60), 0.7f) // без пересечения
@@ -346,7 +346,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `nms filters out detections below the score threshold`() {
+    fun nmsFiltersOutDetectionsBelowTheScoreThreshold() {
         val a = Detection(Rect(0, 0, 10, 10), 0.9f)
         val b = Detection(Rect(20, 20, 30, 30), 0.1f)
 
@@ -360,7 +360,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `nms with classSelector suppresses independently per class`() {
+    fun nmsWithClassSelectorSuppressesIndependentlyPerClass() {
         val sameBox = Rect(0, 0, 10, 10)
         val a = Detection(sameBox, 0.9f, cls = 1)
         val b = Detection(sameBox, 0.85f, cls = 2)
@@ -386,7 +386,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `nms returns empty list for empty input`() {
+    fun nmsReturnsEmptyListForEmptyInput() {
         val result = emptyList<Detection>().nms<Detection, Any?>(
             scoreSelector = { it.score },
             boxSelector = { it.rect }
@@ -398,7 +398,7 @@ class VisionModuleTests {
     // --- 6. ТЕСТЫ НА ImageTensor grayscale/resize/crop (чистая логика над тензором) ---
 
     @Test
-    fun `ImageTensor Float grayscale applies ITU-R 601 luma weights for RGB`() {
+    fun imageTensorFloatGrayscaleAppliesITUR601LumaWeightsForRGB() {
         val tensor = ImageTensor<Float>(1, 1, PixelFormat.RGB)
         val pf = PixelFormat.RGB
         tensor[0, 0, pf.rIndex] = 100f
@@ -412,7 +412,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `ImageTensor Float grayscale multiplies luma by alpha for RGBA`() {
+    fun imageTensorFloatGrayscaleMultipliesLumaByAlphaForRGBA() {
         val tensor = ImageTensor<Float>(1, 1, PixelFormat.ARGB)
         val pf = PixelFormat.ARGB
         tensor[0, 0, pf.rIndex] = 0.5f
@@ -426,14 +426,14 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `ImageTensor Float grayscale is a no-op for already-grayscale tensors`() {
+    fun imageTensorFloatGrayscaleIsANoOpForAlreadyGrayscaleTensors() {
         val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale)
 
         assertSame(tensor, tensor.grayscale())
     }
 
     @Test
-    fun `ImageTensor UByte grayscale uses fixed-point luma approximation`() {
+    fun imageTensorUByteGrayscaleUsesFixedPointLumaApproximation() {
         val tensor = ImageTensor<UByte>(1, 1, PixelFormat.RGB)
         val pf = PixelFormat.RGB
         tensor[0, 0, pf.rIndex] = 100.toUByte()
@@ -447,14 +447,14 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `ImageTensor Float resize returns same instance when dimensions are unchanged`() {
+    fun imageTensorFloatResizeReturnsSameInstanceWhenDimensionsAreUnchanged() {
         val tensor = ImageTensor<Float>(4, 4, PixelFormat.Grayscale)
 
         assertSame(tensor, tensor.resize(4, 4))
     }
 
     @Test
-    fun `ImageTensor Float resize bilinearly interpolates between source pixels`() {
+    fun imageTensorFloatResizeBilinearlyInterpolatesBetweenSourcePixels() {
         val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale)
         tensor[0, 0, 0] = 0.0f // h=0, w=0
         tensor[0, 1, 0] = 0.3f // h=0, w=1
@@ -470,7 +470,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `ImageTensor UByte resize uses nearest neighbor sampling`() {
+    fun imageTensorUByteResizeUsesNearestNeighborSampling() {
         val tensor = ImageTensor<UByte>(2, 2, PixelFormat.Grayscale)
         tensor[0, 0, 0] = 10.toUByte() // h=0, w=0
         tensor[0, 1, 0] = 20.toUByte() // h=0, w=1
@@ -491,7 +491,7 @@ class VisionModuleTests {
     // Image() создаёт настоящий android.graphics.Bitmap / CGBitmapContext, моков нет.
 
     @Test
-    fun `Image crop and ImageTensor crop agree on the same region`() {
+    fun imageCropAndImageTensorCropAgreeOnTheSameRegion() {
         val size = 6
         val original = createGradientImage(size)
         val rect = Rect(left = 1, top = 2, right = 5, bottom = 5)
@@ -524,7 +524,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Image resize preserves a solid color when scaling up and down`() {
+    fun imageResizePreservesASolidColorWhenScalingUpAndDown() {
         // Непрозрачный цвет без альфы, чтобы не задевать округление premultiplied alpha на iOS
         val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
         val original = createSolidImage(4, 4, color)
@@ -545,7 +545,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Image rotate 180 degrees preserves dimensions and color for a solid image`() {
+    fun imageRotate180DegreesPreservesDimensionsAndColorForASolidImage() {
         val color = (0xFF shl 24) or (50 shl 16) or (60 shl 8) or 70
         val original = createSolidImage(4, 6, color)
 
@@ -559,7 +559,7 @@ class VisionModuleTests {
     }
 
     @Test
-    fun `Image grayscale preserves luminance for an already-neutral color`() {
+    fun imageGrayscalePreservesLuminanceForAnAlreadyNeutralColor() {
         // При r=g=b итоговая яркость не зависит от весов формулы (ITU-R 601 vs 709),
         // поэтому тест остаётся детерминированным на обеих платформах
         val gray = 150

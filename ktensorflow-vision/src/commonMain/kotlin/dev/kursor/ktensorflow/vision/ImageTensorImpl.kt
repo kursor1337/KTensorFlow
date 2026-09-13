@@ -11,34 +11,29 @@ internal class ImageTensorImpl<T : Any>(
     override val layout: ImageTensorLayout
 ) : ImageTensor<T>, Tensor<T> by normalize(tensor, layout) {
 
-    private val strides = shape.strides()
-
-    private val nStride: Int
-        get() = strides[layout.nIndex]
-    private val hStride: Int
-        get() = strides[layout.hIndex]
-    private val wStride: Int
-        get() = strides[layout.wIndex]
-    private val cStride: Int
-        get() = strides[layout.cIndex]
-
     init {
         require(shape.rank == 4) {
             "ImageTensor must have 4 dimensions: batch, width, height, channels"
         }
     }
 
-    override val batch: Int
-        get() = shape.dimensions[layout.nIndex]
+    private val strides = shape.strides()
 
-    override val width: Int
-        get() = shape.dimensions[layout.wIndex]
+    // Страйды и размеры неизменны для конкретного тензора, поэтому считаются один раз:
+    // в геттерах они обходились в 4 чтения массива на КАЖДОЕ обращение к элементу,
+    // а тензоризация изображения делает сотни тысяч таких обращений на кадр.
+    private val nStride: Int = strides[layout.nIndex]
+    private val hStride: Int = strides[layout.hIndex]
+    private val wStride: Int = strides[layout.wIndex]
+    private val cStride: Int = strides[layout.cIndex]
 
-    override val height: Int
-        get() = shape.dimensions[layout.hIndex]
+    override val batch: Int = shape.dimensions[layout.nIndex]
 
-    override val channels: Int
-        get() = shape.dimensions[layout.cIndex]
+    override val width: Int = shape.dimensions[layout.wIndex]
+
+    override val height: Int = shape.dimensions[layout.hIndex]
+
+    override val channels: Int = shape.dimensions[layout.cIndex]
 
     override operator fun get(
         n: Int,

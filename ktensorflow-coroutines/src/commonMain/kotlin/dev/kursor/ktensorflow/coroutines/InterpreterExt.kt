@@ -6,6 +6,7 @@ import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.run
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.jvm.JvmName
 
 /**
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
@@ -37,6 +38,7 @@ suspend fun Interpreter.runSuspend(
  * @param inputs List of input [ByteArray]s.
  * @param outputs Map of output [ByteArray]s, where the key is the output tensor signature name.
  */
+@JvmName("runSuspendWithNames")
 suspend fun Interpreter.runSuspend(
     inputs: List<ByteArray>,
     outputs: Map<String, ByteArray>
@@ -73,6 +75,7 @@ suspend fun Interpreter.runSuspend(
  * @param inputs List of input [PhysicalTensor]s.
  * @param outputs Map of output [PhysicalTensor]s, where the key is the output tensor index.
  */
+@JvmName("runSuspendTensors")
 suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<Int, PhysicalTensor<*>>
@@ -91,6 +94,7 @@ suspend fun Interpreter.runSuspend(
  * @param inputs List of input [PhysicalTensor]s.
  * @param outputs Map of output [PhysicalTensor]s, where the key is the output tensor signature name.
  */
+@JvmName("runSuspendTensorsWithNames")
 suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<String, PhysicalTensor<*>>
