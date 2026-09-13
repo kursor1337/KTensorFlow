@@ -10,7 +10,9 @@ private val modulesNeededToBePublished = setOf(
     "ktensorflow-moko",
     "ktensorflow-compose",
     "ktensorflow-pipeline",
-    "ktensorflow-tensor"
+    "ktensorflow-tensor",
+    "ktensorflow-vision",
+    "ktensorflow-coroutines"
 )
 
 private val modulesToApiCheck =

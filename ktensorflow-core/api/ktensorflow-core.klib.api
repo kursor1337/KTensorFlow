@@ -1,0 +1,144 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KTensorFlow:ktensorflow-core>
+open annotation class dev.kursor.ktensorflow/ExperimentalKTensorFlowApi : kotlin/Annotation { // dev.kursor.ktensorflow/ExperimentalKTensorFlowApi|null[0]
+    constructor <init>() // dev.kursor.ktensorflow/ExperimentalKTensorFlowApi.<init>|<init>(){}[0]
+}
+
+final enum class dev.kursor.ktensorflow/DataType : kotlin/Enum<dev.kursor.ktensorflow/DataType> { // dev.kursor.ktensorflow/DataType|null[0]
+    enum entry Float32 // dev.kursor.ktensorflow/DataType.Float32|null[0]
+    enum entry Int32 // dev.kursor.ktensorflow/DataType.Int32|null[0]
+    enum entry Int64 // dev.kursor.ktensorflow/DataType.Int64|null[0]
+    enum entry UInt8 // dev.kursor.ktensorflow/DataType.UInt8|null[0]
+
+    final val byteSize // dev.kursor.ktensorflow/DataType.byteSize|{}byteSize[0]
+        final fun <get-byteSize>(): kotlin/Int // dev.kursor.ktensorflow/DataType.byteSize.<get-byteSize>|<get-byteSize>(){}[0]
+    final val entries // dev.kursor.ktensorflow/DataType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<dev.kursor.ktensorflow/DataType> // dev.kursor.ktensorflow/DataType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): dev.kursor.ktensorflow/DataType // dev.kursor.ktensorflow/DataType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<dev.kursor.ktensorflow/DataType> // dev.kursor.ktensorflow/DataType.values|values#static(){}[0]
+}
+
+abstract interface dev.kursor.ktensorflow/Delegate { // dev.kursor.ktensorflow/Delegate|null[0]
+    abstract val isAvailable // dev.kursor.ktensorflow/Delegate.isAvailable|{}isAvailable[0]
+        abstract fun <get-isAvailable>(): kotlin/Boolean // dev.kursor.ktensorflow/Delegate.isAvailable.<get-isAvailable>|<get-isAvailable>(){}[0]
+    abstract val tflDelegate // dev.kursor.ktensorflow/Delegate.tflDelegate|{}tflDelegate[0]
+        abstract fun <get-tflDelegate>(): cocoapods.TensorFlowLiteObjC/TFLDelegate? // dev.kursor.ktensorflow/Delegate.tflDelegate.<get-tflDelegate>|<get-tflDelegate>(){}[0]
+}
+
+abstract interface dev.kursor.ktensorflow/Interpreter : kotlin/AutoCloseable { // dev.kursor.ktensorflow/Interpreter|null[0]
+    abstract val inputTensorCount // dev.kursor.ktensorflow/Interpreter.inputTensorCount|{}inputTensorCount[0]
+        abstract fun <get-inputTensorCount>(): kotlin/Int // dev.kursor.ktensorflow/Interpreter.inputTensorCount.<get-inputTensorCount>|<get-inputTensorCount>(){}[0]
+    abstract val outputTensorCount // dev.kursor.ktensorflow/Interpreter.outputTensorCount|{}outputTensorCount[0]
+        abstract fun <get-outputTensorCount>(): kotlin/Int // dev.kursor.ktensorflow/Interpreter.outputTensorCount.<get-outputTensorCount>|<get-outputTensorCount>(){}[0]
+
+    abstract fun close() // dev.kursor.ktensorflow/Interpreter.close|close(){}[0]
+    abstract fun getModelMeta(): dev.kursor.ktensorflow/ModelMeta // dev.kursor.ktensorflow/Interpreter.getModelMeta|getModelMeta(){}[0]
+    abstract fun resizeInput(kotlin/Int, kotlin/IntArray) // dev.kursor.ktensorflow/Interpreter.resizeInput|resizeInput(kotlin.Int;kotlin.IntArray){}[0]
+    abstract fun run(kotlin.collections/List<kotlin/ByteArray>, kotlin.collections/Map<kotlin/Int, kotlin/ByteArray>) // dev.kursor.ktensorflow/Interpreter.run|run(kotlin.collections.List<kotlin.ByteArray>;kotlin.collections.Map<kotlin.Int,kotlin.ByteArray>){}[0]
+}
+
+sealed interface dev.kursor.ktensorflow/ModelDesc { // dev.kursor.ktensorflow/ModelDesc|null[0]
+    final class PathInBundle : dev.kursor.ktensorflow/ModelDesc { // dev.kursor.ktensorflow/ModelDesc.PathInBundle|null[0]
+        constructor <init>(kotlin/String) // dev.kursor.ktensorflow/ModelDesc.PathInBundle.<init>|<init>(kotlin.String){}[0]
+
+        final val pathInBundle // dev.kursor.ktensorflow/ModelDesc.PathInBundle.pathInBundle|{}pathInBundle[0]
+            final fun <get-pathInBundle>(): kotlin/String // dev.kursor.ktensorflow/ModelDesc.PathInBundle.pathInBundle.<get-pathInBundle>|<get-pathInBundle>(){}[0]
+
+        final fun component1(): kotlin/String // dev.kursor.ktensorflow/ModelDesc.PathInBundle.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): dev.kursor.ktensorflow/ModelDesc.PathInBundle // dev.kursor.ktensorflow/ModelDesc.PathInBundle.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow/ModelDesc.PathInBundle.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow/ModelDesc.PathInBundle.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // dev.kursor.ktensorflow/ModelDesc.PathInBundle.toString|toString(){}[0]
+    }
+
+    final object Companion // dev.kursor.ktensorflow/ModelDesc.Companion|null[0]
+}
+
+final class dev.kursor.ktensorflow/InterpreterOptions { // dev.kursor.ktensorflow/InterpreterOptions|null[0]
+    constructor <init>(cocoapods.TensorFlowLiteObjC/TFLInterpreterOptions, kotlin.collections/List<cocoapods.TensorFlowLiteObjC/TFLDelegate>) // dev.kursor.ktensorflow/InterpreterOptions.<init>|<init>(cocoapods.TensorFlowLiteObjC.TFLInterpreterOptions;kotlin.collections.List<cocoapods.TensorFlowLiteObjC.TFLDelegate>){}[0]
+
+    final val tflDelegates // dev.kursor.ktensorflow/InterpreterOptions.tflDelegates|{}tflDelegates[0]
+        final fun <get-tflDelegates>(): kotlin.collections/List<cocoapods.TensorFlowLiteObjC/TFLDelegate> // dev.kursor.ktensorflow/InterpreterOptions.tflDelegates.<get-tflDelegates>|<get-tflDelegates>(){}[0]
+    final val tflOptions // dev.kursor.ktensorflow/InterpreterOptions.tflOptions|{}tflOptions[0]
+        final fun <get-tflOptions>(): cocoapods.TensorFlowLiteObjC/TFLInterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions.tflOptions.<get-tflOptions>|<get-tflOptions>(){}[0]
+
+    final fun component1(): cocoapods.TensorFlowLiteObjC/TFLInterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<cocoapods.TensorFlowLiteObjC/TFLDelegate> // dev.kursor.ktensorflow/InterpreterOptions.component2|component2(){}[0]
+    final fun copy(cocoapods.TensorFlowLiteObjC/TFLInterpreterOptions = ..., kotlin.collections/List<cocoapods.TensorFlowLiteObjC/TFLDelegate> = ...): dev.kursor.ktensorflow/InterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions.copy|copy(cocoapods.TensorFlowLiteObjC.TFLInterpreterOptions;kotlin.collections.List<cocoapods.TensorFlowLiteObjC.TFLDelegate>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow/InterpreterOptions.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow/InterpreterOptions.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kursor.ktensorflow/InterpreterOptions.toString|toString(){}[0]
+}
+
+final class dev.kursor.ktensorflow/ModelMeta { // dev.kursor.ktensorflow/ModelMeta|null[0]
+    constructor <init>(kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData>, kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData>) // dev.kursor.ktensorflow/ModelMeta.<init>|<init>(kotlin.collections.List<dev.kursor.ktensorflow.ModelTensorData>;kotlin.collections.List<dev.kursor.ktensorflow.ModelTensorData>){}[0]
+
+    final val inputData // dev.kursor.ktensorflow/ModelMeta.inputData|{}inputData[0]
+        final fun <get-inputData>(): kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.inputData.<get-inputData>|<get-inputData>(){}[0]
+    final val inputsByName // dev.kursor.ktensorflow/ModelMeta.inputsByName|{}inputsByName[0]
+        final fun <get-inputsByName>(): kotlin.collections/Map<kotlin/String, dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.inputsByName.<get-inputsByName>|<get-inputsByName>(){}[0]
+    final val outputData // dev.kursor.ktensorflow/ModelMeta.outputData|{}outputData[0]
+        final fun <get-outputData>(): kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.outputData.<get-outputData>|<get-outputData>(){}[0]
+    final val outputsByName // dev.kursor.ktensorflow/ModelMeta.outputsByName|{}outputsByName[0]
+        final fun <get-outputsByName>(): kotlin.collections/Map<kotlin/String, dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.outputsByName.<get-outputsByName>|<get-outputsByName>(){}[0]
+
+    final fun component1(): kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> // dev.kursor.ktensorflow/ModelMeta.component2|component2(){}[0]
+    final fun copy(kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> = ..., kotlin.collections/List<dev.kursor.ktensorflow/ModelTensorData> = ...): dev.kursor.ktensorflow/ModelMeta // dev.kursor.ktensorflow/ModelMeta.copy|copy(kotlin.collections.List<dev.kursor.ktensorflow.ModelTensorData>;kotlin.collections.List<dev.kursor.ktensorflow.ModelTensorData>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow/ModelMeta.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow/ModelMeta.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kursor.ktensorflow/ModelMeta.toString|toString(){}[0]
+}
+
+final class dev.kursor.ktensorflow/ModelTensorData { // dev.kursor.ktensorflow/ModelTensorData|null[0]
+    constructor <init>(kotlin/Int, kotlin/String, kotlin/String, dev.kursor.ktensorflow/DataType, kotlin.collections/List<kotlin/Int>) // dev.kursor.ktensorflow/ModelTensorData.<init>|<init>(kotlin.Int;kotlin.String;kotlin.String;dev.kursor.ktensorflow.DataType;kotlin.collections.List<kotlin.Int>){}[0]
+
+    final val dataType // dev.kursor.ktensorflow/ModelTensorData.dataType|{}dataType[0]
+        final fun <get-dataType>(): dev.kursor.ktensorflow/DataType // dev.kursor.ktensorflow/ModelTensorData.dataType.<get-dataType>|<get-dataType>(){}[0]
+    final val index // dev.kursor.ktensorflow/ModelTensorData.index|{}index[0]
+        final fun <get-index>(): kotlin/Int // dev.kursor.ktensorflow/ModelTensorData.index.<get-index>|<get-index>(){}[0]
+    final val internalName // dev.kursor.ktensorflow/ModelTensorData.internalName|{}internalName[0]
+        final fun <get-internalName>(): kotlin/String // dev.kursor.ktensorflow/ModelTensorData.internalName.<get-internalName>|<get-internalName>(){}[0]
+    final val name // dev.kursor.ktensorflow/ModelTensorData.name|{}name[0]
+        final fun <get-name>(): kotlin/String // dev.kursor.ktensorflow/ModelTensorData.name.<get-name>|<get-name>(){}[0]
+    final val numElements // dev.kursor.ktensorflow/ModelTensorData.numElements|{}numElements[0]
+        final fun <get-numElements>(): kotlin/Int // dev.kursor.ktensorflow/ModelTensorData.numElements.<get-numElements>|<get-numElements>(){}[0]
+    final val shape // dev.kursor.ktensorflow/ModelTensorData.shape|{}shape[0]
+        final fun <get-shape>(): kotlin.collections/List<kotlin/Int> // dev.kursor.ktensorflow/ModelTensorData.shape.<get-shape>|<get-shape>(){}[0]
+    final val totalByteSize // dev.kursor.ktensorflow/ModelTensorData.totalByteSize|{}totalByteSize[0]
+        final fun <get-totalByteSize>(): kotlin/Int // dev.kursor.ktensorflow/ModelTensorData.totalByteSize.<get-totalByteSize>|<get-totalByteSize>(){}[0]
+
+    final fun component1(): kotlin/Int // dev.kursor.ktensorflow/ModelTensorData.component1|component1(){}[0]
+    final fun component2(): kotlin/String // dev.kursor.ktensorflow/ModelTensorData.component2|component2(){}[0]
+    final fun component3(): kotlin/String // dev.kursor.ktensorflow/ModelTensorData.component3|component3(){}[0]
+    final fun component4(): dev.kursor.ktensorflow/DataType // dev.kursor.ktensorflow/ModelTensorData.component4|component4(){}[0]
+    final fun component5(): kotlin.collections/List<kotlin/Int> // dev.kursor.ktensorflow/ModelTensorData.component5|component5(){}[0]
+    final fun copy(kotlin/Int = ..., kotlin/String = ..., kotlin/String = ..., dev.kursor.ktensorflow/DataType = ..., kotlin.collections/List<kotlin/Int> = ...): dev.kursor.ktensorflow/ModelTensorData // dev.kursor.ktensorflow/ModelTensorData.copy|copy(kotlin.Int;kotlin.String;kotlin.String;dev.kursor.ktensorflow.DataType;kotlin.collections.List<kotlin.Int>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow/ModelTensorData.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow/ModelTensorData.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kursor.ktensorflow/ModelTensorData.toString|toString(){}[0]
+}
+
+final class dev.kursor.ktensorflow/TensorFlowException : kotlin/Exception { // dev.kursor.ktensorflow/TensorFlowException|null[0]
+    constructor <init>() // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(){}[0]
+    constructor <init>(kotlin/String?) // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(kotlin.String?){}[0]
+    constructor <init>(kotlin/String?, kotlin/Int, kotlin/Throwable?) // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(kotlin.String?;kotlin.Int;kotlin.Throwable?){}[0]
+    constructor <init>(kotlin/String?, kotlin/Throwable?) // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(kotlin.String?;kotlin.Throwable?){}[0]
+    constructor <init>(kotlin/Throwable?) // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(kotlin.Throwable?){}[0]
+}
+
+final fun (cocoapods.TensorFlowLiteObjC/TFLTensor).dev.kursor.ktensorflow.impl/shape(): kotlin.collections/List<kotlin/Int> // dev.kursor.ktensorflow.impl/shape|shape@cocoapods.TensorFlowLiteObjC.TFLTensor(){}[0]
+final fun (cocoapods.TensorFlowLiteObjC/TFLTensorDataType).dev.kursor.ktensorflow/toKTensorFlow(): dev.kursor.ktensorflow/DataType // dev.kursor.ktensorflow/toKTensorFlow|toKTensorFlow@cocoapods.TensorFlowLiteObjC.TFLTensorDataType(){}[0]
+final fun (dev.kursor.ktensorflow/Interpreter).dev.kursor.ktensorflow/run(kotlin.collections/List<kotlin/ByteArray>, kotlin.collections/Map<kotlin/String, kotlin/ByteArray>) // dev.kursor.ktensorflow/run|run@dev.kursor.ktensorflow.Interpreter(kotlin.collections.List<kotlin.ByteArray>;kotlin.collections.Map<kotlin.String,kotlin.ByteArray>){}[0]
+final fun (dev.kursor.ktensorflow/Interpreter).dev.kursor.ktensorflow/run(kotlin/ByteArray, kotlin/ByteArray) // dev.kursor.ktensorflow/run|run@dev.kursor.ktensorflow.Interpreter(kotlin.ByteArray;kotlin.ByteArray){}[0]
+final fun dev.kursor.ktensorflow/Interpreter(dev.kursor.ktensorflow/ModelDesc, dev.kursor.ktensorflow/InterpreterOptions): dev.kursor.ktensorflow/Interpreter // dev.kursor.ktensorflow/Interpreter|Interpreter(dev.kursor.ktensorflow.ModelDesc;dev.kursor.ktensorflow.InterpreterOptions){}[0]
+final fun dev.kursor.ktensorflow/InterpreterOptions(): dev.kursor.ktensorflow/InterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions|InterpreterOptions(){}[0]
+final fun dev.kursor.ktensorflow/InterpreterOptions(kotlin.collections/List<cocoapods.TensorFlowLiteObjC/TFLDelegate>, kotlin/Function1<cocoapods.TensorFlowLiteObjC/TFLInterpreterOptions, kotlin/Unit>): dev.kursor.ktensorflow/InterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions|InterpreterOptions(kotlin.collections.List<cocoapods.TensorFlowLiteObjC.TFLDelegate>;kotlin.Function1<cocoapods.TensorFlowLiteObjC.TFLInterpreterOptions,kotlin.Unit>){}[0]
+final fun dev.kursor.ktensorflow/InterpreterOptions(kotlin/Int, kotlin/Boolean, kotlin.collections/List<dev.kursor.ktensorflow/Delegate> = ...): dev.kursor.ktensorflow/InterpreterOptions // dev.kursor.ktensorflow/InterpreterOptions|InterpreterOptions(kotlin.Int;kotlin.Boolean;kotlin.collections.List<dev.kursor.ktensorflow.Delegate>){}[0]

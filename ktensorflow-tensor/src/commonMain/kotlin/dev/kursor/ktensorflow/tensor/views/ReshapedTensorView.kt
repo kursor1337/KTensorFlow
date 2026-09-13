@@ -7,7 +7,7 @@ import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
 import dev.kursor.ktensorflow.tensor.toFlatIndex
 
-class ReshapedTensorView<T : Any>(
+internal class ReshapedTensorView<T : Any>(
     override val delegate: Tensor<T>,
     override val shape: TensorShape
 ) : TensorView<T> {

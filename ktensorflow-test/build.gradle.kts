@@ -15,6 +15,12 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     val iosConfigure: KotlinNativeTarget.() -> Unit = {
@@ -82,19 +88,23 @@ kotlin {
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowPipeline)
-            implementation(projects.ktensorflowMedia)
+            implementation(projects.ktensorflowVision)
+            implementation(projects.ktensorflowCoroutines)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.coroutines.test)
         }
 
-        androidInstrumentedTest.dependencies {
-            implementation(libs.junit)
-            implementation(libs.androidx.test.core)
-            implementation(libs.androidx.test.junit)
-            implementation(libs.androidx.test.runner)
-            implementation(libs.kotlin.test)
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.kotlin.test)
+            }
         }
     }
 }
