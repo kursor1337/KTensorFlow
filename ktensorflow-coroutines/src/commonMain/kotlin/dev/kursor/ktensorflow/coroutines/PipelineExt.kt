@@ -5,7 +5,6 @@ import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -25,7 +24,7 @@ import kotlin.jvm.JvmName
  */
 @ExperimentalKTensorFlowApi
 suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
-    withContext(Dispatchers.Default) {
+    withContext(InferenceDispatcher) {
         run(input)
     }
 
@@ -33,7 +32,8 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
  * Runs the pipeline with the given input flow.
  * This function runs the pipeline for every item in the input flow.
  * The pipeline is run asynchronously on the specified [dispatcher].
- * The default dispatcher is [Dispatchers.Default].
+ * By default inference is serialized, because the interpreter behind a pipeline is not
+ * thread-safe; pass a dispatcher explicitly only if the pipeline does not run inference.
  *
  * @param inputFlow The input flow to the pipeline.
  * @param dispatcher The dispatcher to run the pipeline on.
@@ -42,7 +42,7 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
 @ExperimentalKTensorFlowApi
 fun <I, O> Pipeline<I, O>.processFlow(
     inputFlow: Flow<I>,
-    dispatcher: CoroutineDispatcher = Dispatchers.Default
+    dispatcher: CoroutineDispatcher = InferenceDispatcher
 ): Flow<O> = inputFlow
     .map { item -> run(item) }
     .flowOn(dispatcher)
@@ -51,7 +51,8 @@ fun <I, O> Pipeline<I, O>.processFlow(
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
  * This function runs the pipeline for every item in the input flow.
  * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the next item is processed.
- * The pipeline is run asynchronously on the [Dispatchers.Default].
+ * The pipeline is run asynchronously, and inference is serialized to keep the
+ * non-thread-safe interpreter safe.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.
@@ -68,7 +69,8 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
  * collected directly from a camera or any other source without manual wrapping.
  * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the
- * next item is processed. The pipeline is run asynchronously on the [Dispatchers.Default].
+ * next item is processed. The pipeline is run asynchronously, and inference is serialized
+ * to keep the non-thread-safe interpreter safe.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.
@@ -88,7 +90,7 @@ private fun <I, O> Pipeline<I, O>.processDropping(
 
     inputFlow.collect { item ->
         if (mutex.tryLock()) {
-            launch(Dispatchers.Default) {
+            launch(InferenceDispatcher) {
                 try {
                     val result = run(item)
                     send(result)

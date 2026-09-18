@@ -9,10 +9,14 @@ import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.tuple
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -126,5 +130,31 @@ class CoroutinesModuleTests {
 
         assertFailsWith<IllegalStateException> { flow.toList() }
         assertTrue(item.closed)
+    }
+
+    @Test
+    fun concurrentRunSuspendCallsNeverOverlap() = runTest {
+        // Interpreter.run не потокобезопасен, поэтому два инференса не должны выполняться
+        // одновременно, даже если пользователь запустил их параллельно. Пересечение ловится
+        // мьютексом: если tryLock не удался, значит внутрь уже кто-то вошёл.
+        val insideInference = Mutex()
+        var overlapped = false
+
+        val pipeline = Pipeline(Stage<Int, Int> { value ->
+            if (!insideInference.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { kotlinx.coroutines.delay(50) }
+                insideInference.unlock()
+            }
+            value * 2
+        })
+
+        val results = coroutineScope {
+            (1..8).map { value -> async { pipeline.runSuspend(value) } }.awaitAll()
+        }
+
+        assertFalse(overlapped, "inference must never run concurrently: Interpreter.run is not thread-safe")
+        assertEquals(listOf(2, 4, 6, 8, 10, 12, 14, 16), results)
     }
 }

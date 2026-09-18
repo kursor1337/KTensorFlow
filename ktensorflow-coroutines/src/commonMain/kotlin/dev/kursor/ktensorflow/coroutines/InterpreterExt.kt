@@ -4,13 +4,15 @@ import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.run
 import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.run
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.jvm.JvmName
 
 /**
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
- * on a background thread ([Dispatchers.Default]).
+ * on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread (e.g., the Main/UI thread).
@@ -23,13 +25,16 @@ import kotlin.jvm.JvmName
 suspend fun Interpreter.runSuspend(
     inputs: List<ByteArray>,
     outputs: Map<Int, ByteArray>
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(inputs, outputs)
 }
 
 /**
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
- * on a background thread ([Dispatchers.Default]).
+ * on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -42,13 +47,16 @@ suspend fun Interpreter.runSuspend(
 suspend fun Interpreter.runSuspend(
     inputs: List<ByteArray>,
     outputs: Map<String, ByteArray>
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(inputs, outputs)
 }
 
 /**
  * Suspends the current coroutine and runs model inference for a single input and output
- * on a background thread ([Dispatchers.Default]).
+ * on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. The result of the inference will be
@@ -60,13 +68,16 @@ suspend fun Interpreter.runSuspend(
 suspend fun Interpreter.runSuspend(
     input: ByteArray,
     output: ByteArray
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(input, output)
 }
 
 /**
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
- * using [PhysicalTensor]s on a background thread ([Dispatchers.Default]).
+ * using [PhysicalTensor]s on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -79,13 +90,16 @@ suspend fun Interpreter.runSuspend(
 suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<Int, PhysicalTensor<*>>
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(inputs, outputs)
 }
 
 /**
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
- * using [PhysicalTensor]s on a background thread ([Dispatchers.Default]).
+ * using [PhysicalTensor]s on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -98,13 +112,16 @@ suspend fun Interpreter.runSuspend(
 suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<String, PhysicalTensor<*>>
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(inputs, outputs)
 }
 
 /**
  * Suspends the current coroutine and runs model inference for a single input and output
- * using [PhysicalTensor]s on a background thread ([Dispatchers.Default]).
+ * using [PhysicalTensor]s on a background thread.
+ *
+ * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
+ * instead of entering the native interpreter in parallel.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. The result of the inference will be
@@ -116,6 +133,6 @@ suspend fun Interpreter.runSuspend(
 suspend fun Interpreter.runSuspend(
     input: PhysicalTensor<*>,
     output: PhysicalTensor<*>
-) = withContext(Dispatchers.Default) {
+) = withContext(InferenceDispatcher) {
     run(input, output)
 }
