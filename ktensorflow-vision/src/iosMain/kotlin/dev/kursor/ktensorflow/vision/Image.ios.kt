@@ -11,10 +11,22 @@ class IosImage(
     override val width: Int,
     override val height: Int,
     override val pixelFormat: PixelFormat,
-    override val platformImage: PlatformImage // alpha always premultiplied
+    pixels: PlatformImage // alpha always premultiplied
 ) : Image {
     private val bytesPerPixel = pixelFormat.channels
     private val bytesPerRow = width * bytesPerPixel
+
+    private var pixelBuffer: ByteArray? = pixels
+
+    /**
+     * Pixel buffer backing this image.
+     *
+     * @throws IllegalStateException if the image has already been closed.
+     */
+    override val platformImage: PlatformImage
+        get() = checkNotNull(pixelBuffer) {
+            "Image ${width}x$height has already been closed"
+        }
 
     private val data: ByteArray get() = platformImage
 
@@ -97,8 +109,16 @@ class IosImage(
         }
     }
 
+    /**
+     * Releases the pixel buffer and marks the image as closed.
+     *
+     * On iOS there is no native handle to free, but dropping the buffer both makes it
+     * collectable right away and keeps the lifecycle contract identical to Android, where
+     * touching a closed image fails loudly. Without that symmetry a use-after-close slips
+     * through iOS tests and only shows up on a device. Closing twice is safe.
+     */
     override fun close() {
-        // do nothing
+        pixelBuffer = null
     }
 }
 

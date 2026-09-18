@@ -42,7 +42,12 @@ interface Image : AutoCloseable {
     fun getPixels(buffer: IntArray)
 
     /**
-     * Manually releases any native resources held by this image.
+     * Manually releases the resources held by this image: the underlying `Bitmap` on Android
+     * and the pixel buffer on iOS.
+     *
+     * Once closed, the image must not be used any more: reading pixels or transforming it
+     * fails on every platform. Closing an already closed image is safe.
+     *
      * Prefer using [use] blocks over calling this directly.
      */
     override fun close()

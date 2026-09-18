@@ -20,6 +20,8 @@ import dev.kursor.ktensorflow.vision.toImage
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -575,5 +577,39 @@ class VisionModuleTests {
         }
 
         grayscaled.close()
+    }
+
+    // --- 8. КОНТРАКТ ЗАКРЫТИЯ ---
+    // Обращение к закрытому изображению должно падать одинаково на обеих платформах:
+    // на Android Bitmap уже переработан, на iOS буфер пикселей отпущен. Без этой
+    // симметрии ошибки жизненного цикла не видны в iOS-тестах и всплывают только на
+    // устройстве - именно так пряталась ошибка в resizeWithPad.
+
+    @Test
+    fun readingPixelsFromAClosedImageFails() {
+        val image = createSolidImage(2, 2, 0xFF102030.toInt())
+
+        image.close()
+
+        assertFailsWith<IllegalStateException> { image.getPixels() }
+        assertFailsWith<IllegalStateException> { image[0, 0] }
+    }
+
+    @Test
+    fun transformingAClosedImageFails() {
+        val image = createSolidImage(4, 4, 0xFF102030.toInt())
+
+        image.close()
+
+        // тип исключения задаёт платформа, важен сам факт отказа
+        assertFails { image.resize(2, 2) }
+    }
+
+    @Test
+    fun closingAnImageTwiceIsSafe() {
+        val image = createSolidImage(2, 2, 0xFF102030.toInt())
+
+        image.close()
+        image.close()
     }
 }

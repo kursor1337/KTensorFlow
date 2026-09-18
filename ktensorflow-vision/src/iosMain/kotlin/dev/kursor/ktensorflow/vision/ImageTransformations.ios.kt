@@ -43,7 +43,7 @@ actual fun Image.resize(
         width = newWidth,
         height = newHeight,
         pixelFormat = pixelFormat,
-        platformImage = out
+        pixels = out
     )
 }
 
@@ -86,7 +86,7 @@ actual fun Image.crop(
         width = newWidth,
         height = newHeight,
         pixelFormat = pixelFormat,
-        platformImage = out
+        pixels = out
     )
 }
 
@@ -136,7 +136,7 @@ actual fun Image.rotate(
         width = newWidth,
         height = newHeight,
         pixelFormat = pixelFormat,
-        platformImage = out
+        pixels = out
     )
 }
 
@@ -162,7 +162,7 @@ actual fun Image.grayscale(
         width = width,
         height = height,
         pixelFormat = PixelFormat.Grayscale,
-        platformImage = out
+        pixels = out
     )
 }
 
