@@ -3,7 +3,6 @@ package dev.kursor.ktensorflow.link
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
@@ -33,11 +32,19 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
                     linkOnly = true
                 }
             }
+        }
 
-            targets.withType(KotlinNativeTarget::class.java).configureEach {
-                binaries.withType<Framework>().all {
-                    if (!isStatic) {
-                        freeCompilerArgs += listOf("-linker-options", linkerArgs)
+        // isStatic пользователь задаёт внутри framework { }, то есть уже после того, как
+        // бинарник добавлен в контейнер. Если проверять его прямо в обработчике добавления,
+        // всегда видно значение по умолчанию, и статические фреймворки тоже получают -U,
+        // ослабляя их линковку. Поэтому решение принимается после конфигурации проекта.
+        afterEvaluate {
+            extensions.configure<KotlinMultiplatformExtension> {
+                targets.withType(KotlinNativeTarget::class.java).forEach { nativeTarget ->
+                    nativeTarget.binaries.withType(Framework::class.java).forEach { framework ->
+                        if (!framework.isStatic) {
+                            framework.freeCompilerArgs += listOf("-linker-options", linkerArgs)
+                        }
                     }
                 }
             }

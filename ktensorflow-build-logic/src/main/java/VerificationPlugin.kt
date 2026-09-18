@@ -58,6 +58,12 @@ class VerificationPlugin : Plugin<Project> {
             val runAllTests = rootProject.tasks.findByPath(runAllTestsPath)
                 ?: throw GradleException("Task '$runAllTestsPath' not found — make sure ktensorflow-test defines it")
 
+            // ktensorflow-link - Gradle-плагин, он не входит в KMP-набор тестов,
+            // поэтому его собственные тесты подключаются к публикации отдельно
+            val linkPluginTestsPath = ":ktensorflow-link:test"
+            val linkPluginTests = rootProject.tasks.findByPath(linkPluginTestsPath)
+                ?: throw GradleException("Task '$linkPluginTestsPath' not found — make sure ktensorflow-link is covered by tests")
+
             val apiCheckTasks = modulesToApiCheck
                 .map { ":$it:apiCheck" }
                 .map { rootProject.tasks.findByPath(it) }
@@ -65,9 +71,10 @@ class VerificationPlugin : Plugin<Project> {
             rootProject.allprojects.forEach { sub ->
                 sub.tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
                     dependsOn(runAllTests)
+                    dependsOn(linkPluginTests)
                     dependsOn(verifyModulesTask)
                     apiCheckTasks.forEach { dependsOn(it!!) }
-                    println("✔ Linked $runAllTestsPath and :verifyModules to ${sub.path}:$name")
+                    println("✔ Linked $runAllTestsPath, $linkPluginTestsPath and :verifyModules to ${sub.path}:$name")
                 }
             }
         }
