@@ -6,7 +6,9 @@ import dev.kursor.ktensorflow.coroutines.processFlow
 import dev.kursor.ktensorflow.coroutines.processFlowDropping
 import dev.kursor.ktensorflow.coroutines.runSuspend
 import dev.kursor.ktensorflow.pipeline.Pipeline
+import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.Stage
+import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -74,6 +76,34 @@ class CoroutinesModuleTests {
                 assertFalse(item.closed, "a processed item must not be closed by processFlowDropping itself")
             } else {
                 assertTrue(item.closed, "a dropped item must be closed to avoid leaking its resources")
+            }
+        }
+    }
+
+    @Test
+    fun processFlowDroppingWorksWithSingleInputBuilderPipelines() = runTest {
+        // Pipeline.input(...).inference(...).output(...).build() строит Pipeline<Tuple.One<Input>, ...>.
+        // Здесь тот же тип собран напрямую, чтобы не требовать интерпретатора и модели.
+        val received = mutableListOf<Tuple.One<TrackedItem>>()
+        val pipeline = Pipeline(Stage<Tuple.One<TrackedItem>, Int> { input ->
+            received += input
+            runBlocking { kotlinx.coroutines.delay(200) }
+            input.first.id
+        })
+
+        val items = (1..5).map { TrackedItem(it) }
+
+        // На вход подаётся Flow<TrackedItem> без ручной обёртки в tuple()
+        val results = pipeline.processFlowDropping(items.asFlow()).toList()
+
+        assertEquals(listOf(1), results, "only the first item should win the mutex and be processed")
+        assertEquals(listOf(tuple(items[0])), received, "the pipeline must receive the item wrapped in Tuple.One")
+
+        items.forEach { item ->
+            if (item.id in results) {
+                assertFalse(item.closed, "a processed item must not be closed by processFlowDropping itself")
+            } else {
+                assertTrue(item.closed, "a dropped item must be closed even though it was wrapped in a tuple")
             }
         }
     }

@@ -2,6 +2,8 @@ package dev.kursor.ktensorflow.coroutines
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.pipeline.Pipeline
+import dev.kursor.ktensorflow.pipeline.Tuple
+import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -13,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-
+import kotlin.jvm.JvmName
 
 /**
  * Runs the pipeline with the given input.
@@ -45,7 +47,6 @@ fun <I, O> Pipeline<I, O>.processFlow(
     .map { item -> run(item) }
     .flowOn(dispatcher)
 
-
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
  * This function runs the pipeline for every item in the input flow.
@@ -58,6 +59,30 @@ fun <I, O> Pipeline<I, O>.processFlow(
 @ExperimentalKTensorFlowApi
 fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
     inputFlow: Flow<I>,
+): Flow<O> = processDropping(inputFlow) { item -> item.close() }
+
+/**
+ * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
+ * over the given input flow, dropping items if the pipeline is already running.
+ *
+ * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
+ * collected directly from a camera or any other source without manual wrapping.
+ * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the
+ * next item is processed. The pipeline is run asynchronously on the [Dispatchers.Default].
+ *
+ * @param inputFlow The input flow to the pipeline.
+ * @return The output flow of the pipeline.
+ */
+@ExperimentalKTensorFlowApi
+@JvmName("processTupleFlowDropping")
+fun <I : AutoCloseable, O> Pipeline<Tuple.One<I>, O>.processFlowDropping(
+    inputFlow: Flow<I>,
+): Flow<O> = processDropping(inputFlow.map { item -> tuple(item) }) { input -> input.first.close() }
+
+@ExperimentalKTensorFlowApi
+private fun <I, O> Pipeline<I, O>.processDropping(
+    inputFlow: Flow<I>,
+    release: (I) -> Unit
 ): Flow<O> = channelFlow {
     val mutex = Mutex()
 
@@ -72,7 +97,7 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
                 }
             }
         } else {
-            item.close()
+            release(item)
         }
     }
 }.buffer(Channel.RENDEZVOUS)
