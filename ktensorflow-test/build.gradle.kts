@@ -90,6 +90,7 @@ kotlin {
             implementation(projects.ktensorflowPipeline)
             implementation(projects.ktensorflowVision)
             implementation(projects.ktensorflowCoroutines)
+            implementation(projects.ktensorflowCompose)
         }
 
         commonTest.dependencies {
@@ -111,6 +112,8 @@ kotlin {
 
 val copyIosSimulatorArm64TestResources = tasks.register<Copy>("copyIosSimulatorArm64TestResources") {
     from("src/iosTest/resources")
+    // moko FileResource ищет ресурс в подпапке files/ бандла, поэтому модель кладётся ещё и туда
+    from("src/iosTest/resources/mnist.tflite") { into("files") }
     into("build/bin/iosSimulatorArm64/debugTest/Contents/Resources")
 }
 

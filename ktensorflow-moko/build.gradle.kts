@@ -24,7 +24,9 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.ktensorflowCore)
 
-            implementation(libs.moko.resources)
+            // api, а не implementation: публичные сигнатуры модуля принимают типы
+            // FileResource и AssetResource, поэтому потребителям они нужны транзитивно
+            api(libs.moko.resources)
         }
         androidMain.dependencies {
             implementation(libs.androidx.startup.runtime)
