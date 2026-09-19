@@ -48,6 +48,29 @@ fun <I, O> Pipeline<I, O>.processFlow(
     .flowOn(dispatcher)
 
 /**
+ * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
+ * over the given input flow.
+ *
+ * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
+ * collected directly from a camera or any other source without manual wrapping.
+ * The pipeline is run asynchronously on the specified [dispatcher]. By default inference is
+ * serialized, because the interpreter behind a pipeline is not thread-safe; pass a dispatcher
+ * explicitly only if the pipeline does not run inference.
+ *
+ * @param inputFlow The input flow to the pipeline.
+ * @param dispatcher The dispatcher to run the pipeline on.
+ * @return The output flow of the pipeline.
+ */
+@ExperimentalKTensorFlowApi
+@JvmName("processTupleFlow")
+fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
+    inputFlow: Flow<I>,
+    dispatcher: CoroutineDispatcher = InferenceDispatcher
+): Flow<O> = inputFlow
+    .map { item -> run(tuple(item)) }
+    .flowOn(dispatcher)
+
+/**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
  * This function runs the pipeline for every item in the input flow.
  * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the next item is processed.

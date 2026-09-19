@@ -22,7 +22,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.ktensorflowCore)
+            // api, а не implementation: публичные сигнатуры модуля раскрывают типы
+            // этих модулей, поэтому потребителям они нужны транзитивно
+            api(projects.ktensorflowCore)
         }
         androidMain.dependencies {
             implementation(libs.androidx.startup.runtime)

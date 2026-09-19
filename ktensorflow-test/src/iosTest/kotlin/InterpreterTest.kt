@@ -57,7 +57,6 @@ class InterpreterTest {
             if (result == label.toInt()) {
                 accuratePredictions++
             }
-            println("test $i: result = $result")
         }
         val accuracy = accuratePredictions.toDouble() / data.size
         println("accuracy: $accuracy")

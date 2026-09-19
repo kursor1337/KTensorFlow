@@ -22,9 +22,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.ktensorflowCore)
-            implementation(projects.ktensorflowTensor)
-            implementation(projects.ktensorflowPipeline)
+            // api, а не implementation: публичные сигнатуры модуля раскрывают типы
+            // этих модулей, поэтому потребителям они нужны транзитивно
+            api(projects.ktensorflowCore)
+            api(projects.ktensorflowTensor)
+            api(projects.ktensorflowPipeline)
 
             implementation(libs.coroutines.core)
         }

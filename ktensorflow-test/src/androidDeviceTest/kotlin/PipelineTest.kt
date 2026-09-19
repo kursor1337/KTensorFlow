@@ -90,7 +90,6 @@ class PipelineTest {
         data.forEachIndexed { index, pair ->
             val (label, image) = pair
             val result = pipelineRun(image)
-            println("test $index: prediction = $result, label = $label")
             if (result == label.toString()) {
                 accuratePredictions++
             }

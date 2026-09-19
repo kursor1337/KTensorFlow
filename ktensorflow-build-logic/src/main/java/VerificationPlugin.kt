@@ -50,9 +50,6 @@ class VerificationPlugin : Plugin<Project> {
             }
         }
 
-        project.tasks.forEach {
-            println(it.name)
-        }
         gradle.afterProject {
             val runAllTestsPath = ":ktensorflow-test:runAllTests"
             val runAllTests = rootProject.tasks.findByPath(runAllTestsPath)
@@ -66,14 +63,19 @@ class VerificationPlugin : Plugin<Project> {
 
             val apiCheckTasks = modulesToApiCheck
                 .map { ":$it:apiCheck" }
-                .map { rootProject.tasks.findByPath(it) }
+                .map { path ->
+                    rootProject.tasks.findByPath(path)
+                        ?: throw GradleException(
+                            "Task '$path' not found — make sure the module applies convention.binary.compatibility"
+                        )
+                }
 
             rootProject.allprojects.forEach { sub ->
                 sub.tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
                     dependsOn(runAllTests)
                     dependsOn(linkPluginTests)
                     dependsOn(verifyModulesTask)
-                    apiCheckTasks.forEach { dependsOn(it!!) }
+                    apiCheckTasks.forEach { dependsOn(it) }
                     println("✔ Linked $runAllTestsPath, $linkPluginTestsPath and :verifyModules to ${sub.path}:$name")
                 }
             }

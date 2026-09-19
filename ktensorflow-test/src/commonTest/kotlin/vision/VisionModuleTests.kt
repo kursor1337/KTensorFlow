@@ -487,6 +487,125 @@ class VisionModuleTests {
         assertEquals(40.toUByte(), resized[3, 3, 0])
     }
 
+    // Батч, не-NHWC layout и неквадратный размер - ровно те формы, на которых ошибки в
+    // преобразованиях над тензором не видны при batch = 1 и квадратной картинке.
+
+    @Test
+    fun imageTensorFloatGrayscaleConvertsEveryImageOfABatch() {
+        val pf = PixelFormat.RGB
+        val tensor = ImageTensor<Float>(1, 1, pf, batchSize = 2)
+        tensor[0, 0, 0, pf.rIndex] = 100f
+        tensor[0, 0, 0, pf.gIndex] = 150f
+        tensor[0, 0, 0, pf.bIndex] = 200f
+        tensor[1, 0, 0, pf.rIndex] = 200f
+        tensor[1, 0, 0, pf.gIndex] = 100f
+        tensor[1, 0, 0, pf.bIndex] = 50f
+
+        val gray = tensor.grayscale()
+
+        assertEquals(2, gray.batch)
+        assertFloatEquals(140.75f, gray[0, 0, 0, 0], tolerance = 1e-3f)
+        assertFloatEquals(124.2f, gray[1, 0, 0, 0], tolerance = 1e-3f)
+    }
+
+    @Test
+    fun imageTensorUByteGrayscaleConvertsEveryImageOfABatch() {
+        val pf = PixelFormat.RGB
+        val tensor = ImageTensor<UByte>(1, 1, pf, batchSize = 2)
+        tensor[0, 0, 0, pf.rIndex] = 100.toUByte()
+        tensor[0, 0, 0, pf.gIndex] = 150.toUByte()
+        tensor[0, 0, 0, pf.bIndex] = 200.toUByte()
+        tensor[1, 0, 0, pf.rIndex] = 200.toUByte()
+        tensor[1, 0, 0, pf.gIndex] = 100.toUByte()
+        tensor[1, 0, 0, pf.bIndex] = 50.toUByte()
+
+        val gray = tensor.grayscale()
+
+        assertEquals(2, gray.batch)
+        // (100*77 + 150*150 + 200*29) shr 8 = 140, (200*77 + 100*150 + 50*29) shr 8 = 124
+        assertEquals(140.toUByte(), gray[0, 0, 0, 0])
+        assertEquals(124.toUByte(), gray[1, 0, 0, 0])
+    }
+
+    @Test
+    fun imageTensorFloatGrayscaleKeepsTheSourceLayout() {
+        val tensor = ImageTensor<Float>(2, 2, PixelFormat.RGB, layout = ImageTensorLayout.NCHW)
+
+        val gray = tensor.grayscale()
+
+        assertEquals(ImageTensorLayout.NCHW, gray.layout)
+    }
+
+    @Test
+    fun imageTensorFloatResizeSupportsNonSquareTargets() {
+        val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale)
+        tensor[0, 0, 0] = 0.0f
+        tensor[0, 1, 0] = 0.3f
+        tensor[1, 0, 0] = 0.6f
+        tensor[1, 1, 0] = 1.0f
+
+        val resized = tensor.resize(newWidth = 4, newHeight = 2)
+
+        assertEquals(4, resized.width)
+        assertEquals(2, resized.height)
+        // углы исходной картинки должны сохраниться точно
+        assertFloatEquals(0.0f, resized[0, 0, 0])
+        assertFloatEquals(0.3f, resized[0, 3, 0])
+        assertFloatEquals(0.6f, resized[1, 0, 0])
+        assertFloatEquals(1.0f, resized[1, 3, 0])
+    }
+
+    @Test
+    fun imageTensorFloatResizeKeepsValuesOutsideTheZeroOneRange() {
+        // tensorizeFloat() без нормализации даёт значения 0..255, и ресайз не вправе их обрезать
+        val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale)
+        tensor[0, 0, 0] = 0f
+        tensor[0, 1, 0] = 255f
+        tensor[1, 0, 0] = 128f
+        tensor[1, 1, 0] = 255f
+
+        val resized = tensor.resize(3, 3)
+
+        assertFloatEquals(255f, resized[0, 2, 0], tolerance = 1e-2f)
+        assertFloatEquals(128f, resized[2, 0, 0], tolerance = 1e-2f)
+    }
+
+    @Test
+    fun imageTensorFloatResizeResizesEveryImageOfABatch() {
+        val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale, batchSize = 2)
+        tensor[0, 0, 0, 0] = 0.0f
+        tensor[0, 0, 1, 0] = 0.3f
+        tensor[0, 1, 0, 0] = 0.6f
+        tensor[0, 1, 1, 0] = 1.0f
+        tensor[1, 0, 0, 0] = 1.0f
+        tensor[1, 0, 1, 0] = 0.7f
+        tensor[1, 1, 0, 0] = 0.4f
+        tensor[1, 1, 1, 0] = 0.0f
+
+        val resized = tensor.resize(3, 3)
+
+        assertEquals(2, resized.batch)
+        assertFloatEquals(0.0f, resized[0, 0, 0, 0])
+        assertFloatEquals(1.0f, resized[0, 2, 2, 0])
+        assertFloatEquals(1.0f, resized[1, 0, 0, 0])
+        assertFloatEquals(0.0f, resized[1, 2, 2, 0])
+    }
+
+    @Test
+    fun imageTensorFloatResizeToASinglePixelStaysFinite() {
+        val tensor = ImageTensor<Float>(2, 2, PixelFormat.Grayscale)
+        tensor[0, 0, 0] = 0.25f
+        tensor[0, 1, 0] = 0.5f
+        tensor[1, 0, 0] = 0.75f
+        tensor[1, 1, 0] = 1.0f
+
+        val resized = tensor.resize(1, 1)
+
+        assertEquals(1, resized.width)
+        assertEquals(1, resized.height)
+        assertFloatEquals(0.25f, resized[0, 0, 0])
+    }
+
     // --- 7. ТЕСТЫ НА РЕАЛЬНОЙ ПЛАТФОРМЕННОЙ КАРТИНКЕ (Bitmap на Android, CGImage на iOS) ---
     // Все нижеследующие тесты гоняются как на реальном Android-устройстве/эмуляторе
     // (connectedAndroidTest), так и на реальном iOS-симуляторе (iosSimulatorArm64Test) -
@@ -584,6 +703,53 @@ class VisionModuleTests {
     // на Android Bitmap уже переработан, на iOS буфер пикселей отпущен. Без этой
     // симметрии ошибки жизненного цикла не видны в iOS-тестах и всплывают только на
     // устройстве - именно так пряталась ошибка в resizeWithPad.
+
+    // Преобразование, которое ничего не меняет, платформа может выполнить возвратом ИСХОДНОГО
+    // буфера (Bitmap.scale и Bitmap.createBitmap на Android делают именно так). Если при этом
+    // закрыть оригинал, закрытым окажется и результат - ровно так пряталась ошибка в
+    // resizeWithPad. Здесь проверяется, что результат остаётся читаемым.
+
+    @Test
+    fun resizeToTheSameSizeReturnsAUsableImage() {
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 4, color)
+
+        val resized = original.resize(4, 4)
+
+        assertEquals(4, resized.width)
+        assertEquals(4, resized.height)
+        resized.getPixels().forEach { assertColorApprox(color, it) }
+
+        resized.close()
+    }
+
+    @Test
+    fun cropOfTheWholeImageReturnsAUsableImage() {
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 4, color)
+
+        val cropped = original.crop(Rect(0, 0, 4, 4))
+
+        assertEquals(4, cropped.width)
+        assertEquals(4, cropped.height)
+        cropped.getPixels().forEach { assertColorApprox(color, it) }
+
+        cropped.close()
+    }
+
+    @Test
+    fun rotateByZeroDegreesReturnsAUsableImage() {
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 4, color)
+
+        val rotated = original.rotate(0f)
+
+        assertEquals(4, rotated.width)
+        assertEquals(4, rotated.height)
+        rotated.getPixels().forEach { assertColorApprox(color, it) }
+
+        rotated.close()
+    }
 
     @Test
     fun readingPixelsFromAClosedImageFails() {

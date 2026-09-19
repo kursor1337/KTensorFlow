@@ -16,6 +16,8 @@ import kotlin.jvm.JvmName
  * - Green: 0.587
  * - Blue: 0.114
  *
+ * The batch size and layout of the source are preserved.
+ *
  * @param rWeight The weight applied to the red channel.
  * @param gWeight The weight applied to the green channel.
  * @param bWeight The weight applied to the blue channel.
@@ -27,36 +29,43 @@ fun ImageTensor<Float>.grayscale(
     bWeight: Float = 0.114f
 ): ImageTensor<Float> {
 
+    val pf = pixelFormat
+    if (pf == PixelFormat.Grayscale) return this
+
+    // Батч и layout обязаны сохраниться: иначе для пачки изображений результат оказывался
+    // тензором на одну картинку, а запись по batch-индексу уходила за его пределы.
     val result = ImageTensor(
         width = width,
         height = height,
         dataType = dataType,
-        pixelFormat = PixelFormat.Grayscale
+        pixelFormat = PixelFormat.Grayscale,
+        layout = layout,
+        batchSize = batch
     )
 
-    when (val pf = pixelFormat) {
+    when (pf) {
         PixelFormat.Grayscale -> return this
+
         is PixelFormat.RGB -> {
-            for (i in 0..<width) {
-                for (j in 0..<height) {
-                    for (b in 0..<batch) {
-                        val a = rWeight * this[b, j, i, pf.rIndex] +
-                                gWeight * this[b, j, i, pf.gIndex] +
-                                bWeight * this[b, j, i, pf.bIndex]
-                        result[b, j, i, 0] = a
+            for (n in 0 until batch) {
+                for (h in 0 until height) {
+                    for (w in 0 until width) {
+                        result[n, h, w, 0] = rWeight * this[n, h, w, pf.rIndex] +
+                                gWeight * this[n, h, w, pf.gIndex] +
+                                bWeight * this[n, h, w, pf.bIndex]
                     }
                 }
             }
         }
 
         is PixelFormat.RGBA -> {
-            for (i in 0..<width) {
-                for (j in 0..<height) {
-                    for (b in 0..<batch) {
-                        result[b, j, i, 0] = (rWeight * this[b, j, i, pf.rIndex] +
-                                gWeight * this[b, j, i, pf.gIndex] +
-                                bWeight * this[b, j, i, pf.bIndex]) *
-                                this[b, j, i, pf.aIndex]
+            for (n in 0 until batch) {
+                for (h in 0 until height) {
+                    for (w in 0 until width) {
+                        result[n, h, w, 0] = (rWeight * this[n, h, w, pf.rIndex] +
+                                gWeight * this[n, h, w, pf.gIndex] +
+                                bWeight * this[n, h, w, pf.bIndex]) *
+                                this[n, h, w, pf.aIndex]
                     }
                 }
             }
@@ -79,6 +88,8 @@ fun ImageTensor<Float>.grayscale(
  * Note: Unlike the [Float] version, this implementation does not currently account
  * for the alpha channel in RGBA tensors.
  *
+ * The batch size and layout of the source are preserved.
+ *
  * @return A new [ImageTensor] with [PixelFormat.Grayscale] containing the calculated luminance.
  */
 @JvmName("grayscaleUByte")
@@ -86,7 +97,15 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
     val pf = pixelFormat
     if (pf == PixelFormat.Grayscale) return this
 
-    val result = ImageTensor<UByte>(width, height, PixelFormat.Grayscale, layout)
+    // Батч и layout обязаны сохраниться: иначе для пачки изображений результат оказывался
+    // тензором на одну картинку, а запись по batch-индексу уходила за его пределы.
+    val result = ImageTensor<UByte>(
+        width = width,
+        height = height,
+        pixelFormat = PixelFormat.Grayscale,
+        layout = layout,
+        batchSize = batch
+    )
 
     val rIdx = when (pf) {
         is PixelFormat.RGB -> pf.rIndex
@@ -101,7 +120,6 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
         is PixelFormat.RGBA -> pf.bIndex
     }
 
-    var dstIdx = 0
     for (n in 0 until batch) {
         for (h in 0 until height) {
             for (w in 0 until width) {
@@ -110,7 +128,7 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
                 val b = this[n, h, w, bIdx].toInt() and 0xFF
 
                 val gray = (r * 77 + g * 150 + b * 29) shr 8
-                result.setFlat(dstIdx++, gray.toUByte())
+                result[n, h, w, 0] = gray.toUByte()
             }
         }
     }
@@ -125,72 +143,72 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
  * of the four nearest original pixels, providing a smoother result than nearest-neighbor
  * resizing.
  *
- * @param newWidth The desired width of the resulting picture.
- * @param newHeight The desired height of the resulting picture.
- * @return A new Picture object with the resized dimensions and interpolated data.
+ * Values are interpolated as they are, without clamping to any range, so tensors in 0..255
+ * and normalized tensors with negative values survive the resize unchanged in scale.
+ * The batch size, layout and pixel format of the source are preserved.
+ *
+ * @param newWidth The desired width of the resulting image.
+ * @param newHeight The desired height of the resulting image.
+ * @return A new [ImageTensor] with the resized dimensions and interpolated data,
+ * or the original tensor if dimensions are unchanged.
+ * @throws IllegalArgumentException If the requested dimensions are not positive.
  */
 fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float> {
-    if (newWidth <= 0 || newHeight <= 0) {
-        throw IllegalArgumentException("New dimensions must be positive.")
-    }
+    require(newWidth > 0 && newHeight > 0) { "New dimensions must be positive." }
 
     if (newWidth == width && newHeight == height) {
         return this // No resize needed
     }
 
-    val resizedData = Array(newWidth) { Array(newHeight) { FloatArray(channels) } }
+    // Батч, layout и формат пикселей переносятся как есть: ресайз меняет только размер.
+    val result = ImageTensor(
+        width = newWidth,
+        height = newHeight,
+        dataType = dataType,
+        pixelFormat = pixelFormat,
+        layout = layout,
+        batchSize = batch
+    )
 
-    // Calculate scale factors
-    // We use (old - 1) / (new - 1) ratio for boundary alignment
-    val xRatio = (width - 1).toFloat() / (newWidth - 1).toFloat()
-    val yRatio = (height - 1).toFloat() / (newHeight - 1).toFloat()
+    // Отношение (old - 1) / (new - 1) выравнивает границы: крайние пиксели исходника
+    // попадают ровно в крайние пиксели результата. Для размера 1 делителя нет, и тогда
+    // берётся единственный доступный пиксель, иначе получилась бы Infinity и NaN.
+    val xRatio = if (newWidth > 1) (width - 1).toFloat() / (newWidth - 1) else 0f
+    val yRatio = if (newHeight > 1) (height - 1).toFloat() / (newHeight - 1) else 0f
 
-    for (ny in 0 until newHeight) {
-        for (nx in 0 until newWidth) {
-            for (nb in 0 until batch) {
+    for (n in 0 until batch) {
+        for (ny in 0 until newHeight) {
+            // Координаты по вертикали не зависят от столбца, поэтому считаются один раз на строку
+            val oy = ny * yRatio
+            val y1 = oy.toInt()
+            val y2 = (y1 + 1).coerceAtMost(height - 1)
+            val dy = oy - y1
 
-                // 1. Calculate the corresponding float coordinates in the original image
+            for (nx in 0 until newWidth) {
                 val ox = nx * xRatio
-                val oy = ny * yRatio
-
-                // 2. Find the four surrounding original pixels (Q11, Q21, Q12, Q22)
                 val x1 = ox.toInt()
-                val y1 = oy.toInt()
-
-                // x2 and y2 are min(x1 + 1, max_index)
                 val x2 = (x1 + 1).coerceAtMost(width - 1)
-                val y2 = (y1 + 1).coerceAtMost(height - 1)
-
-                // Fractional parts (interpolation weights)
                 val dx = ox - x1
-                val dy = oy - y1
 
-                // Loop through all channels (R, G, B, A, etc.)
                 for (c in 0 until channels) {
-                    // Get the four surrounding pixel component values
-                    val Q11 = get(nb, y1, x1, c) // Top-Left
-                    val Q21 = get(nb, y1, x2, c) // Top-Right
-                    val Q12 = get(nb, y2, x1, c) // Bottom-Left
-                    val Q22 = get(nb, y2, x2, c) // Bottom-Right
+                    // Четыре соседних пикселя исходника вокруг искомой точки
+                    val topLeft = this[n, y1, x1, c]
+                    val topRight = this[n, y1, x2, c]
+                    val bottomLeft = this[n, y2, x1, c]
+                    val bottomRight = this[n, y2, x2, c]
 
-                    // 3. Horizontal Interpolation (Linear)
-                    // R1 = interpolate(Q11, Q21) -> Interpolated value on top edge (y1)
-                    val R1 = Q11 * (1f - dx) + Q21 * dx
-                    // R2 = interpolate(Q12, Q22) -> Interpolated value on bottom edge (y2)
-                    val R2 = Q12 * (1f - dx) + Q22 * dx
+                    val top = topLeft * (1f - dx) + topRight * dx
+                    val bottom = bottomLeft * (1f - dx) + bottomRight * dx
 
-                    // 4. Vertical Interpolation (Bilinear)
-                    // P' = interpolate(R1, R2) -> Final interpolated value
-                    val P_prime = R1 * (1f - dy) + R2 * dy
-
-                    // Clamp the final value (e.g., in case of floating point errors) and store it
-                    resizedData[ny][nx][c] = P_prime.coerceIn(0f, 1f)
+                    // Без обрезки диапазона: тензор может быть и в 0..255, и нормализованным
+                    // в отрицательные значения, а интерполяция не вправе менять его шкалу.
+                    result[n, ny, nx, c] = top * (1f - dy) + bottom * dy
                 }
             }
         }
     }
 
-    return ImageTensor(layout, pixelFormat, resizedData)
+    return result
 }
 
 /**
@@ -199,15 +217,27 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
  * This implementation uses nearest-neighbor scaling for [UByte] tensors to maintain efficiency
  * and avoid the floating-point conversions required for bilinear interpolation.
  *
+ * The batch size, layout and pixel format of the source are preserved.
+ *
  * @param newWidth The desired width of the resulting image.
  * @param newHeight The desired height of the resulting image.
  * @return A new [ImageTensor] with the specified dimensions, or the original tensor if dimensions are unchanged.
+ * @throws IllegalArgumentException If the requested dimensions are not positive.
  */
 @JvmName("resizeUByte")
 fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte> {
+    require(newWidth > 0 && newHeight > 0) { "New dimensions must be positive." }
+
     if (newWidth == width && newHeight == height) return this
 
-    val result = ImageTensor<UByte>(newWidth, newHeight, pixelFormat, layout)
+    // Батч, layout и формат пикселей переносятся как есть: ресайз меняет только размер.
+    val result = ImageTensor<UByte>(
+        width = newWidth,
+        height = newHeight,
+        pixelFormat = pixelFormat,
+        layout = layout,
+        batchSize = batch
+    )
     val xRatio = width.toFloat() / newWidth
     val yRatio = height.toFloat() / newHeight
 

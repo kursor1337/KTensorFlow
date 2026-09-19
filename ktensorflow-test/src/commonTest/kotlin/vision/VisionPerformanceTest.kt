@@ -1,10 +1,13 @@
 package vision
 
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.vision.Image
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
 import dev.kursor.ktensorflow.vision.Normalization
 import dev.kursor.ktensorflow.vision.PaddedImage
 import dev.kursor.ktensorflow.vision.PixelFormat
 import dev.kursor.ktensorflow.vision.resizeWithPad
+import dev.kursor.ktensorflow.vision.tensorize
 import dev.kursor.ktensorflow.vision.tensorizeFloat
 import kotlin.random.Random
 import kotlin.test.Test
@@ -65,6 +68,19 @@ class VisionPerformanceTest {
 
         measure("tensorizeFloat ${modelSize}x$modelSize") {
             padded.tensorizeFloat(normalization = Normalization.MinusOneToOne)
+        }
+
+        // NCHW раньше шёл по медленному пути с пересчётом смещения по страйдам на каждый
+        // канал; после объединения оба layout'а идут одним и тем же кодом.
+        measure("tensorizeFloat ${modelSize}x$modelSize NCHW") {
+            padded.tensorizeFloat(
+                layout = ImageTensorLayout.NCHW,
+                normalization = Normalization.MinusOneToOne
+            )
+        }
+
+        measure("tensorize UByte ${modelSize}x$modelSize") {
+            padded.tensorize(TensorDataType.UInt8)
         }
 
         measure("FULL preprocessing (resizeWithPad + tensorizeFloat)") {

@@ -59,6 +59,23 @@ class CoroutinesModuleTests {
     }
 
     @Test
+    fun processFlowWorksWithSingleInputBuilderPipelines() = runTest {
+        // Pipeline.input(...).inference(...).output(...).build() строит Pipeline<Tuple.One<Input>, ...>,
+        // поэтому Flow<Input> должен приниматься без ручной обёртки в tuple() - так же, как в
+        // processFlowDropping.
+        val received = mutableListOf<Tuple.One<Int>>()
+        val pipeline = Pipeline(Stage<Tuple.One<Int>, Int> { input ->
+            received += input
+            input.first * 2
+        })
+
+        val result = pipeline.processFlow(flowOf(1, 2, 3)).toList()
+
+        assertEquals(listOf(2, 4, 6), result)
+        assertEquals(listOf(tuple(1), tuple(2), tuple(3)), received)
+    }
+
+    @Test
     fun processFlowDroppingProcessesTheFirstItemAndDropsTheRestWhileBusy() = runTest {
         // Симулируем медленную (например, реальную ML) обработку блокирующей задержкой -
         // run() не suspend-функция, поэтому используем настоящий блокирующий вызов.
