@@ -90,6 +90,7 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 decompose-core = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
@@ -108,6 +109,8 @@ cocoapods-gradle-plugin = { module = "org.jetbrains.kotlin.native.cocoapods:org.
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
+
+binary-compatibility-gradle-plugin = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "binary-compatibility" }
 
 # KTensorFlow
 ktensorflow-core = { module = "dev.kursor.ktensorflow:ktensorflow-core", version.ref="ktensorflow" }
@@ -136,3 +139,4 @@ binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibil
 convention-detekt = { id = "convention.detekt" }
 convention-publishing = { id = "convention.publishing" }
 convention-verify = { id = "convention.verify" }
+convention-binary-compatibility = { id = "convention.binaryCompatibility" }

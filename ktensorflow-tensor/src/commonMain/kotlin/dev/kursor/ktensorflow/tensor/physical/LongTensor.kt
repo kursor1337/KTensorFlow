@@ -15,7 +15,7 @@ import dev.kursor.ktensorflow.tensor.writeLong
  * @param shape - shape of the tensor
  * @param data - raw data of the tensor
  */
-class LongTensor(
+internal class LongTensor(
     override val shape: TensorShape,
     override val data: ByteArray
 ) : PhysicalTensor<Long> {

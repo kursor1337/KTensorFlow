@@ -42,7 +42,7 @@ class InterpreterTest {
         data.forEachIndexed { i, pair ->
             val (label, image) = pair
 
-            val input = Tensor<UByte>(image).toFloatTensor() / 255f
+            val input = (Tensor<UByte>(image).toFloatTensor() / 255f).toPhysical()
 
             val output = Tensor<Float>(
                 shape = TensorShape(10)
@@ -57,7 +57,6 @@ class InterpreterTest {
             if (result == label.toInt()) {
                 accuratePredictions++
             }
-            println("test $i: result = $result")
         }
         val accuracy = accuratePredictions.toDouble() / data.size
         println("accuracy: $accuracy")

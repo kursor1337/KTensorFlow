@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
-    alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.convention.binary.compatibility)
 }
 
 kotlin {
@@ -22,7 +22,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.ktensorflowCore)
+            // api, а не implementation: публичные сигнатуры модуля раскрывают типы
+            // этих модулей, поэтому потребителям они нужны транзитивно
+            api(projects.ktensorflowCore)
         }
     }
 }

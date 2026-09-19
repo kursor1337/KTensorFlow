@@ -2,9 +2,6 @@ package dev.kursor.ktensorflow
 
 /**
  * Options for [Interpreter].
- * @param numThreads Number of threads to use for inference.
- * @param useXNNPACK Whether to use XNNPACK for optimized inference.
- * @param hardware [Hardware] to use for inference.
  */
 expect class InterpreterOptions
 

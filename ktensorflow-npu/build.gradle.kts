@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
     alias(libs.plugins.kotlin.cocoapods)
-    alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.convention.binary.compatibility)
 }
 
 kotlin {
@@ -50,7 +50,9 @@ kotlin {
             implementation(libs.tensorflow.gpu)
             implementation(libs.tensorflow.gpu.api)
 
-            implementation(projects.ktensorflowCore)
+            // api, а не implementation: публичные сигнатуры модуля раскрывают типы
+            // этих модулей, поэтому потребителям они нужны транзитивно
+            api(projects.ktensorflowCore)
         }
     }
 }
