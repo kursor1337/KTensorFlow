@@ -15,16 +15,18 @@ internal class AndroidInterpreter(
     options: InterpreterOptions
 ) : Interpreter {
 
-    private val tensorFlowInterpreter = when (modelDesc) {
-        is ModelDesc.ByteBuffer -> TFLInterpreter(
-            modelDesc.buffer,
-            options.tflOptions,
-        )
+    private val tensorFlowInterpreter = tensorFlowCall("load the model") {
+        when (modelDesc) {
+            is ModelDesc.ByteBuffer -> TFLInterpreter(
+                modelDesc.buffer,
+                options.tflOptions,
+            )
 
-        is ModelDesc.File -> TFLInterpreter(
-            modelDesc.file,
-            options.tflOptions,
-        )
+            is ModelDesc.File -> TFLInterpreter(
+                modelDesc.file,
+                options.tflOptions,
+            )
+        }
     }
 
     override val inputTensorCount: Int
@@ -33,7 +35,7 @@ internal class AndroidInterpreter(
     override val outputTensorCount: Int
         get() = tensorFlowInterpreter.outputTensorCount
 
-    override fun getModelMeta(): ModelMeta {
+    override fun getModelMeta(): ModelMeta = tensorFlowCall("read the model metadata") {
         val rawInputs = (0 until inputTensorCount).map { i ->
             i to tensorFlowInterpreter.getInputTensor(i)
         }
@@ -89,10 +91,10 @@ internal class AndroidInterpreter(
                     )
                 }
 
-            return ModelMeta(inputs, outputs)
+            return@tensorFlowCall ModelMeta(inputs, outputs)
         }
 
-        return ModelMeta(
+        ModelMeta(
             inputData = rawInputs.map { (index, tensor) ->
                 ModelTensorData(
                     index = index,
@@ -114,7 +116,7 @@ internal class AndroidInterpreter(
         )
     }
 
-    override fun resizeInput(index: Int, dims: IntArray) {
+    override fun resizeInput(index: Int, dims: IntArray) = tensorFlowCall("resize input $index") {
         tensorFlowInterpreter.resizeInput(index, dims)
         tensorFlowInterpreter.allocateTensors()
     }
@@ -132,13 +134,15 @@ internal class AndroidInterpreter(
                 .apply { order(ByteOrder.nativeOrder()) }
         }
 
-        tensorFlowInterpreter.runForMultipleInputsOutputs(
-            inputsArray,
-            outputsArray
-        )
+        tensorFlowCall("run inference") {
+            tensorFlowInterpreter.runForMultipleInputsOutputs(
+                inputsArray,
+                outputsArray
+            )
+        }
     }
 
-    override fun close() {
+    override fun close() = tensorFlowCall("close the interpreter") {
         tensorFlowInterpreter.close()
     }
 }
