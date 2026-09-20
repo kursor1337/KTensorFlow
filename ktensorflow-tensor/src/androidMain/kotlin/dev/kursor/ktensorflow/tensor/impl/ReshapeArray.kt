@@ -9,8 +9,6 @@ import java.lang.reflect.Array
 internal actual fun reshapeArray(flat: Any, dimentions: IntArray): Any {
     require(dimentions.isNotEmpty())
 
-
-
     var index = 0
 
     // Determine primitive component type

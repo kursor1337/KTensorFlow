@@ -35,12 +35,12 @@ class TransformationsTest {
         val data = Array(2) { i -> FloatArray(3) { j -> (i * 3 + j).toFloat() } }
         val tensor = Tensor<Float>(data)
         val result = FloatArray(6)
-        var index = 0;
+        var index = 0
         tensor.forEach {
             result[index++] = it
         }
         assertContentEquals(
-            expected =  floatArrayOf(0f, 1f, 2f, 3f, 4f, 5f),
+            expected = floatArrayOf(0f, 1f, 2f, 3f, 4f, 5f),
             actual = result
         )
     }
@@ -54,7 +54,7 @@ class TransformationsTest {
             result[index[0]][index[1]] = it
         }
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(0f, 1f, 2f), floatArrayOf(3f, 4f, 5f)),
+            expected = arrayOf(floatArrayOf(0f, 1f, 2f), floatArrayOf(3f, 4f, 5f)),
             actual = result
         )
     }
@@ -65,7 +65,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.map { it * 2 }.flatten().toPhysical().toArray<FloatArray>()
         assertContentEquals(
-            expected =  floatArrayOf(0f, 2f, 4f, 6f, 8f, 10f),
+            expected = floatArrayOf(0f, 2f, 4f, 6f, 8f, 10f),
             actual = result
         )
     }
@@ -78,7 +78,7 @@ class TransformationsTest {
             it * 2 + index.toFlatIndex(tensor.shape)
         }.flatten().toPhysical().toArray<FloatArray>()
         assertContentEquals(
-            expected =  floatArrayOf(0f, 3f, 6f, 9f, 12f, 15f),
+            expected = floatArrayOf(0f, 3f, 6f, 9f, 12f, 15f),
             actual = result
         )
     }
@@ -89,7 +89,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         tensor.mapInPlace { it * 2 }
         assertContentEquals(
-            expected =  floatArrayOf(0f, 2f, 4f, 6f, 8f, 10f),
+            expected = floatArrayOf(0f, 2f, 4f, 6f, 8f, 10f),
             actual = tensor.flatten().toPhysical().toArray()
         )
     }
@@ -102,7 +102,7 @@ class TransformationsTest {
             it * 2 + index.toFlatIndex(tensor.shape)
         }
         assertContentEquals(
-            expected =  floatArrayOf(0f, 3f, 6f, 9f, 12f, 15f),
+            expected = floatArrayOf(0f, 3f, 6f, 9f, 12f, 15f),
             actual = tensor.flatten().toPhysical().toArray()
         )
     }
@@ -113,7 +113,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.reshape(TensorShape(3, 2)).toPhysical().toArray<Array<FloatArray>>()
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(0f, 1f), floatArrayOf(2f, 3f), floatArrayOf(4f, 5f)),
+            expected = arrayOf(floatArrayOf(0f, 1f), floatArrayOf(2f, 3f), floatArrayOf(4f, 5f)),
             actual = result
         )
     }
@@ -124,7 +124,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.flatten().toPhysical().toArray<FloatArray>()
         assertContentEquals(
-            expected =  floatArrayOf(0f, 1f, 2f, 3f, 4f, 5f),
+            expected = floatArrayOf(0f, 1f, 2f, 3f, 4f, 5f),
             actual = result
         )
     }
@@ -135,7 +135,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.transpose().toPhysical().toArray<Array<FloatArray>>()
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(0f, 3f), floatArrayOf(1f, 4f), floatArrayOf(2f, 5f)),
+            expected = arrayOf(floatArrayOf(0f, 3f), floatArrayOf(1f, 4f), floatArrayOf(2f, 5f)),
             actual = result
         )
     }
@@ -147,7 +147,7 @@ class TransformationsTest {
         val result = tensor.slice(arrayOf(0..1, 1..2)).toPhysical().toArray<Array<FloatArray>>()
 
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(1f, 2f), floatArrayOf(4f, 5f)),
+            expected = arrayOf(floatArrayOf(1f, 2f), floatArrayOf(4f, 5f)),
             actual = result
         )
     }
@@ -174,7 +174,7 @@ class TransformationsTest {
         val tensor = Tensor<Int>(data)
         val result = tensor.toFloatTensor()
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(0f, 1f, 2f), floatArrayOf(3f, 4f, 5f)),
+            expected = arrayOf(floatArrayOf(0f, 1f, 2f), floatArrayOf(3f, 4f, 5f)),
             actual = result.toPhysical().toArray()
         )
     }
@@ -186,7 +186,7 @@ class TransformationsTest {
         val tensor = Tensor<UByte>(data)
         val result = tensor.toIntTensor()
         assertContentDeepEquals(
-            expected =  arrayOf(intArrayOf(0, 1, 2), intArrayOf(3, 4, 5)),
+            expected = arrayOf(intArrayOf(0, 1, 2), intArrayOf(3, 4, 5)),
             actual = result.toPhysical().toArray()
         )
     }
@@ -213,7 +213,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.argmax()
         assertContentEquals(
-            expected =  intArrayOf(1, 2),
+            expected = intArrayOf(1, 2),
             actual = result
         )
     }
@@ -224,7 +224,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.argmin()
         assertContentEquals(
-            expected =  intArrayOf(0, 0),
+            expected = intArrayOf(0, 0),
             actual = result
         )
     }
@@ -235,7 +235,7 @@ class TransformationsTest {
         val tensor = Tensor<Float>(data)
         val result = tensor.normalize()
         assertContentDeepEquals(
-            expected =  arrayOf(floatArrayOf(0f / 5, 1f / 5, 2f / 5), floatArrayOf(3f / 5, 4f / 5, 5f / 5)),
+            expected = arrayOf(floatArrayOf(0f / 5, 1f / 5, 2f / 5), floatArrayOf(3f / 5, 4f / 5, 5f / 5)),
             actual = result.toPhysical().toArray()
         )
     }

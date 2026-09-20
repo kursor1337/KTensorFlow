@@ -8,7 +8,7 @@ class CsvDataFrame(
     private val columns = reader
         .readLine()
         .split(",")
-        .mapIndexed { index, string -> string to index}
+        .mapIndexed { index, string -> string to index }
         .toMap()
 
     init {

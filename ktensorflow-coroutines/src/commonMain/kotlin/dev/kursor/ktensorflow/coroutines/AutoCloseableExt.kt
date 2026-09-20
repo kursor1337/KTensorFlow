@@ -3,7 +3,6 @@ package dev.kursor.ktensorflow.coroutines
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-
 /**
  * Applies the given transformation function to each item of the flow and automatically closes each item.
  *

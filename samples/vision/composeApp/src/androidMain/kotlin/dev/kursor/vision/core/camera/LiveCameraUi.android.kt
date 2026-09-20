@@ -87,8 +87,6 @@ actual fun LiveCameraUi(
             }, ContextCompat.getMainExecutor(ctx))
             previewView
         },
-        update = {
-
-        }
+        update = {}
     )
 }

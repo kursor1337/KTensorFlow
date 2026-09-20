@@ -65,7 +65,6 @@ interface ImageTensor<T : Any> : Tensor<T> {
      */
     operator fun get(h: Int, w: Int, c: Int) = get(0, h, w, c)
 
-
     /**
      * Sets the value at the specified batch index [n], height [h], width [w], and channel [c].
      *

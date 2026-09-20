@@ -20,15 +20,19 @@ actual fun Image.resize(
 actual fun Image.crop(
     rect: Rect,
     closeOriginal: Boolean
-): Image = Bitmap
-    .createBitmap(
-        platformImage,
-        rect.left,
-        rect.top,
-        rect.right - rect.left,
-        rect.bottom - rect.top
-    )
-    .asImage(source = this, pixelFormat = pixelFormat, closeOriginal = closeOriginal)
+): Image {
+    requireInsideImage(rect)
+
+    return Bitmap
+        .createBitmap(
+            platformImage,
+            rect.left,
+            rect.top,
+            rect.right - rect.left,
+            rect.bottom - rect.top
+        )
+        .asImage(source = this, pixelFormat = pixelFormat, closeOriginal = closeOriginal)
+}
 
 actual fun Image.rotate(
     degrees: Float,

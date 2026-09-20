@@ -51,6 +51,8 @@ actual fun Image.crop(
     rect: Rect,
     closeOriginal: Boolean
 ): Image {
+    requireInsideImage(rect)
+
     val newWidth = rect.right - rect.left
     val newHeight = rect.bottom - rect.top
     val out = ByteArray(newWidth * newHeight * pixelFormat.channels)
@@ -109,7 +111,11 @@ actual fun Image.rotate(
         )
         CGContextRotateCTM(
             c = ctx,
-            angle = radians
+            // Знак инвертирован намеренно: у CoreGraphics ось Y направлена вверх, и
+            // положительный угол выглядел бы поворотом ПРОТИВ часовой стрелки. На Android
+            // Matrix.postRotate, как и EXIF с CameraX, считает положительный угол поворотом
+            // ПО часовой, и rotate(90f) обязан давать одну и ту же картинку на обеих платформах.
+            angle = -radians
         )
         CGContextTranslateCTM(
             c = ctx,
@@ -144,16 +150,48 @@ actual fun Image.grayscale(
     closeOriginal: Boolean
 ): Image {
     val out = ByteArray(width * height)
-    val rgba = pixelFormat as? PixelFormat.RGBA
-        ?: error("Grayscale supports only RGBA formats")
-    var src = 0
-    var dst = 0
-    repeat(width * height) {
-        val r = platformImage[src + rgba.rIndex].toInt() and 0xFF
-        val g = platformImage[src + rgba.gIndex].toInt() and 0xFF
-        val b = platformImage[src + rgba.bIndex].toInt() and 0xFF
-        out[dst++] = (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255).toByte()
-        src += rgba.channels
+    // platformImage - геттер с проверкой на закрытое изображение, в горячем цикле он
+    // поднят в локальную переменную
+    val bytes = platformImage
+
+    // Поддержаны все форматы: на Android grayscale работает с любым изображением, а здесь
+    // RGB и уже серое падали с исключением
+    when (val format = pixelFormat) {
+        PixelFormat.Grayscale -> bytes.copyInto(out, endIndex = out.size)
+
+        is PixelFormat.RGB -> {
+            var src = 0
+            for (dst in out.indices) {
+                val r = bytes[src + format.rIndex].toInt() and 0xFF
+                val g = bytes[src + format.gIndex].toInt() and 0xFF
+                val b = bytes[src + format.bIndex].toInt() and 0xFF
+                out[dst] = luma(r, g, b)
+                src += 3
+            }
+        }
+
+        is PixelFormat.RGBA -> {
+            var src = 0
+            for (dst in out.indices) {
+                // Буфер premultiplied: без обратного умножения полупрозрачные пиксели
+                // потемнели бы, и результат разошёлся бы с Android
+                val a = bytes[src + format.aIndex].toInt() and 0xFF
+                val r: Int
+                val g: Int
+                val b: Int
+                if (a == 0xFF) {
+                    r = bytes[src + format.rIndex].toInt() and 0xFF
+                    g = bytes[src + format.gIndex].toInt() and 0xFF
+                    b = bytes[src + format.bIndex].toInt() and 0xFF
+                } else {
+                    r = bytes[src + format.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    g = bytes[src + format.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    b = bytes[src + format.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                }
+                out[dst] = luma(r, g, b)
+                src += 4
+            }
+        }
     }
 
     if (closeOriginal) close()
@@ -166,6 +204,9 @@ actual fun Image.grayscale(
     )
 }
 
+/** Яркость по ITU-R 601 - те же веса, что использует ColorMatrix на Android. */
+private fun luma(r: Int, g: Int, b: Int): Byte =
+    (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255).toByte()
 
 private fun <R> withBitmapContext(
     out: ByteArray,
@@ -175,10 +216,11 @@ private fun <R> withBitmapContext(
     block: (CGContextRef?) -> R
 ): R {
     val colorSpace =
-        if (pixelFormat == PixelFormat.Grayscale)
+        if (pixelFormat == PixelFormat.Grayscale) {
             CGColorSpaceCreateDeviceGray()
-        else
+        } else {
             CGColorSpaceCreateDeviceRGB()
+        }
 
     return out.usePinned {
         val ctx = CGBitmapContextCreate(
@@ -198,6 +240,3 @@ private fun <R> withBitmapContext(
         }
     }
 }
-
-
-

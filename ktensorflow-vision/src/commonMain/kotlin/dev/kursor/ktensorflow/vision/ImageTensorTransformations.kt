@@ -135,7 +135,6 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
     return result
 }
 
-
 /**
  * Resizes the given Picture to the new specified dimensions using Bilinear Interpolation.
  *

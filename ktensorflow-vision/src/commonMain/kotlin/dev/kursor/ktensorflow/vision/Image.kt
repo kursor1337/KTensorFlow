@@ -1,6 +1,5 @@
 package dev.kursor.ktensorflow.vision
 
-
 /**
  * A cross-platform image representation.
  *
@@ -26,6 +25,9 @@ interface Image : AutoCloseable {
     /**
      * Returns the pixel value at the specified coordinates as a packed ARGB Int (0xAARRGGBB).
      * For grayscale images, the R, G, and B components are identical.
+     *
+     * Coordinates outside the image return a transparent black pixel (0) rather than failing,
+     * so sampling around edges does not need explicit bounds checks.
      */
     operator fun get(x: Int, y: Int): Int
 
@@ -59,7 +61,10 @@ interface Image : AutoCloseable {
  * @param width The width of the new image.
  * @param height The height of the new image.
  * @param pixelFormat The format to be used for internal storage.
- * @param pixels Initial pixel data as packed ARGB values (0xAARRGGBB).
+ * @param pixels Initial pixel data as packed ARGB values (0xAARRGGBB). For
+ * [PixelFormat.Grayscale] the single stored channel is taken from the lowest byte of each
+ * value, the same byte [tensorize] reads, so passing colored pixels keeps their blue channel.
+ * Use [grayscale] to convert colors to luminance properly.
  * @return A platform-specific implementation of [Image].
  */
 expect fun Image(

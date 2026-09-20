@@ -11,7 +11,6 @@ plugins {
 
     alias(libs.plugins.convention.detekt)
     alias(libs.plugins.convention.verify)
-
 }
 
 group = "dev.kursor.ktensorflow"

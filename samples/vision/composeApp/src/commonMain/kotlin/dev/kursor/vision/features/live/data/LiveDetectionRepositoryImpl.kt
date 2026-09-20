@@ -86,7 +86,6 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         )
         .build()
 
-
     val dispatcher = Dispatchers.Default.limitedParallelism(1)
 
     @OptIn(ExperimentalTime::class)
@@ -107,7 +106,6 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
                 val boxes = inferenceResult.second
                 val classIds = inferenceResult.third
                 val scores = inferenceResult.fourth
-
 
                 val mapTime = measureTime {
                     detectionResult = mapToDetectionResult(
@@ -149,7 +147,7 @@ private fun <I> Stage<I, Tensor<Float>>.toBoundingBoxes(maxDetections: Int): Sta
                 tensor[0, i, 0], // ymin
                 tensor[0, i, 1], // xmin
                 tensor[0, i, 2], // ymax
-                tensor[0, i, 3]  // xmax
+                tensor[0, i, 3] // xmax
             )
         }
     }

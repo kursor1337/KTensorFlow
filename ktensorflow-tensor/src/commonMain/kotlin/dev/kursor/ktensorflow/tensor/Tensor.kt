@@ -9,7 +9,7 @@ import dev.kursor.ktensorflow.tensor.physical.UByteTensor
 
 /**
  * Represents a [Tensor] - multidimensional array of data
- * 
+ *
  * @param T The type of the data.
  */
 interface Tensor<T : Any> {
@@ -27,14 +27,14 @@ interface Tensor<T : Any> {
 
     /**
      * Gets a typed element from this [Tensor]
-     * 
+     *
      * @param index - coordinates of the element
      */
     operator fun get(index: IntArray): T
 
     /**
      * Sets a typed element to this [Tensor]
-     * 
+     *
      * @param index - coordinates of the element
      * @param value - value to set
      */
@@ -87,7 +87,7 @@ operator fun <T : Any> Tensor<T>.set(vararg index: Int, value: T) {
 
 /**
  * Creates a [Tensor] with the specified data type, shape and data.
- * 
+ *
  *
  * @param dataType - data type of the [Tensor]
  * @param shape - shape of the [Tensor]
@@ -123,7 +123,7 @@ inline fun <reified T : Any> Tensor(
  * For example: Array<Array<Array<FloatArray>>>
  * Boxed arrays (for example Array<Float>) are not supported,
  * use primitive arrays (like FloatArray) instead.
- * 
+ *
  * @param dataType - data type of the [Tensor]
  * @param data - raw data of the [Tensor]
  */

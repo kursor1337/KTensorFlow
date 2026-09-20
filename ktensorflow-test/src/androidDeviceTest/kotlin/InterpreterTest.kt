@@ -37,7 +37,7 @@ class InterpreterTest {
     fun test(delegate: Delegate?) {
         val interpreter = createInterpreter(
             context = context,
-            modelFileName =  "mnist.tflite",
+            modelFileName = "mnist.tflite",
             delegate = delegate
         )
 

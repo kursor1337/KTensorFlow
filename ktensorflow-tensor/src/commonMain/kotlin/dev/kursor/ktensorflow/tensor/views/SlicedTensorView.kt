@@ -19,7 +19,7 @@ internal class SlicedTensorView<T : Any>(
     }
 
     override val dataType: TensorDataType<T> = delegate.dataType
-    
+
     // Новая форма — это размеры переданных диапазонов
     override val shape: TensorShape = TensorShape(
         *ranges.map { it.last - it.first + 1 }.toIntArray()

@@ -35,7 +35,10 @@ class IosImage(
         val o = y * bytesPerRow + x * bytesPerPixel
         return when (pixelFormat) {
             PixelFormat.Grayscale -> {
-                data[o].toInt()
+                // Контракт Image: наружу всегда упакованный ARGB, у серого R=G=B.
+                // Без маски байт >= 128 приходил наружу отрицательным числом.
+                val v = data[o].toInt() and 0xFF
+                (0xFF shl 24) or (v shl 16) or (v shl 8) or v
             }
             is PixelFormat.RGB -> {
                 val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
@@ -45,11 +48,21 @@ class IosImage(
                 (a shl 24) or (r shl 16) or (g shl 8) or b
             }
             is PixelFormat.RGBA -> {
-                val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
-                val g = data[o + pixelFormat.gIndex].toInt() and 0xFF
-                val r = data[o + pixelFormat.rIndex].toInt() and 0xFF
+                // Буфер хранит premultiplied alpha, поэтому здесь нужно то же обратное
+                // умножение, что и в getPixels: иначе один и тот же полупрозрачный пиксель
+                // читался бы по-разному в зависимости от способа доступа.
                 val a = data[o + pixelFormat.aIndex].toInt() and 0xFF
-                (a shl 24) or (r shl 16) or (g shl 8) or b
+                if (a == 0xFF) {
+                    val b = data[o + pixelFormat.bIndex].toInt() and 0xFF
+                    val g = data[o + pixelFormat.gIndex].toInt() and 0xFF
+                    val r = data[o + pixelFormat.rIndex].toInt() and 0xFF
+                    (a shl 24) or (r shl 16) or (g shl 8) or b
+                } else {
+                    val b = data[o + pixelFormat.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    val g = data[o + pixelFormat.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    val r = data[o + pixelFormat.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
+                    (a shl 24) or (r shl 16) or (g shl 8) or b
+                }
             }
         }
     }
@@ -68,7 +81,8 @@ class IosImage(
         when (pixelFormat) {
             PixelFormat.Grayscale -> {
                 for (i in buffer.indices) {
-                    buffer[i] = bytes[i].toInt() and 0xFF
+                    val v = bytes[i].toInt() and 0xFF
+                    buffer[i] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
                 }
             }
             is PixelFormat.RGB -> {
@@ -122,7 +136,7 @@ class IosImage(
     }
 }
 
-private fun Int.unpremultiplyAlpha(a: Int): Int = if (a == 0) {
+internal fun Int.unpremultiplyAlpha(a: Int): Int = if (a == 0) {
     0
 } else {
     (this.toFloat() / a * 255).roundToInt()

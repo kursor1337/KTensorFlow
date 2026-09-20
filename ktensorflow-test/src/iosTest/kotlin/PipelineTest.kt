@@ -119,7 +119,6 @@ fun <T> Stage<T, Tensor<Float>>.normalize() = this.then {
     it.normalize()
 }
 
-
 @OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Tensor<Float>>.argmax() = this.then {
     it.argmax()[0]

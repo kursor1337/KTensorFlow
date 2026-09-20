@@ -4,7 +4,7 @@ import kotlin.jvm.JvmName
 
 /**
  * Adds two [Tensor]s element-wise.
- * 
+ *
  * @param other - [Tensor] to add
  */
 @JvmName("floatTensorPlusFloatTensor")
@@ -419,7 +419,7 @@ operator fun Tensor<Long>.minus(other: Tensor<Long>): Tensor<Long> =
 
 /**
  * Subtracts a number from all elements of this tensor
- * 
+ *
  * @param other - number to subtract
  */
 @JvmName("floatTensorMinusFloat")

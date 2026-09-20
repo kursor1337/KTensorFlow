@@ -234,11 +234,17 @@ fun List<Image>.tensorizeBatchFloat(
  *
  * @param normalization The [Normalization] parameters used to reverse scaling/shifting
  * applied during the initial tensorization. Defaults to [Normalization.None].
+ * @param batchIndex The index of the image to extract from a batched tensor.
+ * @throws IllegalArgumentException If [batchIndex] is outside the tensor's batch.
  */
 fun ImageTensor<Float>.toImage(
     normalization: Normalization = Normalization.None,
     batchIndex: Int = 0
 ): Image {
+    require(batchIndex in 0 until batch) {
+        "batchIndex $batchIndex is out of bounds for a tensor with batch size $batch"
+    }
+
     val pixels = IntArray(width * height)
     val offsets = ImageOffsets(this)
 

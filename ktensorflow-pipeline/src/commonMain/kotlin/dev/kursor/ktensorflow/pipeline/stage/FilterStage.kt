@@ -23,4 +23,6 @@ class IndexedFilterStage<T>(private val predicate: (Int, T) -> Boolean) : Stage<
 }
 
 @ExperimentalKTensorFlowApi
-fun <Input, T> Stage<Input, List<T>>.filterIndexed(predicate: (Int, T) -> Boolean) = this.then(IndexedFilterStage(predicate))
+fun <Input, T> Stage<Input, List<T>>.filterIndexed(
+    predicate: (Int, T) -> Boolean
+) = this.then(IndexedFilterStage(predicate))

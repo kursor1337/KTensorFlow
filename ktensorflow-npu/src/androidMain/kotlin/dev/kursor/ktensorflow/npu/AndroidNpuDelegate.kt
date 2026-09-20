@@ -1,7 +1,6 @@
 package dev.kursor.ktensorflow.npu
 
 import android.os.Build
-import dev.kursor.ktensorflow.npu.NpuDelegate
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.nnapi.NnApiDelegate

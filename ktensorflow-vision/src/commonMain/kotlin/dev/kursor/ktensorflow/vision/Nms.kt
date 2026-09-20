@@ -50,7 +50,7 @@ private fun <T> List<T>.nmsSingleClass(
 
     for (i in sorted.indices) {
         if (!active[i]) continue
-        
+
         val current = sorted[i]
         val currentBox = boxSelector(current)
         results.add(current)
@@ -64,6 +64,6 @@ private fun <T> List<T>.nmsSingleClass(
             }
         }
     }
-    
+
     return results
 }

@@ -65,7 +65,6 @@ actual fun LiveCameraUi(
                 videoSettings = mapOf(kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA)
                 val connection = connectionWithMediaType(AVMediaTypeVideo)
                 connection?.videoOrientation = AVCaptureVideoOrientationPortrait
-
             }
 
             val queue = dispatch_queue_create("camera.frame.queue", null)
@@ -93,8 +92,8 @@ actual fun LiveCameraUi(
                             out.refTo(0),
                             width,
                             height,
-                            8u,                              // bits per component
-                            width * bytesPerPixel,          // bytes per row (tight)
+                            8u, // bits per component
+                            width * bytesPerPixel, // bytes per row (tight)
                             colorSpace,
                             CGImageAlphaInfo.kCGImageAlphaPremultipliedFirst.value or kCGBitmapByteOrder32Little
                         )!!
@@ -119,7 +118,7 @@ actual fun LiveCameraUi(
                                 width = width.toInt(),
                                 height = height.toInt(),
                                 pixelFormat = PixelFormat.BGRA, // matches kCGImageAlphaPremultipliedLast
-                                platformImage = out
+                                pixels = out
                             )
                         )
                     }

@@ -2,7 +2,6 @@ package dev.kursor.ktensorflow.compose
 
 import android.content.Context
 import androidx.startup.Initializer
-import dev.kursor.ktensorflow.compose.appContext
 
 internal lateinit var appContext: Context
 

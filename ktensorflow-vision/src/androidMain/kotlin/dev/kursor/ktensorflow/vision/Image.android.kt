@@ -14,6 +14,10 @@ class AndroidImage(
     override val height: Int = bitmap.height
 
     override operator fun get(x: Int, y: Int): Int {
+        // Вне границ возвращается прозрачный чёрный, как и на iOS: Bitmap.getPixel на
+        // таких координатах бросает исключение, и одна и та же общая логика вела себя
+        // на двух платформах по-разному.
+        if (x !in 0 until width || y !in 0 until height) return 0
         return bitmap[x, y]
     }
 
@@ -40,8 +44,20 @@ actual fun Image(
     pixelFormat: PixelFormat,
     pixels: IntArray
 ): Image {
+    // Для Grayscale хранится один канал - младший байт пикселя, ровно как его читают
+    // tensorize и iOS-реализация. Без этого приведения bitmap оставался цветным, тег
+    // формата врал, а getPixels возвращал цвета там, где iOS уже отдавал серое.
+    val argb = if (pixelFormat == PixelFormat.Grayscale) {
+        IntArray(pixels.size) { i ->
+            val v = pixels[i] and 0xFF
+            (0xFF shl 24) or (v shl 16) or (v shl 8) or v
+        }
+    } else {
+        pixels
+    }
+
     val bitmap = Bitmap.createBitmap(
-        pixels,
+        argb,
         width,
         height,
         Bitmap.Config.ARGB_8888

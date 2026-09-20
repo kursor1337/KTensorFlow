@@ -1,6 +1,5 @@
 package dev.kursor.ktensorflow.vision
 
-
 /**
  * Represents normalization parameters used to scale image pixel values.
  *

@@ -148,6 +148,75 @@ class VisionModuleTests {
         assertEquals(0, padded.info.padY)
     }
 
+    @Test
+    fun resizeWithPadToTheExactSameSizeReturnsAUsableImage() {
+        // Масштабировать нечего, и платформа возвращает ТОТ ЖЕ буфер. Если закрыть промежуточный
+        // результат или исходник, отданное наружу изображение окажется закрытым.
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 4, color)
+
+        val padded = original.resizeWithPad(4, 4)
+
+        assertEquals(4, padded.width)
+        assertEquals(4, padded.height)
+        assertEquals(1.0f, padded.info.scale)
+        assertEquals(0, padded.info.padX)
+        assertEquals(0, padded.info.padY)
+        padded.getPixels().forEach { assertColorApprox(color, it) }
+
+        padded.close()
+    }
+
+    @Test
+    fun resizeWithPadKeepsTheOriginalUsableWhenAskedNotToCloseIt() {
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 4, color)
+
+        val padded = original.resizeWithPad(4, 4, closeOriginal = false)
+
+        // Исходник обязан пережить преобразование, даже если результат разделяет с ним буфер
+        original.getPixels().forEach { assertColorApprox(color, it) }
+        padded.getPixels().forEach { assertColorApprox(color, it) }
+
+        padded.close()
+        original.close()
+    }
+
+    @Test
+    fun resizeWithPadDownscalesWithoutPaddingForAMatchingAspectRatio() {
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(8, 8, color)
+
+        val padded = original.resizeWithPad(4, 4)
+
+        assertEquals(4, padded.width)
+        assertEquals(4, padded.height)
+        assertEquals(0.5f, padded.info.scale)
+        assertEquals(0, padded.info.padX)
+        assertEquals(0, padded.info.padY)
+        padded.getPixels().forEach { assertColorApprox(color, it) }
+
+        padded.close()
+    }
+
+    @Test
+    fun resizeWithPadFillsThePaddingWithTheRequestedColor() {
+        val content = (0xFF shl 24) or (255 shl 16) or (255 shl 8) or 255
+        val pad = (0xFF shl 24) or (0 shl 16) or (0 shl 8) or 0
+        val original = createSolidImage(8, 4, content)
+
+        val padded = original.resizeWithPad(8, 8, padColorArgb = pad)
+
+        // Картинка вписывается по ширине, сверху и снизу остаётся по 2 строки паддинга
+        assertEquals(2, padded.info.padY)
+        val pixels = padded.getPixels()
+        assertColorApprox(pad, pixels[0], tolerance = 2)
+        assertColorApprox(pad, pixels[pixels.size - 1], tolerance = 2)
+        assertColorApprox(content, pixels[4 * 8], tolerance = 2)
+
+        padded.close()
+    }
+
     // --- 3. ТЕСТЫ НА TENSORIZE И NORMALIZATION ---
 
     @Test
@@ -184,8 +253,8 @@ class VisionModuleTests {
         // Значения, которые при денормализации выйдут за пределы 0..255
         val pixelFormat = PixelFormat.RGB
         tensor[0, 0, 0, pixelFormat.rIndex] = -1.5f // Ожидаем 0
-        tensor[0, 0, 0, pixelFormat.gIndex] = 0.5f  // Ожидаем 127
-        tensor[0, 0, 0, pixelFormat.bIndex] = 2.0f  // Ожидаем 255
+        tensor[0, 0, 0, pixelFormat.gIndex] = 0.5f // Ожидаем 127
+        tensor[0, 0, 0, pixelFormat.bIndex] = 2.0f // Ожидаем 255
 
         val img = tensor.toImage(normalization = Normalization.ZeroToOne)
         val pixels = img.getPixels()
@@ -395,6 +464,110 @@ class VisionModuleTests {
         )
 
         assertEquals(emptyList(), result)
+    }
+
+    @Test
+    fun nmsKeepsABoxWhoseIouIsExactlyAtTheThreshold() {
+        // Подавление объявлено как IoU СТРОГО больше порога, поэтому граничный бокс остаётся.
+        // Значение зафиксировано тестом, иначе смена > на >= пройдёт незамеченной.
+        val a = Detection(Rect(0, 0, 10, 10), 0.9f)
+        val b = Detection(Rect(0, 0, 10, 5), 0.8f) // пересечение 50, объединение 100 -> IoU = 0.5
+
+        val atThreshold = listOf(a, b).nms<Detection, Any?>(
+            iouThreshold = 0.5f,
+            scoreThreshold = 0f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+        assertEquals(listOf(a, b), atThreshold, "IoU equal to the threshold must not suppress")
+
+        val justBelowThreshold = listOf(a, b).nms<Detection, Any?>(
+            iouThreshold = 0.49f,
+            scoreThreshold = 0f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+        assertEquals(listOf(a), justBelowThreshold, "IoU above the threshold must suppress")
+    }
+
+    @Test
+    fun nmsKeepsADetectionWhoseScoreIsExactlyAtTheThreshold() {
+        // Фильтр объявлен как score >= scoreThreshold, граница включительна
+        val a = Detection(Rect(0, 0, 10, 10), 0.5f)
+
+        val kept = listOf(a).nms<Detection, Any?>(
+            scoreThreshold = 0.5f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+        assertEquals(listOf(a), kept)
+
+        val dropped = listOf(a).nms<Detection, Any?>(
+            scoreThreshold = 0.5001f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+        assertEquals(emptyList(), dropped)
+    }
+
+    @Test
+    fun nmsKeepsEveryBoxWhenNothingOverlaps() {
+        val boxes = (0 until 5).map { i ->
+            Detection(Rect(i * 20, 0, i * 20 + 10, 10), 0.9f - i * 0.01f)
+        }
+
+        val result = boxes.nms<Detection, Any?>(
+            scoreThreshold = 0f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+
+        assertEquals(boxes, result)
+    }
+
+    @Test
+    fun nmsCollapsesFullyIdenticalDetectionsToASingleOne() {
+        val box = Rect(0, 0, 10, 10)
+        val detections = List(4) { Detection(box, 0.9f) }
+
+        val result = detections.nms<Detection, Any?>(
+            scoreThreshold = 0f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+
+        assertEquals(1, result.size, "identical boxes with identical scores must collapse to one")
+    }
+
+    @Test
+    fun nmsReturnsEmptyListWhenEveryScoreIsBelowTheThreshold() {
+        val detections = listOf(
+            Detection(Rect(0, 0, 10, 10), 0.1f),
+            Detection(Rect(50, 50, 60, 60), 0.2f)
+        )
+
+        val result = detections.nms<Detection, Any?>(
+            scoreThreshold = 0.5f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect }
+        )
+
+        assertEquals(emptyList(), result)
+    }
+
+    @Test
+    fun intersectionOverUnionOfARectWithItselfIsOne() {
+        val rect = Rect(10, 20, 40, 60)
+
+        assertFloatEquals(1f, rect.intersectionOverUnion(rect))
+    }
+
+    @Test
+    fun intersectionOverUnionIsZeroForRectsThatOnlyTouchAtTheEdge() {
+        val a = Rect(0, 0, 10, 10)
+        val b = Rect(10, 0, 20, 10)
+
+        assertFloatEquals(0f, a.intersectionOverUnion(b))
     }
 
     // --- 6. ТЕСТЫ НА ImageTensor grayscale/resize/crop (чистая логика над тензором) ---
@@ -696,6 +869,218 @@ class VisionModuleTests {
         }
 
         grayscaled.close()
+    }
+
+    @Test
+    fun rotateBy90DegreesSwapsDimensionsAndTurnsClockwiseOnBothPlatforms() {
+        // Поворот кадра камеры на 90 градусов - самый частый случай, и направление
+        // поворота обязано совпадать на обеих платформах: Matrix.postRotate и
+        // CGContextRotateCTM считают угол в разных системах координат.
+        val red = (0xFF shl 24) or (255 shl 16)
+        val blue = (0xFF shl 24) or 255
+        val original = Image(2, 1, PixelFormat.ARGB, intArrayOf(red, blue))
+
+        val rotated = original.rotate(90f)
+
+        assertEquals(1, rotated.width, "width and height must swap")
+        assertEquals(2, rotated.height, "width and height must swap")
+
+        // По часовой стрелке левый край становится верхним: левый пиксель уезжает наверх
+        val pixels = rotated.getPixels()
+        assertColorApprox(red, pixels[0], tolerance = 8)
+        assertColorApprox(blue, pixels[1], tolerance = 8)
+
+        rotated.close()
+    }
+
+    @Test
+    fun grayscaleWorksForEveryPixelFormat() {
+        // На iOS реализация принимала только RGBA и падала на RGB и на уже сером
+        // изображении, тогда как на Android работала для любого формата
+        val gray = 150
+        val argb = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
+
+        listOf(PixelFormat.ARGB, PixelFormat.RGBA, PixelFormat.RGB, PixelFormat.BGR).forEach { format ->
+            val image = Image(2, 2, format, IntArray(4) { argb })
+
+            val grayscaled = image.grayscale()
+
+            assertEquals(PixelFormat.Grayscale, grayscaled.pixelFormat, "format $format")
+            grayscaled.getPixels().forEach { p ->
+                assertTrue(abs((p and 0xFF) - gray) <= 2, "format $format: expected ~$gray, got ${p and 0xFF}")
+            }
+            grayscaled.close()
+        }
+    }
+
+    @Test
+    fun grayscaleOfAnAlreadyGrayscaleImageIsStable() {
+        val gray = 150
+        val argb = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
+        val once = Image(2, 2, PixelFormat.ARGB, IntArray(4) { argb }).grayscale()
+
+        val twice = once.grayscale(closeOriginal = false)
+
+        assertEquals(PixelFormat.Grayscale, twice.pixelFormat)
+        twice.getPixels().forEach { p ->
+            assertTrue(abs((p and 0xFF) - gray) <= 2, "expected ~$gray, got ${p and 0xFF}")
+        }
+
+        twice.close()
+        once.close()
+    }
+
+    @Test
+    fun resizeDoesNotFlipTheImageVertically() {
+        // У CGBitmapContext ось Y направлена вверх, и лишний переворот не виден ни на
+        // однотонной картинке, ни на картинке высотой в один пиксель
+        val red = (0xFF shl 24) or (255 shl 16)
+        val blue = (0xFF shl 24) or 255
+        val original = Image(1, 2, PixelFormat.ARGB, intArrayOf(red, blue))
+
+        val resized = original.resize(1, 2)
+
+        val pixels = resized.getPixels()
+        assertColorApprox(red, pixels[0], tolerance = 8)
+        assertColorApprox(blue, pixels[1], tolerance = 8)
+
+        resized.close()
+    }
+
+    @Test
+    fun cropRejectsARectOutsideTheImageTheSameWayOnBothPlatforms() {
+        // Раньше Android бросал IllegalArgumentException, а iOS - IllegalStateException,
+        // и поймать это в общем коде было нечем
+        val image = createSolidImage(4, 4, (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30)
+
+        assertFailsWith<IllegalArgumentException> { image.crop(Rect(0, 0, 5, 4), closeOriginal = false) }
+        assertFailsWith<IllegalArgumentException> { image.crop(Rect(-1, 0, 4, 4), closeOriginal = false) }
+        assertFailsWith<IllegalArgumentException> { image.crop(Rect(0, 0, 0, 4), closeOriginal = false) }
+        assertFailsWith<IllegalArgumentException> { image.crop(Rect(2, 2, 1, 4), closeOriginal = false) }
+
+        image.close()
+    }
+
+    @Test
+    fun cropDoesNotFlipTheImageVertically() {
+        val red = (0xFF shl 24) or (255 shl 16)
+        val blue = (0xFF shl 24) or 255
+        val original = Image(1, 2, PixelFormat.ARGB, intArrayOf(red, blue))
+
+        val cropped = original.crop(Rect(0, 0, 1, 2))
+
+        val pixels = cropped.getPixels()
+        assertColorApprox(red, pixels[0], tolerance = 8)
+        assertColorApprox(blue, pixels[1], tolerance = 8)
+
+        cropped.close()
+    }
+
+    @Test
+    fun rotateByFullTurnRestoresTheOriginalLayout() {
+        val red = (0xFF shl 24) or (255 shl 16)
+        val blue = (0xFF shl 24) or 255
+        val original = Image(2, 1, PixelFormat.ARGB, intArrayOf(red, blue))
+        val expected = original.getPixels()
+
+        val rotated = original.rotate(360f, closeOriginal = false)
+
+        assertEquals(2, rotated.width)
+        assertEquals(1, rotated.height)
+        val pixels = rotated.getPixels()
+        assertColorApprox(expected[0], pixels[0], tolerance = 8)
+        assertColorApprox(expected[1], pixels[1], tolerance = 8)
+
+        rotated.close()
+        original.close()
+    }
+
+    @Test
+    fun indexedAccessAndGetPixelsAgreeForASemiTransparentImage() {
+        // На iOS буфер хранит premultiplied alpha. getPixels делал обратное умножение,
+        // а image[x, y] - нет, и один и тот же пиксель читался по-разному.
+        val color = (128 shl 24) or (200 shl 16) or (150 shl 8) or 100
+        val image = createSolidImage(3, 2, color)
+
+        val pixels = image.getPixels()
+        for (y in 0 until 2) {
+            for (x in 0 until 3) {
+                assertEquals(pixels[y * 3 + x], image[x, y], "pixel at ($x,$y)")
+            }
+        }
+
+        image.close()
+    }
+
+    @Test
+    fun indexedAccessOutsideTheImageReturnsZero() {
+        val image = createSolidImage(2, 2, (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30)
+
+        assertEquals(0, image[-1, 0])
+        assertEquals(0, image[0, -1])
+        assertEquals(0, image[2, 0])
+        assertEquals(0, image[0, 2])
+
+        image.close()
+    }
+
+    @Test
+    fun grayscaleImagePixelsAreReturnedAsPackedArgbWithEqualChannels() {
+        // Контракт Image.getPixels: упакованный ARGB, у серого R=G=B. iOS отдавал голое
+        // значение канала, и расхождение с Android было не видно, пока проверялся
+        // только младший байт.
+        val gray = 200
+        val color = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
+        val image = createSolidImage(3, 2, color).grayscale()
+
+        assertEquals(PixelFormat.Grayscale, image.pixelFormat)
+        image.getPixels().forEach { p ->
+            val a = (p shr 24) and 0xFF
+            val r = (p shr 16) and 0xFF
+            val g = (p shr 8) and 0xFF
+            val b = p and 0xFF
+
+            assertEquals(255, a, "grayscale pixels must be opaque")
+            assertEquals(r, g, "R and G must be equal in a grayscale image")
+            assertEquals(g, b, "G and B must be equal in a grayscale image")
+            assertTrue(abs(r - gray) <= 2, "expected ~$gray, got $r")
+        }
+
+        image.close()
+    }
+
+    @Test
+    fun grayscaleImageIndexedAccessAgreesWithGetPixels() {
+        // Значения выше 127 не должны приходить наружу отрицательными
+        val gray = 200
+        val color = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
+        val image = createSolidImage(3, 2, color).grayscale()
+
+        val pixels = image.getPixels()
+        for (y in 0 until 2) {
+            for (x in 0 until 3) {
+                assertEquals(pixels[y * 3 + x], image[x, y], "pixel at ($x,$y)")
+                assertTrue(image[x, y] and 0xFF > 127, "a light gray must not wrap to a negative value")
+            }
+        }
+
+        image.close()
+    }
+
+    @Test
+    fun grayscaleImageBuiltFromColoredPixelsKeepsTheLowestByteOnBothPlatforms() {
+        // Документированное соглашение: для Grayscale хранится младший байт - тот же,
+        // который читает tensorize. Платформы обязаны вести себя одинаково.
+        val pixels = IntArray(4) { (0xFF shl 24) or (200 shl 16) or (150 shl 8) or 50 }
+        val image = Image(2, 2, PixelFormat.Grayscale, pixels)
+
+        image.getPixels().forEach { p ->
+            assertEquals(50, p and 0xFF)
+            assertEquals(50, (p shr 8) and 0xFF)
+            assertEquals(50, (p shr 16) and 0xFF)
+        }
+
+        image.close()
     }
 
     // --- 8. КОНТРАКТ ЗАКРЫТИЯ ---

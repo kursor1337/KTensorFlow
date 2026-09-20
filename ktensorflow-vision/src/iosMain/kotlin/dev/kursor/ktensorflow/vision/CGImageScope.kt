@@ -44,10 +44,11 @@ fun <T> Image.withCGImage(block: (CGImageRef) -> T): T {
 // и CGImage окажется битым/пустым (было воспроизведено на неоднородных изображениях).
 private fun Image.createCGImage(pinnedData: Pinned<ByteArray>): CGImageRef {
     val colorSpace =
-        if (pixelFormat == PixelFormat.Grayscale)
+        if (pixelFormat == PixelFormat.Grayscale) {
             CGColorSpaceCreateDeviceGray()
-        else
+        } else {
             CGColorSpaceCreateDeviceRGB()
+        }
 
     val provider = CGDataProviderCreateWithData(
         null,
