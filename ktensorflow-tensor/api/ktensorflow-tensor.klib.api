@@ -89,7 +89,7 @@ sealed interface <#A: kotlin/Any> dev.kursor.ktensorflow.tensor/TensorDataType {
     }
 }
 
-final value class dev.kursor.ktensorflow.tensor/TensorShape { // dev.kursor.ktensorflow.tensor/TensorShape|null[0]
+final class dev.kursor.ktensorflow.tensor/TensorShape { // dev.kursor.ktensorflow.tensor/TensorShape|null[0]
     constructor <init>(kotlin/IntArray) // dev.kursor.ktensorflow.tensor/TensorShape.<init>|<init>(kotlin.IntArray){}[0]
 
     final val dimensions // dev.kursor.ktensorflow.tensor/TensorShape.dimensions|{}dimensions[0]

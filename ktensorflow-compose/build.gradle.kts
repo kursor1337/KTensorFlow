@@ -27,7 +27,7 @@ kotlin {
             api(projects.ktensorflowCore)
         }
         androidMain.dependencies {
-            implementation(libs.androidx.startup.runtime)
+            api(libs.androidx.startup.runtime)
         }
     }
 }

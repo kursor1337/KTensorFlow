@@ -1,6 +1,7 @@
 package dev.kursor.ktensorflow.pipeline.builder
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
+import dev.kursor.ktensorflow.ModelMeta
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.tensor.Tensor
@@ -24,8 +25,7 @@ fun <SO, Input : Tuple, T : Any> InferencePipelineBuilder<Input>.output(
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.One<Tensor<T>>, Tuple.One<SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -46,8 +46,7 @@ fun <SO, Input : Tuple, O1, T1, T : Any> OutputPipelineBuilder<Input, Tuple.One<
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Two<T1, Tensor<T>>, Tuple.Two<O1, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -68,8 +67,7 @@ fun <SO, Input : Tuple, O1, O2, T1, T2, T : Any> OutputPipelineBuilder<Input, Tu
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Three<T1, T2, Tensor<T>>, Tuple.Three<O1, O2, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -90,8 +88,7 @@ fun <SO, Input : Tuple, O1, O2, O3, T1, T2, T3, T : Any> OutputPipelineBuilder<I
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Four<T1, T2, T3, Tensor<T>>, Tuple.Four<O1, O2, O3, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -112,8 +109,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, T1, T2, T3, T4, T : Any> OutputPipelineB
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Five<T1, T2, T3, T4, Tensor<T>>, Tuple.Five<O1, O2, O3, O4, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -134,8 +130,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, T1, T2, T3, T4, T5, T : Any> OutputP
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Six<T1, T2, T3, T4, T5, Tensor<T>>, Tuple.Six<O1, O2, O3, O4, O5, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -156,8 +151,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, T1, T2, T3, T4, T5, T6, T : Any>
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Seven<T1, T2, T3, T4, T5, T6, Tensor<T>>, Tuple.Seven<O1, O2, O3, O4, O5, O6, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -178,8 +172,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, T1, T2, T3, T4, T5, T6, T7, 
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Eight<T1, T2, T3, T4, T5, T6, T7, Tensor<T>>, Tuple.Eight<O1, O2, O3, O4, O5, O6, O7, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -200,8 +193,7 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, T1, T2, T3, T4, T5, T6, 
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Nine<T1, T2, T3, T4, T5, T6, T7, T8, Tensor<T>>, Tuple.Nine<O1, O2, O3, O4, O5, O6, O7, O8, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
 
@@ -222,7 +214,19 @@ fun <SO, Input : Tuple, O1, O2, O3, O4, O5, O6, O7, O8, O9, T1, T2, T3, T4, T5, 
     shape: TensorShape,
     postprocessing: Stage<Tensor<T>, SO>
 ): OutputPipelineBuilder<Input, Tuple.Ten<T1, T2, T3, T4, T5, T6, T7, T8, T9, Tensor<T>>, Tuple.Ten<O1, O2, O3, O4, O5, O6, O7, O8, O9, SO>> {
-    val index = interpreter.getModelMeta().outputsByName[name]?.index
-        ?: error("Output tensor with name '$name' not found in the model.")
+    val index = interpreter.getModelMeta().outputIndexOf(name)
     return output(index, dataType, shape, postprocessing)
 }
+
+/**
+ * Индекс выхода модели по его имени из SignatureDef.
+ *
+ * Сообщение перечисляет доступные имена: без этого опечатка в имени выхода превращалась
+ * в поиск причины по всему пайплайну.
+ */
+@ExperimentalKTensorFlowApi
+private fun ModelMeta.outputIndexOf(name: String): Int =
+    outputsByName[name]?.index ?: error(
+        "Model has no output named '$name'. Available outputs: " +
+            outputsByName.keys.joinToString()
+    )

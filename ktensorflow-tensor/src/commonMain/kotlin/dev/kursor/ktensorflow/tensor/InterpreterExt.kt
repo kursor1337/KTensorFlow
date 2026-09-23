@@ -33,7 +33,16 @@ fun Interpreter.run(
     outputs: Map<String, PhysicalTensor<*>>
 ) {
     val modelMeta = getModelMeta()
-    val outputMap = outputs.mapKeys { modelMeta.outputsByName[it.key]?.index ?: 0 }
+    // Неизвестное имя раньше молча превращалось в индекс 0: результат писался не в тот
+    // буфер, а два неизвестных имени ещё и схлопывались в один ключ, теряя выход целиком
+    val outputMap = outputs.mapKeys { (name, _) ->
+        val output = modelMeta.outputsByName[name]
+        requireNotNull(output) {
+            "Model has no output named '$name'. Available outputs: " +
+                modelMeta.outputsByName.keys.joinToString()
+        }
+        output.index
+    }
     run(
         inputs = inputs,
         outputs = outputMap

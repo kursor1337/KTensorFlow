@@ -483,7 +483,14 @@ fun Tensor<Float>.normalize(): Tensor<Float> {
         if (it < min) min = it
         if (it > max) max = it
     }
-    return map { (it - min) / (max - min) }
+
+    // Все значения одинаковы - диапазона нет, и деление на ноль превратило бы совершенно
+    // обычный вход (однотонный кадр, тензор из одного элемента) в сплошной NaN, который
+    // дальше молча расползается по инференсу. Принятое соглашение - нули.
+    val range = max - min
+    if (range == 0f) return map { 0f }
+
+    return map { (it - min) / range }
 }
 
 /**

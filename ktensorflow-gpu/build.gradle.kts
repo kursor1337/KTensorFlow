@@ -48,7 +48,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.tensorflow.gpu)
-            implementation(libs.tensorflow.gpu.api)
+
+            // api, а не implementation: GpuDelegateOptions раскрывает наружу
+            // GpuDelegateFactory.Options, и без этого потребитель не может ни вызвать
+            // builder-перегрузку, ни прочитать tflOptions
+            api(libs.tensorflow.gpu.api)
 
             // api, а не implementation: публичные сигнатуры модуля раскрывают типы
             // этих модулей, поэтому потребителям они нужны транзитивно

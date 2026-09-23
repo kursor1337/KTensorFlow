@@ -10,10 +10,14 @@ import dev.kursor.ktensorflow.pipeline.tuple
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.div
+import dev.kursor.ktensorflow.tensor.run
+import dev.kursor.ktensorflow.tensor.toFloatTensor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertFailsWith
 
 /**
  * Заголовочная фича 2.0: интерпретатор извлекает метаданные модели (SignatureDef),
@@ -89,5 +93,48 @@ class ModelMetaTest {
                 byName.run(tuple(image)).first
             )
         }
+    }
+
+    @Test
+    fun unknownOutputNameFailsAndListsTheNamesTheModelDoesHave() {
+        // Раньше неизвестное имя молча превращалось в индекс 0, и результат писался
+        // не в тот буфер - на модели с несколькими выходами это не видно вообще
+        val interpreter = createInterpreter(context, "mnist.tflite", null)
+        val meta = interpreter.getModelMeta()
+        val (_, image) = loadDataset(context, "mnist.csv").first()
+        val input = (Tensor<UByte>(image).toFloatTensor() / 255f).toPhysical()
+        val output = Tensor<Float>(shape = TensorShape(10)).toPhysical()
+
+        val failure = assertFailsWith<IllegalArgumentException> {
+            interpreter.run(listOf(input), mapOf("definitely-not-an-output" to output))
+        }
+
+        val message = failure.message.orEmpty()
+        assertTrue("message was: $message", message.contains("definitely-not-an-output"))
+        meta.outputData.forEach { data ->
+            assertTrue("message must list '${data.name}', was: $message", message.contains(data.name))
+        }
+    }
+
+    @Test
+    fun pipelineBuilderRejectsAnUnknownOutputName() {
+        val interpreter = createInterpreter(context, "mnist.tflite", null)
+
+        val failure = assertFailsWith<IllegalStateException> {
+            Pipeline
+                .input(Stage<Array<UByteArray>>().tensorize().floatify().normalize())
+                .inference(interpreter)
+                .output(
+                    name = "definitely-not-an-output",
+                    dataType = TensorDataType.Float32,
+                    shape = TensorShape(10),
+                    postprocessing = Stage<Tensor<Float>>().argmax()
+                )
+        }
+
+        assertTrue(
+            "message was: ${failure.message}",
+            failure.message.orEmpty().contains("definitely-not-an-output")
+        )
     }
 }
