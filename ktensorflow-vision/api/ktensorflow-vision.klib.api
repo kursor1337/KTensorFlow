@@ -116,15 +116,6 @@ sealed interface dev.kursor.ktensorflow.vision/PixelFormat { // dev.kursor.ktens
     }
 }
 
-final class dev.kursor.ktensorflow.vision/CGImageScope : kotlin/AutoCloseable { // dev.kursor.ktensorflow.vision/CGImageScope|null[0]
-    constructor <init>(kotlinx.cinterop/CPointer<cnames.structs/CGImage>, kotlinx.cinterop/Pinned<kotlin/ByteArray>) // dev.kursor.ktensorflow.vision/CGImageScope.<init>|<init>(kotlinx.cinterop.CPointer<cnames.structs.CGImage>;kotlinx.cinterop.Pinned<kotlin.ByteArray>){}[0]
-
-    final val cgImage // dev.kursor.ktensorflow.vision/CGImageScope.cgImage|{}cgImage[0]
-        final fun <get-cgImage>(): kotlinx.cinterop/CPointer<cnames.structs/CGImage> // dev.kursor.ktensorflow.vision/CGImageScope.cgImage.<get-cgImage>|<get-cgImage>(){}[0]
-
-    final fun close() // dev.kursor.ktensorflow.vision/CGImageScope.close|close(){}[0]
-}
-
 final class dev.kursor.ktensorflow.vision/ImageTensorLayout { // dev.kursor.ktensorflow.vision/ImageTensorLayout|null[0]
     constructor <init>(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int) // dev.kursor.ktensorflow.vision/ImageTensorLayout.<init>|<init>(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int){}[0]
 
@@ -306,10 +297,6 @@ final class dev.kursor.ktensorflow.vision/Rect { // dev.kursor.ktensorflow.visio
     }
 }
 
-final val dev.kursor.ktensorflow.vision/cgBitmapInfo // dev.kursor.ktensorflow.vision/cgBitmapInfo|@dev.kursor.ktensorflow.vision.PixelFormat{}cgBitmapInfo[0]
-    final fun (dev.kursor.ktensorflow.vision/PixelFormat).<get-cgBitmapInfo>(): kotlin/UInt // dev.kursor.ktensorflow.vision/cgBitmapInfo.<get-cgBitmapInfo>|<get-cgBitmapInfo>@dev.kursor.ktensorflow.vision.PixelFormat(){}[0]
-
-final fun (dev.kursor.ktensorflow.vision/Image).dev.kursor.ktensorflow.vision/asCGImage(): dev.kursor.ktensorflow.vision/CGImageScope // dev.kursor.ktensorflow.vision/asCGImage|asCGImage@dev.kursor.ktensorflow.vision.Image(){}[0]
 final fun (dev.kursor.ktensorflow.vision/Image).dev.kursor.ktensorflow.vision/crop(dev.kursor.ktensorflow.vision/Rect, kotlin/Boolean = ...): dev.kursor.ktensorflow.vision/Image // dev.kursor.ktensorflow.vision/crop|crop@dev.kursor.ktensorflow.vision.Image(dev.kursor.ktensorflow.vision.Rect;kotlin.Boolean){}[0]
 final fun (dev.kursor.ktensorflow.vision/Image).dev.kursor.ktensorflow.vision/grayscale(kotlin/Boolean = ...): dev.kursor.ktensorflow.vision/Image // dev.kursor.ktensorflow.vision/grayscale|grayscale@dev.kursor.ktensorflow.vision.Image(kotlin.Boolean){}[0]
 final fun (dev.kursor.ktensorflow.vision/Image).dev.kursor.ktensorflow.vision/resize(kotlin/Int, kotlin/Int, kotlin/Boolean = ...): dev.kursor.ktensorflow.vision/Image // dev.kursor.ktensorflow.vision/resize|resize@dev.kursor.ktensorflow.vision.Image(kotlin.Int;kotlin.Int;kotlin.Boolean){}[0]

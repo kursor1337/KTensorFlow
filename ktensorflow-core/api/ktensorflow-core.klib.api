@@ -10,6 +10,10 @@ open annotation class dev.kursor.ktensorflow/ExperimentalKTensorFlowApi : kotlin
     constructor <init>() // dev.kursor.ktensorflow/ExperimentalKTensorFlowApi.<init>|<init>(){}[0]
 }
 
+open annotation class dev.kursor.ktensorflow/InternalKTensorFlowApi : kotlin/Annotation { // dev.kursor.ktensorflow/InternalKTensorFlowApi|null[0]
+    constructor <init>() // dev.kursor.ktensorflow/InternalKTensorFlowApi.<init>|<init>(){}[0]
+}
+
 final enum class dev.kursor.ktensorflow/DataType : kotlin/Enum<dev.kursor.ktensorflow/DataType> { // dev.kursor.ktensorflow/DataType|null[0]
     enum entry Float32 // dev.kursor.ktensorflow/DataType.Float32|null[0]
     enum entry Int32 // dev.kursor.ktensorflow/DataType.Int32|null[0]

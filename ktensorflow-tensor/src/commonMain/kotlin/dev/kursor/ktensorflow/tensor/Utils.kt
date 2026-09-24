@@ -1,5 +1,8 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
+@InternalKTensorFlowApi
 fun IntArray.incrementIndex(shape: TensorShape) {
     for (d in size - 1 downTo 0) {
         val next = this[d] + 1
@@ -12,6 +15,7 @@ fun IntArray.incrementIndex(shape: TensorShape) {
     }
 }
 
+@InternalKTensorFlowApi
 fun IntArray.toFlatIndex(shape: TensorShape): Int {
     require(size == shape.rank) {
         "Index rank $size doesn't match tensor rank ${shape.rank}"
@@ -26,6 +30,7 @@ fun IntArray.toFlatIndex(shape: TensorShape): Int {
     return flatIndex
 }
 
+@InternalKTensorFlowApi
 fun IntArray.toFlatIndex(strides: IntArray): Int {
     var flatIndex = 0
     for (i in indices) {
@@ -34,6 +39,7 @@ fun IntArray.toFlatIndex(strides: IntArray): Int {
     return flatIndex
 }
 
+@InternalKTensorFlowApi
 fun Int.toNestedIndex(shape: TensorShape): IntArray {
     require(this in 0 until shape.flatSize) {
         "Flat index $this out of bounds for shape $shape"
@@ -48,6 +54,7 @@ fun Int.toNestedIndex(shape: TensorShape): IntArray {
     return index
 }
 
+@InternalKTensorFlowApi
 fun TensorShape.strides(): IntArray {
     val strides = IntArray(rank)
     var currentStride = 1

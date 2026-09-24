@@ -1,11 +1,14 @@
 package dev.kursor.ktensorflow.vision
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 
 /**
  * Represents a [Tensor] specialized for image data, providing structured access to dimensions
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface ImageTensor<T : Any> : Tensor<T> {
 
     /**

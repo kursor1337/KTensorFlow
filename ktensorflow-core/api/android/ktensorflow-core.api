@@ -17,6 +17,9 @@ public abstract interface class dev/kursor/ktensorflow/Delegate {
 public abstract interface annotation class dev/kursor/ktensorflow/ExperimentalKTensorFlowApi : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class dev/kursor/ktensorflow/InternalKTensorFlowApi : java/lang/annotation/Annotation {
+}
+
 public abstract interface class dev/kursor/ktensorflow/Interpreter : java/lang/AutoCloseable {
 	public abstract fun close ()V
 	public abstract fun getInputTensorCount ()I

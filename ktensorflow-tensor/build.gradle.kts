@@ -8,6 +8,11 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        // Внутренний API модулей библиотеки: снаружи он требует явного opt-in
+        optIn.add("dev.kursor.ktensorflow.InternalKTensorFlowApi")
+    }
+
     android {
         namespace = "dev.kursor.ktensorflow.tensor"
         compileSdk = libs.versions.android.compileSdk.get().toInt()

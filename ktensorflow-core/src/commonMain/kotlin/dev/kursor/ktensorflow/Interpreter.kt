@@ -3,6 +3,7 @@ package dev.kursor.ktensorflow
 /**
  * Interpreter to run inference on a model.
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface Interpreter : AutoCloseable {
 
     /**

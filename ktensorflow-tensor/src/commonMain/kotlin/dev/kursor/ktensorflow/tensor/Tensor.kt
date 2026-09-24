@@ -1,5 +1,7 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
 import dev.kursor.ktensorflow.tensor.impl.inferTensorShape
 import dev.kursor.ktensorflow.tensor.impl.toByteArray
 import dev.kursor.ktensorflow.tensor.physical.FloatTensor
@@ -12,6 +14,7 @@ import dev.kursor.ktensorflow.tensor.physical.UByteTensor
  *
  * @param T The type of the data.
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface Tensor<T : Any> {
 
     /**

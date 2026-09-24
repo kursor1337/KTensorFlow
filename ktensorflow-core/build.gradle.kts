@@ -11,6 +11,8 @@ plugins {
 kotlin {
     compilerOptions {
         optIn.addAll("kotlinx.cinterop.ExperimentalForeignApi")
+        // Внутренний API модулей библиотеки: снаружи он требует явного opt-in
+        optIn.add("dev.kursor.ktensorflow.InternalKTensorFlowApi")
     }
 
     android {

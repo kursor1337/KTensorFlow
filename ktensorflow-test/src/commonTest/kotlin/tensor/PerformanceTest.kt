@@ -1,5 +1,8 @@
+@file:OptIn(InternalKTensorFlowApi::class)
+
 package tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.forEachIndexed

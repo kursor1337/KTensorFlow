@@ -11,7 +11,7 @@ import platform.CoreGraphics.CGImageCreate
 import platform.CoreGraphics.CGImageRef
 import platform.CoreGraphics.CGImageRelease
 
-class CGImageScope(
+internal class CGImageScope(
     val cgImage: CGImageRef,
     private val pinnedData: Pinned<ByteArray>
 ) : AutoCloseable {
@@ -22,7 +22,7 @@ class CGImageScope(
     }
 }
 
-fun Image.asCGImage(): CGImageScope {
+internal fun Image.asCGImage(): CGImageScope {
     val pinnedData = platformImage.pin()
     return CGImageScope(createCGImage(pinnedData), pinnedData)
 }

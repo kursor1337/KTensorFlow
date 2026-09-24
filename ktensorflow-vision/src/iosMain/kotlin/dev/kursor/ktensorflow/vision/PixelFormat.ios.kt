@@ -4,7 +4,7 @@ import platform.CoreGraphics.CGImageAlphaInfo
 import platform.CoreGraphics.kCGBitmapByteOrder32Big
 import platform.CoreGraphics.kCGBitmapByteOrder32Little
 
-val PixelFormat.cgBitmapInfo: UInt
+internal val PixelFormat.cgBitmapInfo: UInt
     get() = when (this) {
         is PixelFormat.RGBA -> {
             // swapped == true means blue comes before red in memory (BGRA/ABGR),

@@ -1,5 +1,7 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
 import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
 
 /**
@@ -10,6 +12,7 @@ import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
  *
  * @param T the type of the elements contained in this tensor.
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface PhysicalTensor<T : Any> : Tensor<T> {
     /**
      * Raw data of the [Tensor]

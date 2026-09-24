@@ -1,5 +1,7 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
 /**
  * Represents a virtual or transformed view of another [Tensor].
  *
@@ -9,6 +11,7 @@ package dev.kursor.ktensorflow.tensor
  *
  * @param T The type of the elements contained within the tensor.
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface TensorView<T : Any> : Tensor<T> {
     /**
      * The underlying [Tensor] that this view is based on.

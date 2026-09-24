@@ -3,18 +3,39 @@ package dev.kursor.ktensorflow.vision
 import kotlin.math.roundToInt
 
 /**
- * Actual implementation of Image for iOS, wrapping a UIImage.
- * It uses CoreGraphics to extract and manage the pixel buffer in ARGB_8888 format
- * for efficient pixel access.
+ * [Image] on iOS, backed by a raw pixel buffer.
+ *
+ * This is the entry point for frames that come from the platform, for example a camera
+ * `CVPixelBuffer` drawn into a `CGBitmapContext`. The buffer must follow this layout exactly,
+ * otherwise the pixels are read incorrectly:
+ * - 8 bits per channel, `pixelFormat.channels` bytes per pixel;
+ * - rows packed tightly: `width * pixelFormat.channels` bytes per row, no padding;
+ * - channels of each pixel in the order given by the [PixelFormat] indices, so a context created
+ *   with `kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little` matches [PixelFormat.BGRA];
+ * - for formats with alpha, color channels premultiplied by alpha, as CoreGraphics stores them.
+ *
+ * To build an image from plain packed ARGB values use the `Image(width, height, pixelFormat, pixels)`
+ * factory instead.
+ *
+ * @throws IllegalArgumentException if [pixels] does not hold exactly `width * height` pixels.
  */
 class IosImage(
     override val width: Int,
     override val height: Int,
     override val pixelFormat: PixelFormat,
-    pixels: PlatformImage // alpha always premultiplied
+    pixels: PlatformImage
 ) : Image {
     private val bytesPerPixel = pixelFormat.channels
     private val bytesPerRow = width * bytesPerPixel
+
+    init {
+        // Неверная длина раньше проявлялась далеко отсюда: выходом за массив при чтении
+        // пикселей или молча неверными цветами при построчном сдвиге
+        require(pixels.size == height * bytesPerRow) {
+            "Pixel buffer of ${width}x$height ${pixelFormat.channels}-channel image must hold " +
+                "${height * bytesPerRow} bytes, got ${pixels.size}"
+        }
+    }
 
     private var pixelBuffer: ByteArray? = pixels
 
