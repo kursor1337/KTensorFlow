@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
-    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.convention.binary.compatibility)
 }
 
@@ -25,25 +24,9 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-    cocoapods {
-        summary = "Some description for the Shared Module"
-        homepage = "Link to the Shared Module homepage"
-        version = "1.0"
-        ios.deploymentTarget = "13.0"
-        framework {
-            baseName = "shared"
-            isStatic = true
-        }
-
-        pod("TensorFlowLiteObjC") {
-            moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
-        }
-        pod("TensorFlowLiteObjC/Metal") {
-            moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
-        }
-    }
+    // Собственного cinterop для TensorFlowLiteObjC здесь нет намеренно: привязки, включая
+    // Metal, генерирует ktensorflow-core, и они приходят вместе с ним. Второй cinterop
+    // того же пода ломает линковку iOS-приложения, подключающего несколько модулей.
 
     sourceSets {
         commonMain.dependencies {

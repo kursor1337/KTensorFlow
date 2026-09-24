@@ -1,0 +1,285 @@
+public final class dev/kursor/ktensorflow/vision/AndroidImage : dev/kursor/ktensorflow/vision/Image {
+	public fun <init> (Landroid/graphics/Bitmap;Ldev/kursor/ktensorflow/vision/PixelFormat;)V
+	public fun close ()V
+	public fun get (II)I
+	public fun getHeight ()I
+	public fun getPixelFormat ()Ldev/kursor/ktensorflow/vision/PixelFormat;
+	public fun getPixels ()[I
+	public fun getPixels ([I)V
+	public fun getPlatformImage ()Landroid/graphics/Bitmap;
+	public fun getWidth ()I
+}
+
+public abstract interface class dev/kursor/ktensorflow/vision/Image : java/lang/AutoCloseable {
+	public abstract fun close ()V
+	public abstract fun get (II)I
+	public abstract fun getHeight ()I
+	public abstract fun getPixelFormat ()Ldev/kursor/ktensorflow/vision/PixelFormat;
+	public abstract fun getPixels ()[I
+	public abstract fun getPixels ([I)V
+	public abstract fun getPlatformImage ()Landroid/graphics/Bitmap;
+	public abstract fun getWidth ()I
+}
+
+public abstract interface class dev/kursor/ktensorflow/vision/ImageTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public fun get (III)Ljava/lang/Object;
+	public abstract fun get (IIII)Ljava/lang/Object;
+	public abstract fun getBatch ()I
+	public abstract fun getChannels ()I
+	public abstract fun getHeight ()I
+	public abstract fun getLayout ()Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+	public abstract fun getPixelFormat ()Ldev/kursor/ktensorflow/vision/PixelFormat;
+	public abstract fun getWidth ()I
+	public abstract fun set (IIIILjava/lang/Object;)V
+	public fun set (IIILjava/lang/Object;)V
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensor$DefaultImpls {
+	public static fun get (Ldev/kursor/ktensorflow/vision/ImageTensor;III)Ljava/lang/Object;
+	public static fun set (Ldev/kursor/ktensorflow/vision/ImageTensor;IIILjava/lang/Object;)V
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensorKt {
+	public static final fun ImageTensor (IILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;I)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun ImageTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun ImageTensor (Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;[[[F)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun ImageTensor$default (IILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;IILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun toImageTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensorLayout {
+	public static final field Companion Ldev/kursor/ktensorflow/vision/ImageTensorLayout$Companion;
+	public fun <init> (IIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/ImageTensorLayout;IIIIILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCIndex ()I
+	public final fun getHIndex ()I
+	public final fun getNIndex ()I
+	public final fun getWIndex ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensorLayout$Companion {
+	public final fun getCHWN ()Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+	public final fun getNCHW ()Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+	public final fun getNHWC ()Ldev/kursor/ktensorflow/vision/ImageTensorLayout;
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensorTransformationsKt {
+	public static final fun crop (Ldev/kursor/ktensorflow/vision/ImageTensor;Ldev/kursor/ktensorflow/vision/Rect;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun grayscale (Ldev/kursor/ktensorflow/vision/ImageTensor;FFF)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun grayscale$default (Ldev/kursor/ktensorflow/vision/ImageTensor;FFFILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun grayscaleUByte (Ldev/kursor/ktensorflow/vision/ImageTensor;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun resize (Ldev/kursor/ktensorflow/vision/ImageTensor;II)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun resizeUByte (Ldev/kursor/ktensorflow/vision/ImageTensor;II)Ldev/kursor/ktensorflow/vision/ImageTensor;
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTensorizeKt {
+	public static final fun tensorize (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun tensorize$default (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;ILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun tensorizeBatch (Ljava/util/List;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun tensorizeBatch$default (Ljava/util/List;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;ILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun tensorizeBatchFloat (Ljava/util/List;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/Normalization;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun tensorizeBatchFloat$default (Ljava/util/List;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/Normalization;ILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun tensorizeFloat (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/Normalization;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static synthetic fun tensorizeFloat$default (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/vision/ImageTensorLayout;Ldev/kursor/ktensorflow/vision/PixelFormat;Ldev/kursor/ktensorflow/vision/Normalization;ILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/ImageTensor;
+	public static final fun toImage (Ldev/kursor/ktensorflow/vision/ImageTensor;Ldev/kursor/ktensorflow/vision/Normalization;I)Ldev/kursor/ktensorflow/vision/Image;
+	public static synthetic fun toImage$default (Ldev/kursor/ktensorflow/vision/ImageTensor;Ldev/kursor/ktensorflow/vision/Normalization;IILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Image;
+}
+
+public final class dev/kursor/ktensorflow/vision/ImageTransformations_androidKt {
+	public static final fun crop (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/vision/Rect;Z)Ldev/kursor/ktensorflow/vision/Image;
+	public static synthetic fun crop$default (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/vision/Rect;ZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Image;
+	public static final fun grayscale (Ldev/kursor/ktensorflow/vision/Image;Z)Ldev/kursor/ktensorflow/vision/Image;
+	public static synthetic fun grayscale$default (Ldev/kursor/ktensorflow/vision/Image;ZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Image;
+	public static final fun resize (Ldev/kursor/ktensorflow/vision/Image;IIZ)Ldev/kursor/ktensorflow/vision/Image;
+	public static synthetic fun resize$default (Ldev/kursor/ktensorflow/vision/Image;IIZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Image;
+	public static final fun rotate (Ldev/kursor/ktensorflow/vision/Image;FZ)Ldev/kursor/ktensorflow/vision/Image;
+	public static synthetic fun rotate$default (Ldev/kursor/ktensorflow/vision/Image;FZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Image;
+}
+
+public final class dev/kursor/ktensorflow/vision/Image_androidKt {
+	public static final fun Image (IILdev/kursor/ktensorflow/vision/PixelFormat;[I)Ldev/kursor/ktensorflow/vision/Image;
+}
+
+public final class dev/kursor/ktensorflow/vision/NmsKt {
+	public static final fun nms (Ljava/lang/Iterable;FFLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+	public static synthetic fun nms$default (Ljava/lang/Iterable;FFLkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/util/List;
+}
+
+public final class dev/kursor/ktensorflow/vision/Normalization {
+	public static final field Companion Ldev/kursor/ktensorflow/vision/Normalization$Companion;
+	public fun <init> ()V
+	public fun <init> (FFFFFFFF)V
+	public synthetic fun <init> (FFFFFFFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()F
+	public final fun component4 ()F
+	public final fun component5 ()F
+	public final fun component6 ()F
+	public final fun component7 ()F
+	public final fun component8 ()F
+	public final fun copy (FFFFFFFF)Ldev/kursor/ktensorflow/vision/Normalization;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/Normalization;FFFFFFFFILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Normalization;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMeanA ()F
+	public final fun getMeanB ()F
+	public final fun getMeanG ()F
+	public final fun getMeanR ()F
+	public final fun getStdA ()F
+	public final fun getStdB ()F
+	public final fun getStdG ()F
+	public final fun getStdR ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/Normalization$Companion {
+	public final fun getImageNet ()Ldev/kursor/ktensorflow/vision/Normalization;
+	public final fun getMinusOneToOne ()Ldev/kursor/ktensorflow/vision/Normalization;
+	public final fun getNone ()Ldev/kursor/ktensorflow/vision/Normalization;
+	public final fun getZeroToOne ()Ldev/kursor/ktensorflow/vision/Normalization;
+}
+
+public final class dev/kursor/ktensorflow/vision/PadInfo {
+	public fun <init> (IIIIIIF)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7 ()F
+	public final fun copy (IIIIIIF)Ldev/kursor/ktensorflow/vision/PadInfo;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/PadInfo;IIIIIIFILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/PadInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOriginalHeight ()I
+	public final fun getOriginalWidth ()I
+	public final fun getPadX ()I
+	public final fun getPadY ()I
+	public final fun getScale ()F
+	public final fun getTargetHeight ()I
+	public final fun getTargetWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/PaddedImage : dev/kursor/ktensorflow/vision/Image {
+	public fun <init> (Ldev/kursor/ktensorflow/vision/Image;Ldev/kursor/ktensorflow/vision/PadInfo;)V
+	public fun close ()V
+	public fun get (II)I
+	public final fun getDelegate ()Ldev/kursor/ktensorflow/vision/Image;
+	public fun getHeight ()I
+	public final fun getInfo ()Ldev/kursor/ktensorflow/vision/PadInfo;
+	public fun getPixelFormat ()Ldev/kursor/ktensorflow/vision/PixelFormat;
+	public fun getPixels ()[I
+	public fun getPixels ([I)V
+	public fun getPlatformImage ()Landroid/graphics/Bitmap;
+	public fun getWidth ()I
+}
+
+public final class dev/kursor/ktensorflow/vision/PaddingKt {
+	public static final fun resizeWithPad (Ldev/kursor/ktensorflow/vision/Image;IIIZ)Ldev/kursor/ktensorflow/vision/PaddedImage;
+	public static synthetic fun resizeWithPad$default (Ldev/kursor/ktensorflow/vision/Image;IIIZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/PaddedImage;
+}
+
+public abstract interface class dev/kursor/ktensorflow/vision/PixelFormat {
+	public static final field Companion Ldev/kursor/ktensorflow/vision/PixelFormat$Companion;
+	public abstract fun getChannels ()I
+}
+
+public final class dev/kursor/ktensorflow/vision/PixelFormat$Companion {
+	public final fun getABGR ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+	public final fun getARGB ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+	public final fun getBGR ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGB;
+	public final fun getBGRA ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+	public final fun getRGB ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGB;
+	public final fun getRGBA ()Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+}
+
+public final class dev/kursor/ktensorflow/vision/PixelFormat$Grayscale : dev/kursor/ktensorflow/vision/PixelFormat {
+	public static final field INSTANCE Ldev/kursor/ktensorflow/vision/PixelFormat$Grayscale;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getChannels ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/PixelFormat$RGB : dev/kursor/ktensorflow/vision/PixelFormat {
+	public fun <init> (III)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (III)Ldev/kursor/ktensorflow/vision/PixelFormat$RGB;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/PixelFormat$RGB;IIIILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/PixelFormat$RGB;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBIndex ()I
+	public fun getChannels ()I
+	public final fun getGIndex ()I
+	public final fun getRIndex ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/PixelFormat$RGBA : dev/kursor/ktensorflow/vision/PixelFormat {
+	public fun <init> (IIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;IIIIILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/PixelFormat$RGBA;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAIndex ()I
+	public final fun getBIndex ()I
+	public fun getChannels ()I
+	public final fun getGIndex ()I
+	public final fun getRIndex ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/Rect {
+	public static final field Companion Ldev/kursor/ktensorflow/vision/Rect$Companion;
+	public fun <init> (IIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Ldev/kursor/ktensorflow/vision/Rect;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/vision/Rect;IIIIILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Rect;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArea ()I
+	public final fun getBottom ()I
+	public final fun getHeight ()I
+	public final fun getLeft ()I
+	public final fun getRight ()I
+	public final fun getTop ()I
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/vision/Rect$Companion {
+	public final fun fromCoco (FFFFLdev/kursor/ktensorflow/vision/PadInfo;)Ldev/kursor/ktensorflow/vision/Rect;
+	public final fun fromNormalized (FFFFLdev/kursor/ktensorflow/vision/PadInfo;)Ldev/kursor/ktensorflow/vision/Rect;
+	public final fun fromYolo (FFFFLdev/kursor/ktensorflow/vision/PadInfo;)Ldev/kursor/ktensorflow/vision/Rect;
+}
+
+public final class dev/kursor/ktensorflow/vision/RectKt {
+	public static final fun intersectionOverUnion (Ldev/kursor/ktensorflow/vision/Rect;Ldev/kursor/ktensorflow/vision/Rect;)F
+	public static final fun scaleForContainer (Ldev/kursor/ktensorflow/vision/Rect;IIFFZ)Ldev/kursor/ktensorflow/vision/Rect;
+	public static synthetic fun scaleForContainer$default (Ldev/kursor/ktensorflow/vision/Rect;IIFFZILjava/lang/Object;)Ldev/kursor/ktensorflow/vision/Rect;
+}
+
+public final class dev/kursor/ktensorflow/vision/TensorShapeKt {
+	public static final fun TensorShape (IIIILdev/kursor/ktensorflow/vision/ImageTensorLayout;)Ldev/kursor/ktensorflow/tensor/TensorShape;
+}
+

@@ -243,7 +243,6 @@ public final class dev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuil
 }
 
 public final class dev/kursor/ktensorflow/pipeline/builder/InputPipelineBuilder {
-	public fun <init> ()V
 }
 
 public final class dev/kursor/ktensorflow/pipeline/builder/InputPipelineBuilderKt {
@@ -264,17 +263,30 @@ public final class dev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder
 }
 
 public final class dev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilderKt {
-	public static final fun output-ugF41S0 (Ldev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static synthetic fun output-ugF41S0$default (Ldev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;ILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output10 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output2 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output3 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output4 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output5 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output6 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output7 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output8 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
-	public static final fun output9 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILdev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output (Ldev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static synthetic fun output$default (Ldev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;ILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output10 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output2 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output3 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output4 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output5 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output6 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output7 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output8 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun output9 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+}
+
+public final class dev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilderWithNamesKt {
+	public static final fun output (Ldev/kursor/ktensorflow/pipeline/builder/InferencePipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName10 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName2 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName3 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName4 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName5 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName6 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName7 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName8 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
+	public static final fun outputName9 (Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;Ljava/lang/String;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;Ldev/kursor/ktensorflow/pipeline/stage/Stage;)Ldev/kursor/ktensorflow/pipeline/builder/OutputPipelineBuilder;
 }
 
 public final class dev/kursor/ktensorflow/pipeline/stage/ArgmaxStage : dev/kursor/ktensorflow/pipeline/stage/Stage {
@@ -321,24 +333,24 @@ public final class dev/kursor/ktensorflow/pipeline/stage/IndexedFilterStage : de
 }
 
 public final class dev/kursor/ktensorflow/pipeline/stage/InferenceOutputData {
-	public synthetic fun <init> (ILdev/kursor/ktensorflow/tensor/TensorDataType;[ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;)V
 	public final fun component1 ()I
 	public final fun component2 ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public final fun component3-3K9wa20 ()[I
-	public final fun copy-mZpAzMc (ILdev/kursor/ktensorflow/tensor/TensorDataType;[I)Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;
-	public static synthetic fun copy-mZpAzMc$default (Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;ILdev/kursor/ktensorflow/tensor/TensorDataType;[IILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;
+	public final fun component3 ()Ldev/kursor/ktensorflow/tensor/TensorShape;
+	public final fun copy (ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;)Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;ILdev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;ILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/stage/InferenceOutputData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
 	public final fun getIndex ()I
-	public final fun getShape-3K9wa20 ()[I
+	public final fun getShape ()Ldev/kursor/ktensorflow/tensor/TensorShape;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class dev/kursor/ktensorflow/pipeline/stage/InferenceStageKt {
+	public static final fun inference (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;I)Ldev/kursor/ktensorflow/pipeline/stage/Stage;
 	public static final fun inference (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;)Ldev/kursor/ktensorflow/pipeline/stage/Stage;
-	public static final fun inference-ugF41S0 (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/TensorDataType;[II)Ldev/kursor/ktensorflow/pipeline/stage/Stage;
-	public static synthetic fun inference-ugF41S0$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/TensorDataType;[IIILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/stage/Stage;
+	public static synthetic fun inference$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;IILjava/lang/Object;)Ldev/kursor/ktensorflow/pipeline/stage/Stage;
 }
 
 public final class dev/kursor/ktensorflow/pipeline/stage/MultiInferenceStage : dev/kursor/ktensorflow/pipeline/stage/Stage {

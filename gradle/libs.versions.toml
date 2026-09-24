@@ -2,7 +2,7 @@
 agp = "9.2.1"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.4.0"
+kotlin = "2.4.20"
 
 tensorflow-android = "1.4.2"
 qnn = "2.48.0"
@@ -45,7 +45,6 @@ essenty = "2.5.0"
 ktensorflow = "1.2"
 
 # API Compatibility
-binary-compatibility = "0.18.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -110,7 +109,6 @@ detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plu
 
 publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
 
-binary-compatibility-gradle-plugin = { module = "org.jetbrains.kotlinx:binary-compatibility-validator", version.ref = "binary-compatibility" }
 
 # KTensorFlow
 ktensorflow-core = { module = "dev.kursor.ktensorflow:ktensorflow-core", version.ref="ktensorflow" }
@@ -133,7 +131,6 @@ ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref = "ktensorf
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref= "binary-compatibility" }
 
 # Convention plugins
 convention-detekt = { id = "convention.detekt" }

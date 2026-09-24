@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.compose.multiplatform).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
     alias(libs.plugins.kotlin.serialization).apply(false)
-    alias(libs.plugins.binary.compatibility.validator).apply(false)
 
     alias(libs.plugins.convention.detekt)
     alias(libs.plugins.convention.verify)

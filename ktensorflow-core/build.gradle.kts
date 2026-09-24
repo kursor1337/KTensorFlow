@@ -35,11 +35,20 @@ kotlin {
             isStatic = true
         }
 
+        // Это единственный cinterop для TensorFlowLiteObjC во всей библиотеке: он покрывает и
+        // сабспеки Metal и CoreML, а ktensorflow-gpu и ktensorflow-npu берут привязки отсюда.
+        // Если каждый модуль генерирует свой cinterop для того же пода, все они оказываются в
+        // одном пакете cocoapods.TensorFlowLiteObjC, и итоговый iOS-бинарь с несколькими модулями
+        // не линкуется ("symbol multiply defined", KT-46358; с Kotlin 2.4.20 - гарантированно).
         pod("TensorFlowLiteObjC") {
             moduleName = "TFLTensorFlowLite"
             version = "2.17.0"
         }
         pod("TensorFlowLiteObjC/Metal") {
+            moduleName = "TFLTensorFlowLite"
+            version = "2.17.0"
+        }
+        pod("TensorFlowLiteObjC/CoreML") {
             moduleName = "TFLTensorFlowLite"
             version = "2.17.0"
         }

@@ -175,62 +175,33 @@ public final class dev/kursor/ktensorflow/tensor/ArithmeticKt {
 	public static final fun uByteTensorTimesUByteTensor (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
 }
 
-public final class dev/kursor/ktensorflow/tensor/FloatTensor : dev/kursor/ktensorflow/tensor/Tensor {
-	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public fun get ([I)Ljava/lang/Float;
-	public synthetic fun get ([I)Ljava/lang/Object;
-	public fun getData ()[B
-	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Float32;
-	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public fun getShape-3K9wa20 ()[I
-	public fun hashCode ()I
-	public fun set ([IF)V
-	public synthetic fun set ([ILjava/lang/Object;)V
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/kursor/ktensorflow/tensor/IntTensor : dev/kursor/ktensorflow/tensor/Tensor {
-	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public fun get ([I)Ljava/lang/Integer;
-	public synthetic fun get ([I)Ljava/lang/Object;
-	public fun getData ()[B
-	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Int32;
-	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public fun getShape-3K9wa20 ()[I
-	public fun hashCode ()I
-	public fun set ([II)V
-	public synthetic fun set ([ILjava/lang/Object;)V
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class dev/kursor/ktensorflow/tensor/InterpreterExtKt {
-	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/Tensor;)V
+	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;)V
 	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;)V
+	public static final fun runWithNames (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;)V
 }
 
-public final class dev/kursor/ktensorflow/tensor/LongTensor : dev/kursor/ktensorflow/tensor/Tensor {
-	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public fun get ([I)Ljava/lang/Long;
-	public synthetic fun get ([I)Ljava/lang/Object;
-	public fun getData ()[B
-	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$Int64;
-	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public fun getShape-3K9wa20 ()[I
-	public fun hashCode ()I
-	public fun set ([IJ)V
-	public synthetic fun set ([ILjava/lang/Object;)V
-	public fun toString ()Ljava/lang/String;
+public abstract interface class dev/kursor/ktensorflow/tensor/PhysicalTensor : dev/kursor/ktensorflow/tensor/Tensor {
+	public abstract fun getData ()[B
+	public fun toPhysical ()Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
+}
+
+public final class dev/kursor/ktensorflow/tensor/PhysicalTensor$DefaultImpls {
+	public static fun toPhysical (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;)Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
+}
+
+public final class dev/kursor/ktensorflow/tensor/PhysicalTensorKt {
+	public static final fun toArray (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/kursor/ktensorflow/tensor/Tensor {
 	public abstract fun get ([I)Ljava/lang/Object;
-	public abstract fun getData ()[B
 	public abstract fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public abstract fun getShape-3K9wa20 ()[I
+	public abstract fun getFlat (I)Ljava/lang/Object;
+	public abstract fun getShape ()Ldev/kursor/ktensorflow/tensor/TensorShape;
 	public abstract fun set ([ILjava/lang/Object;)V
+	public abstract fun setFlat (ILjava/lang/Object;)V
+	public abstract fun toPhysical ()Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
 }
 
 public abstract interface class dev/kursor/ktensorflow/tensor/TensorDataType {
@@ -280,32 +251,34 @@ public final class dev/kursor/ktensorflow/tensor/TensorDataType$UInt8 : dev/kurs
 }
 
 public final class dev/kursor/ktensorflow/tensor/TensorKt {
-	public static final fun Tensor (Ldev/kursor/ktensorflow/tensor/TensorDataType;Ljava/lang/Object;)Ldev/kursor/ktensorflow/tensor/Tensor;
-	public static final fun Tensor-EmEXgQc (Ldev/kursor/ktensorflow/tensor/TensorDataType;[I[B)Ldev/kursor/ktensorflow/tensor/Tensor;
-	public static synthetic fun Tensor-EmEXgQc$default (Ldev/kursor/ktensorflow/tensor/TensorDataType;[I[BILjava/lang/Object;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun Tensor (Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;[B)Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
+	public static final fun Tensor (Ldev/kursor/ktensorflow/tensor/TensorDataType;Ljava/lang/Object;)Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
+	public static synthetic fun Tensor$default (Ldev/kursor/ktensorflow/tensor/TensorDataType;Ldev/kursor/ktensorflow/tensor/TensorShape;[BILjava/lang/Object;)Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
 	public static final fun get (Ldev/kursor/ktensorflow/tensor/Tensor;[I)Ljava/lang/Object;
 	public static final fun set (Ldev/kursor/ktensorflow/tensor/Tensor;[ILjava/lang/Object;)V
-	public static final fun toArray (Ldev/kursor/ktensorflow/tensor/Tensor;)Ljava/lang/Object;
 }
 
 public final class dev/kursor/ktensorflow/tensor/TensorShape {
-	public static final synthetic fun box-impl ([I)Ldev/kursor/ktensorflow/tensor/TensorShape;
-	public static fun constructor-impl ([I)[I
+	public fun <init> ([I)V
 	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl ([ILjava/lang/Object;)Z
-	public static final fun equals-impl0 ([I[I)Z
 	public final fun getDimensions ()[I
-	public static final fun getFlatSize-impl ([I)I
-	public static final fun getRank-impl ([I)I
+	public final fun getFlatSize ()I
+	public final fun getRank ()I
 	public fun hashCode ()I
-	public static fun hashCode-impl ([I)I
 	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl ([I)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()[I
 }
 
 public final class dev/kursor/ktensorflow/tensor/TensorShapeKt {
-	public static final fun TensorShape ([I)[I
+	public static final fun TensorShape ([I)Ldev/kursor/ktensorflow/tensor/TensorShape;
+}
+
+public abstract interface class dev/kursor/ktensorflow/tensor/TensorView : dev/kursor/ktensorflow/tensor/Tensor {
+	public abstract fun getDelegate ()Ldev/kursor/ktensorflow/tensor/Tensor;
+	public fun toPhysical ()Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
+}
+
+public final class dev/kursor/ktensorflow/tensor/TensorView$DefaultImpls {
+	public static fun toPhysical (Ldev/kursor/ktensorflow/tensor/TensorView;)Ldev/kursor/ktensorflow/tensor/PhysicalTensor;
 }
 
 public final class dev/kursor/ktensorflow/tensor/TransformationsKt {
@@ -337,12 +310,19 @@ public final class dev/kursor/ktensorflow/tensor/TransformationsKt {
 	public static final fun minLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
 	public static final fun minUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
 	public static final fun normalizeFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
-	public static final fun reshape-a2X7_dA (Ldev/kursor/ktensorflow/tensor/Tensor;[I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun permuted (Ldev/kursor/ktensorflow/tensor/Tensor;[I)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun reshape (Ldev/kursor/ktensorflow/tensor/Tensor;Ldev/kursor/ktensorflow/tensor/TensorShape;)Ldev/kursor/ktensorflow/tensor/Tensor;
 	public static final fun slice (Ldev/kursor/ktensorflow/tensor/Tensor;[Lkotlin/ranges/IntRange;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun sliceArray (Ldev/kursor/ktensorflow/tensor/Tensor;[Lkotlin/ranges/IntRange;)Ldev/kursor/ktensorflow/tensor/Tensor;
+	public static final fun squeeze (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
 	public static final fun sumFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)F
 	public static final fun sumInt (Ldev/kursor/ktensorflow/tensor/Tensor;)I
 	public static final fun sumLong (Ldev/kursor/ktensorflow/tensor/Tensor;)J
 	public static final fun sumUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)B
+	public static final fun toFlatArrayFloat (Ldev/kursor/ktensorflow/tensor/Tensor;)[F
+	public static final fun toFlatArrayInt (Ldev/kursor/ktensorflow/tensor/Tensor;)[I
+	public static final fun toFlatArrayLong (Ldev/kursor/ktensorflow/tensor/Tensor;)[J
+	public static final fun toFlatArrayUByte (Ldev/kursor/ktensorflow/tensor/Tensor;)[B
 	public static final fun toFloatTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
 	public static final fun toIntTensor (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
 	public static final fun toList (Ldev/kursor/ktensorflow/tensor/Tensor;)Ljava/util/List;
@@ -351,23 +331,11 @@ public final class dev/kursor/ktensorflow/tensor/TransformationsKt {
 	public static final fun transpose (Ldev/kursor/ktensorflow/tensor/Tensor;)Ldev/kursor/ktensorflow/tensor/Tensor;
 }
 
-public final class dev/kursor/ktensorflow/tensor/UByteTensor : dev/kursor/ktensorflow/tensor/Tensor {
-	public synthetic fun <init> ([I[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun equals (Ljava/lang/Object;)Z
-	public synthetic fun get ([I)Ljava/lang/Object;
-	public fun get-Wa3L5BU ([I)B
-	public fun getData ()[B
-	public fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType$UInt8;
-	public synthetic fun getDataType ()Ldev/kursor/ktensorflow/tensor/TensorDataType;
-	public fun getShape-3K9wa20 ()[I
-	public fun hashCode ()I
-	public synthetic fun set ([ILjava/lang/Object;)V
-	public fun set-EK-6454 ([IB)V
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class dev/kursor/ktensorflow/tensor/UtilsKt {
-	public static final fun toFlatIndex-a2X7_dA ([I[I)I
-	public static final fun toNestedIndex-a2X7_dA (I[I)[I
+	public static final fun incrementIndex ([ILdev/kursor/ktensorflow/tensor/TensorShape;)V
+	public static final fun strides (Ldev/kursor/ktensorflow/tensor/TensorShape;)[I
+	public static final fun toFlatIndex ([ILdev/kursor/ktensorflow/tensor/TensorShape;)I
+	public static final fun toFlatIndex ([I[I)I
+	public static final fun toNestedIndex (ILdev/kursor/ktensorflow/tensor/TensorShape;)[I
 }
 

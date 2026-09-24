@@ -134,8 +134,6 @@ final class dev.kursor.ktensorflow/TensorFlowException : kotlin/Exception { // d
     constructor <init>(kotlin/Throwable?) // dev.kursor.ktensorflow/TensorFlowException.<init>|<init>(kotlin.Throwable?){}[0]
 }
 
-final fun (cocoapods.TensorFlowLiteObjC/TFLTensor).dev.kursor.ktensorflow.impl/shape(): kotlin.collections/List<kotlin/Int> // dev.kursor.ktensorflow.impl/shape|shape@cocoapods.TensorFlowLiteObjC.TFLTensor(){}[0]
-final fun (cocoapods.TensorFlowLiteObjC/TFLTensorDataType).dev.kursor.ktensorflow/toKTensorFlow(): dev.kursor.ktensorflow/DataType // dev.kursor.ktensorflow/toKTensorFlow|toKTensorFlow@cocoapods.TensorFlowLiteObjC.TFLTensorDataType(){}[0]
 final fun (dev.kursor.ktensorflow/Interpreter).dev.kursor.ktensorflow/run(kotlin.collections/List<kotlin/ByteArray>, kotlin.collections/Map<kotlin/String, kotlin/ByteArray>) // dev.kursor.ktensorflow/run|run@dev.kursor.ktensorflow.Interpreter(kotlin.collections.List<kotlin.ByteArray>;kotlin.collections.Map<kotlin.String,kotlin.ByteArray>){}[0]
 final fun (dev.kursor.ktensorflow/Interpreter).dev.kursor.ktensorflow/run(kotlin/ByteArray, kotlin/ByteArray) // dev.kursor.ktensorflow/run|run@dev.kursor.ktensorflow.Interpreter(kotlin.ByteArray;kotlin.ByteArray){}[0]
 final fun dev.kursor.ktensorflow/Interpreter(dev.kursor.ktensorflow/ModelDesc, dev.kursor.ktensorflow/InterpreterOptions): dev.kursor.ktensorflow/Interpreter // dev.kursor.ktensorflow/Interpreter|Interpreter(dev.kursor.ktensorflow.ModelDesc;dev.kursor.ktensorflow.InterpreterOptions){}[0]

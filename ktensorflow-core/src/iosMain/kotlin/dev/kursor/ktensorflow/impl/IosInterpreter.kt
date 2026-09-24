@@ -186,7 +186,7 @@ internal class IosInterpreter(
     }
 }
 
-fun TFLTensor.shape(): List<Int> {
+internal fun TFLTensor.shape(): List<Int> {
     return checkError { errPtr ->
         this.shapeWithError(errPtr)
     }.map { (it as Number).toInt() }

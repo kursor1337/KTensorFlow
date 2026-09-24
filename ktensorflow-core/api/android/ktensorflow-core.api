@@ -1,3 +1,14 @@
+public final class dev/kursor/ktensorflow/DataType : java/lang/Enum {
+	public static final field Float32 Ldev/kursor/ktensorflow/DataType;
+	public static final field Int32 Ldev/kursor/ktensorflow/DataType;
+	public static final field Int64 Ldev/kursor/ktensorflow/DataType;
+	public static final field UInt8 Ldev/kursor/ktensorflow/DataType;
+	public final fun getByteSize ()I
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/kursor/ktensorflow/DataType;
+	public static fun values ()[Ldev/kursor/ktensorflow/DataType;
+}
+
 public abstract interface class dev/kursor/ktensorflow/Delegate {
 	public abstract fun getTflDelegate ()Lorg/tensorflow/lite/Delegate;
 	public abstract fun isAvailable ()Z
@@ -6,12 +17,17 @@ public abstract interface class dev/kursor/ktensorflow/Delegate {
 public abstract interface annotation class dev/kursor/ktensorflow/ExperimentalKTensorFlowApi : java/lang/annotation/Annotation {
 }
 
-public abstract interface class dev/kursor/ktensorflow/Interpreter {
+public abstract interface class dev/kursor/ktensorflow/Interpreter : java/lang/AutoCloseable {
 	public abstract fun close ()V
+	public abstract fun getInputTensorCount ()I
+	public abstract fun getModelMeta ()Ldev/kursor/ktensorflow/ModelMeta;
+	public abstract fun getOutputTensorCount ()I
+	public abstract fun resizeInput (I[I)V
 	public abstract fun run (Ljava/util/List;Ljava/util/Map;)V
 }
 
 public final class dev/kursor/ktensorflow/InterpreterKt {
+	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;)V
 	public static final fun run (Ldev/kursor/ktensorflow/Interpreter;[B[B)V
 }
 
@@ -65,5 +81,49 @@ public final class dev/kursor/ktensorflow/ModelDesc$File : dev/kursor/ktensorflo
 	public final fun getFile ()Ljava/io/File;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/ModelMeta {
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;)Ldev/kursor/ktensorflow/ModelMeta;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/ModelMeta;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/kursor/ktensorflow/ModelMeta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInputData ()Ljava/util/List;
+	public final fun getInputsByName ()Ljava/util/Map;
+	public final fun getOutputData ()Ljava/util/List;
+	public final fun getOutputsByName ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/ModelTensorData {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ldev/kursor/ktensorflow/DataType;Ljava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ldev/kursor/ktensorflow/DataType;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ldev/kursor/ktensorflow/DataType;Ljava/util/List;)Ldev/kursor/ktensorflow/ModelTensorData;
+	public static synthetic fun copy$default (Ldev/kursor/ktensorflow/ModelTensorData;ILjava/lang/String;Ljava/lang/String;Ldev/kursor/ktensorflow/DataType;Ljava/util/List;ILjava/lang/Object;)Ldev/kursor/ktensorflow/ModelTensorData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDataType ()Ldev/kursor/ktensorflow/DataType;
+	public final fun getIndex ()I
+	public final fun getInternalName ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getNumElements ()I
+	public final fun getShape ()Ljava/util/List;
+	public final fun getTotalByteSize ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/TensorFlowException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;ILjava/lang/Throwable;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun <init> (Ljava/lang/Throwable;)V
 }
 

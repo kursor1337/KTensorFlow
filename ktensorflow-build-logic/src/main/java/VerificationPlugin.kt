@@ -62,7 +62,7 @@ class VerificationPlugin : Plugin<Project> {
                 ?: throw GradleException("Task '$linkPluginTestsPath' not found — make sure ktensorflow-link is covered by tests")
 
             val apiCheckTasks = modulesToApiCheck
-                .map { ":$it:apiCheck" }
+                .map { ":$it:checkKotlinAbi" }
                 .map { path ->
                     rootProject.tasks.findByPath(path)
                         ?: throw GradleException(
