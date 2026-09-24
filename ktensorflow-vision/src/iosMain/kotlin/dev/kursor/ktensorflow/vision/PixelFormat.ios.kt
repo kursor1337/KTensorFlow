@@ -33,5 +33,14 @@ internal val PixelFormat.cgBitmapInfo: UInt
         PixelFormat.Grayscale ->
             CGImageAlphaInfo.kCGImageAlphaNone.value
 
-        else -> error("Unsupported PixelFormat for CoreGraphics: $this")
+        is PixelFormat.RGB ->
+            error("CoreGraphics has no 3-channel layouts, $this must be expanded to $coreGraphicsFormat")
     }
+
+/** Формат, в котором пиксели отдаются CoreGraphics: 3-канальные раскладки она не поддерживает. */
+internal val PixelFormat.coreGraphicsFormat: PixelFormat
+    get() = if (this is PixelFormat.RGB) withAlpha else this
+
+/** Та же раскладка с альфой в конце, как её дописывает [expandToFourChannels]: RGB -> RGBA, BGR -> BGRA. */
+internal val PixelFormat.RGB.withAlpha: PixelFormat.RGBA
+    get() = PixelFormat.RGBA(rIndex, gIndex, bIndex, 3)

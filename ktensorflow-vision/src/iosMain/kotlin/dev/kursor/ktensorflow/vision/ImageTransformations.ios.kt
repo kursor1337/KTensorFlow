@@ -150,47 +150,23 @@ actual fun Image.grayscale(
     closeOriginal: Boolean
 ): Image {
     val out = ByteArray(width * height)
-    // platformImage - геттер с проверкой на закрытое изображение, в горячем цикле он
-    // поднят в локальную переменную
     val bytes = platformImage
 
-    // Поддержаны все форматы: на Android grayscale работает с любым изображением, а здесь
-    // RGB и уже серое падали с исключением
+    // Поддержаны все форматы: на Android grayscale работает с любым изображением.
+    // Яркость считает vImage (SIMD), как на Android её считает ColorMatrix
     when (val format = pixelFormat) {
         PixelFormat.Grayscale -> bytes.copyInto(out, endIndex = out.size)
 
         is PixelFormat.RGB -> {
-            var src = 0
-            for (dst in out.indices) {
-                val r = bytes[src + format.rIndex].toInt() and 0xFF
-                val g = bytes[src + format.gIndex].toInt() and 0xFF
-                val b = bytes[src + format.bIndex].toInt() and 0xFF
-                out[dst] = luma(r, g, b)
-                src += 3
-            }
+            val fourChannels = expandToFourChannels(bytes, width, height)
+            lumaRec601(fourChannels, format.withAlpha, out, width, height)
         }
 
+        // Буфер premultiplied: без обратного умножения полупрозрачные пиксели потемнели бы,
+        // и результат разошёлся бы с Android, где ColorMatrix работает с прямым цветом
         is PixelFormat.RGBA -> {
-            var src = 0
-            for (dst in out.indices) {
-                // Буфер premultiplied: без обратного умножения полупрозрачные пиксели
-                // потемнели бы, и результат разошёлся бы с Android
-                val a = bytes[src + format.aIndex].toInt() and 0xFF
-                val r: Int
-                val g: Int
-                val b: Int
-                if (a == 0xFF) {
-                    r = bytes[src + format.rIndex].toInt() and 0xFF
-                    g = bytes[src + format.gIndex].toInt() and 0xFF
-                    b = bytes[src + format.bIndex].toInt() and 0xFF
-                } else {
-                    r = bytes[src + format.rIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    g = bytes[src + format.gIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                    b = bytes[src + format.bIndex].toInt().unpremultiplyAlpha(a) and 0xFF
-                }
-                out[dst] = luma(r, g, b)
-                src += 4
-            }
+            val straight = unpremultiply(bytes, format, width, height)
+            lumaRec601(straight, format, out, width, height)
         }
     }
 
@@ -204,17 +180,23 @@ actual fun Image.grayscale(
     )
 }
 
-/** Яркость по ITU-R 601 - те же веса, что у Android-реализации и у ImageTensor.grayscale. */
-private fun luma(r: Int, g: Int, b: Int): Byte =
-    (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255).toByte()
-
-private fun <R> withBitmapContext(
+internal fun <R> withBitmapContext(
     out: ByteArray,
     width: Int,
     height: Int,
     pixelFormat: PixelFormat,
     block: (CGContextRef?) -> R
 ): R {
+    // CoreGraphics не рисует в 3-канальный буфер: рисуем в RGBA и упаковываем обратно
+    // Цвет остаётся premultiplied, то есть полупрозрачные края после поворота ложатся на
+    // чёрный фон - у RGB нет альфы, чтобы их хранить
+    if (pixelFormat is PixelFormat.RGB) {
+        val rgba = ByteArray(width * height * 4)
+        val result = withBitmapContext(rgba, width, height, pixelFormat.coreGraphicsFormat, block)
+        packToThreeChannels(rgba, out, width, height)
+        return result
+    }
+
     val colorSpace =
         if (pixelFormat == PixelFormat.Grayscale) {
             CGColorSpaceCreateDeviceGray()

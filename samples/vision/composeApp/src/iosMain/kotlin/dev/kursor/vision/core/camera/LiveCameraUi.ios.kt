@@ -4,10 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import dev.kursor.ktensorflow.vision.Image
-import dev.kursor.ktensorflow.vision.IosImage
-import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.rotate
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.refTo
 import platform.AVFoundation.AVCaptureConnection
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -20,22 +18,8 @@ import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.AVFoundation.AVMediaTypeVideo
-import platform.CoreGraphics.CGBitmapContextCreate
-import platform.CoreGraphics.CGColorSpaceCreateDeviceRGB
-import platform.CoreGraphics.CGContextDrawImage
-import platform.CoreGraphics.CGImageAlphaInfo
-import platform.CoreGraphics.CGImageGetHeight
-import platform.CoreGraphics.CGImageGetWidth
-import platform.CoreGraphics.CGImageRelease
-import platform.CoreGraphics.CGRectMake
-import platform.CoreGraphics.kCGBitmapByteOrder32Little
-import platform.CoreImage.CIContext
-import platform.CoreImage.CIImage
-import platform.CoreImage.createCGImage
 import platform.CoreMedia.CMSampleBufferGetImageBuffer
 import platform.CoreMedia.CMSampleBufferRef
-import platform.CoreVideo.CVPixelBufferLockBaseAddress
-import platform.CoreVideo.CVPixelBufferUnlockBaseAddress
 import platform.CoreVideo.kCVPixelBufferPixelFormatTypeKey
 import platform.CoreVideo.kCVPixelFormatType_32BGRA
 import platform.darwin.NSObject
@@ -76,51 +60,10 @@ actual fun LiveCameraUi(
                         fromConnection: AVCaptureConnection
                     ) {
                         val pixelBuffer = CMSampleBufferGetImageBuffer(didOutputSampleBuffer)!!
-                        CVPixelBufferLockBaseAddress(pixelBuffer, 0U)
 
-                        val ciImage = CIImage.imageWithCVPixelBuffer(pixelBuffer).imageByApplyingOrientation(6)
-                        val context = CIContext()
-                        val cgImage = context.createCGImage(ciImage, ciImage.extent)!!
-
-                        val width = CGImageGetWidth(cgImage)
-                        val height = CGImageGetHeight(cgImage)
-                        val bytesPerPixel = 4u
-                        val out = ByteArray((width * height * bytesPerPixel).toInt())
-
-                        val colorSpace = CGColorSpaceCreateDeviceRGB()
-                        val bitmapContext = CGBitmapContextCreate(
-                            out.refTo(0),
-                            width,
-                            height,
-                            8u, // bits per component
-                            width * bytesPerPixel, // bytes per row (tight)
-                            colorSpace,
-                            CGImageAlphaInfo.kCGImageAlphaPremultipliedFirst.value or kCGBitmapByteOrder32Little
-                        )!!
-
-                        CGContextDrawImage(
-                            bitmapContext,
-                            CGRectMake(
-                                0.0,
-                                0.0,
-                                width.toDouble(),
-                                height.toDouble()
-                            ),
-                            cgImage
-                        )
-
-                        CGImageRelease(cgImage)
-                        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0U)
-
-                        // ✅ Call onFrame with the proper image
-                        onFrame(
-                            IosImage(
-                                width = width.toInt(),
-                                height = height.toInt(),
-                                pixelFormat = PixelFormat.BGRA, // matches kCGImageAlphaPremultipliedLast
-                                pixels = out
-                            )
-                        )
+                        // Кадр приходит в ориентации сенсора: для портрета его нужно
+                        // повернуть на 90 градусов по часовой стрелке
+                        onFrame(Image(pixelBuffer).rotate(90f, closeOriginal = true))
                     }
                 }
 

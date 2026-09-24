@@ -121,6 +121,17 @@ val array = tensor.toPhysical().toArray<Array<FloatArray>>()
 ### Computer Vision (Vision Module)
 The new `ktensorflow-vision` module provides cross-platform Computer Vision primitives, hiding the differences between Android's `Bitmap` and iOS's `CGImage`/`CVPixelBuffer`.
 
+#### Obtaining an Image
+```kotlin
+// Android: wrap a Bitmap (ARGB_8888)
+val image: Image = AndroidImage(bitmap, PixelFormat.ARGB)
+
+// iOS: copy a camera frame or a CoreGraphics image; the caller keeps ownership of the source
+val frame: Image = Image(CMSampleBufferGetImageBuffer(sampleBuffer)!!)
+val picture: Image = Image(uiImage.CGImage!!)
+```
+Camera frames arrive in the sensor orientation on both platforms, so `rotate` them to make them upright.
+
 #### Images & Tensorization
 ```kotlin
 val originalImage: Image = // ... obtain from Camera or File

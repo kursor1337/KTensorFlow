@@ -15,10 +15,12 @@ import dev.kursor.ktensorflow.vision.resize
 import dev.kursor.ktensorflow.vision.resizeWithPad
 import dev.kursor.ktensorflow.vision.rotate
 import dev.kursor.ktensorflow.vision.scaleForContainer
+import dev.kursor.ktensorflow.vision.tensorize
 import dev.kursor.ktensorflow.vision.tensorizeFloat
 import dev.kursor.ktensorflow.vision.toImage
 import kotlin.math.abs
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
@@ -954,6 +956,116 @@ class VisionModuleTests {
             val luma = gray.getPixels()[0] and 0xFF
             assertTrue(abs(luma - expected) <= 2, "color ${color.toString(16)}: expected ~$expected, got $luma")
             gray.close()
+        }
+    }
+
+    // Случайные непрозрачные цвета с фиксированным зерном: одинаковые на обеих платформах
+    private fun randomColors(count: Int): IntArray {
+        var seed = 12345
+        return IntArray(count) {
+            seed = seed * 1103515245 + 12345
+            (0xFF shl 24) or ((seed ushr 8) and 0xFFFFFF)
+        }
+    }
+
+    private fun rec601(argb: Int): Float {
+        val r = (argb shr 16) and 0xFF
+        val g = (argb shr 8) and 0xFF
+        val b = argb and 0xFF
+        return 0.299f * r + 0.587f * g + 0.114f * b
+    }
+
+    @Test
+    fun grayscaleFollowsRec601WithinOneLevelOnBothPlatforms() {
+        // Яркость считают нативные реализации (ColorMatrix на Android, vImage на iOS), и
+        // округляют они по-своему, поэтому допуск - один уровень. iOS раньше обрезал дробь,
+        // и серый 128 превращался в 127
+        val colors = randomColors(4096)
+        val levels = IntArray(256) { (0xFF shl 24) or (it shl 16) or (it shl 8) or it }
+
+        for (input in listOf(colors, levels)) {
+            val side = if (input.size == 4096) 64 else 16
+            val gray = Image(side, side, PixelFormat.ARGB, input).grayscale()
+
+            val actual = gray.getPixels()
+            input.forEachIndexed { i, color ->
+                val expected = rec601(color)
+                val luma = actual[i] and 0xFF
+                assertTrue(
+                    abs(luma - expected) <= 1f,
+                    "color 0x${color.toUInt().toString(16)}: expected ~$expected, got $luma"
+                )
+            }
+            gray.close()
+        }
+    }
+
+    @Test
+    fun ubyteTensorGrayscaleAgreesWithImageGrayscale() {
+        // Два пути к серому - через Image и через ImageTensor<UByte> - дают одно и то же с
+        // точностью до округления: тензор считает целочисленным приближением весов
+        val colors = randomColors(4096)
+        val image = Image(64, 64, PixelFormat.ARGB, colors)
+
+        val fromTensor = image.tensorize<UByte>().grayscale()
+        val fromImage = image.grayscale(closeOriginal = true)
+
+        val expected = fromImage.getPixels()
+        for (i in colors.indices) {
+            val diff = abs((expected[i] and 0xFF) - fromTensor.getFlat(i).toInt())
+            assertTrue(diff <= 2, "pixel $i differs by $diff")
+        }
+        fromImage.close()
+    }
+
+    // --- 3-канальные изображения ---
+
+    @Test
+    fun threeChannelImagesCanBeResizedCroppedAndRotated() {
+        // На iOS CoreGraphics не поддерживает 3-канальные буферы, и resize/crop/rotate
+        // RGB-изображения падали, тогда как на Android работали
+        val color = (0xFF shl 24) or (10 shl 16) or (120 shl 8) or 230
+
+        for (format in listOf(PixelFormat.RGB, PixelFormat.BGR)) {
+            val image = createSolidImage(4, 6, color).let { argb ->
+                Image(4, 6, format, argb.getPixels()).also { argb.close() }
+            }
+
+            val resized = image.resize(8, 3, closeOriginal = false)
+            val cropped = image.crop(Rect(left = 1, top = 1, right = 3, bottom = 5), closeOriginal = false)
+            val rotated = image.rotate(180f, closeOriginal = true)
+
+            listOf(resized to (8 to 3), cropped to (2 to 4), rotated to (4 to 6)).forEach { (result, size) ->
+                assertEquals(format, result.pixelFormat, "format $format")
+                assertEquals(size.first, result.width, "format $format")
+                assertEquals(size.second, result.height, "format $format")
+                result.getPixels().forEach { assertColorApprox(color, it) }
+                result.close()
+            }
+        }
+    }
+
+    @Test
+    fun threeChannelImageKeepsPixelPositionsWhenCroppedAndRotated() {
+        // Однотонная картинка не заметила бы перепутанных каналов или строк
+        for (format in listOf(PixelFormat.RGB, PixelFormat.BGR)) {
+            val red = (0xFF shl 24) or (255 shl 16)
+            val green = (0xFF shl 24) or (255 shl 8)
+            val blue = (0xFF shl 24) or 255
+            val image = Image(3, 1, format, intArrayOf(red, green, blue))
+
+            val cropped = image.crop(Rect(left = 1, top = 0, right = 3, bottom = 1), closeOriginal = false)
+            val rotated = image.rotate(90f, closeOriginal = true)
+
+            assertContentEquals(intArrayOf(green, blue), cropped.getPixels(), "crop $format")
+            assertEquals(1, rotated.width, "rotate $format")
+            assertEquals(3, rotated.height, "rotate $format")
+            val column = rotated.getPixels()
+            listOf(red, green, blue).forEachIndexed { i, expected ->
+                assertColorApprox(expected, column[i], tolerance = 8)
+            }
+            cropped.close()
+            rotated.close()
         }
     }
 

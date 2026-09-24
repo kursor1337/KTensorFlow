@@ -32,6 +32,11 @@ expect fun Image.rotate(degrees: Float, closeOriginal: Boolean = true): Image
 /**
  * Converts the image to grayscale.
  *
- * @return A new [Image] containing the grayscale image.
+ * The luma of each pixel follows ITU-R 601 (`0.299 * R + 0.587 * G + 0.114 * B`) and is computed by
+ * the platform's accelerated implementation: `ColorMatrix` on Android and vImage on iOS. They
+ * round differently, so the same pixel may differ by one level between platforms.
+ *
+ * @param closeOriginal whether to close this image after the conversion.
+ * @return A new [Image] in [PixelFormat.Grayscale].
  */
 expect fun Image.grayscale(closeOriginal: Boolean = true): Image
