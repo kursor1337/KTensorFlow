@@ -204,7 +204,7 @@ actual fun Image.grayscale(
     )
 }
 
-/** Яркость по ITU-R 601 - те же веса, что использует ColorMatrix на Android. */
+/** Яркость по ITU-R 601 - те же веса, что у Android-реализации и у ImageTensor.grayscale. */
 private fun luma(r: Int, g: Int, b: Int): Byte =
     (0.299 * r + 0.587 * g + 0.114 * b).toInt().coerceIn(0, 255).toByte()
 

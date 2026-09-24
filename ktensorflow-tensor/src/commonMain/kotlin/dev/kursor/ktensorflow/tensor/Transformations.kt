@@ -135,7 +135,12 @@ fun <T : Any> Tensor<T>.flatten(): Tensor<T> =
  */
 fun <T : Any> Tensor<T>.permuted(vararg axes: Int): Tensor<T> {
     require(axes.size == shape.rank) { "Axes length must match tensor rank" }
-    return PermutedTensorView(this, axes)
+    // Повтор оси не всегда выводит смещения за массив: на квадратном тензоре permuted(1, 1)
+    // молча возвращал мусор, поэтому оси обязаны быть перестановкой 0 until rank
+    require(axes.sorted() == (0 until shape.rank).toList()) {
+        "Axes ${axes.contentToString()} are not a permutation of 0 until ${shape.rank}"
+    }
+    return PermutedTensorView(this, axes.copyOf())
 }
 
 /**
@@ -179,7 +184,9 @@ fun <T : Any> Tensor<T>.squeeze(): Tensor<T> = reshape(
     TensorShape(
         shape
             .dimensions
-            .filter { it > 1 }
+            // Убираются только единичные измерения: с условием `> 1` пропадали и нулевые, и
+            // пустой тензор (0, 3) превращался в (3) с другим числом элементов
+            .filter { it != 1 }
             .toIntArray()
     )
 )

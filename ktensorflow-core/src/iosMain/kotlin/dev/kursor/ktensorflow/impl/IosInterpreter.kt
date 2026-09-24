@@ -7,7 +7,9 @@ import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.ModelMeta
 import dev.kursor.ktensorflow.ModelTensorData
+import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.toKTensorFlow
+import platform.Foundation.NSRecursiveLock
 import kotlin.math.min
 
 // private val on options because it is required to keep references so that they are not
@@ -17,7 +19,24 @@ internal class IosInterpreter(
     private val options: InterpreterOptions
 ) : Interpreter {
 
-    private val tflInterpreter: TFLInterpreter = checkError { errPtr ->
+    // Замок на экземпляр: интерпретатор TensorFlow Lite не допускает одновременных вызовов,
+    // а close() из другого потока во время инференса освобождал бы объект прямо под ним.
+    // Рекурсивный, потому что публичные методы вызывают друг друга (getModelMeta -> inputTensorCount).
+    private val lock = NSRecursiveLock()
+
+    private inline fun <T> locked(block: () -> T): T {
+        lock.lock()
+        try {
+            return block()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    // null после close(): ссылка на TFLInterpreter отпускается, и нативный объект вместе с
+    // моделью и тензорной ареной освобождается при ближайшей сборке мусора Kotlin/Native.
+    // Раньше close() ничего не делал, а run после него продолжал работать, в отличие от Android.
+    private var interpreterOrNull: TFLInterpreter? = checkError { errPtr ->
         when (modelDesc) {
             is ModelDesc.PathInBundle -> {
                 TFLInterpreter(
@@ -30,6 +49,12 @@ internal class IosInterpreter(
         }
     }
 
+    private val tflInterpreter: TFLInterpreter
+        get() = interpreterOrNull ?: throw TensorFlowException("Interpreter has already been closed")
+
+    // Метаданные неизменны до resizeInput, а именованный run запрашивает их на каждом вызове
+    private var cachedMeta: ModelMeta? = null
+
     init {
         checkError { errPtr ->
             tflInterpreter.allocateTensorsWithError(errPtr)
@@ -37,12 +62,16 @@ internal class IosInterpreter(
     }
 
     override val inputTensorCount: Int
-        get() = tflInterpreter.inputTensorCount.toInt()
+        get() = locked { tflInterpreter.inputTensorCount.toInt() }
 
     override val outputTensorCount: Int
-        get() = tflInterpreter.outputTensorCount.toInt()
+        get() = locked { tflInterpreter.outputTensorCount.toInt() }
 
-    override fun getModelMeta(): ModelMeta {
+    override fun getModelMeta(): ModelMeta = locked {
+        cachedMeta ?: readModelMeta().also { cachedMeta = it }
+    }
+
+    private fun readModelMeta(): ModelMeta {
         val rawInputs = (0 until inputTensorCount).map { i ->
             i to getInputTensor(i)
         }
@@ -132,7 +161,8 @@ internal class IosInterpreter(
         }
     }
 
-    override fun resizeInput(index: Int, dims: IntArray) {
+    override fun resizeInput(index: Int, dims: IntArray): Unit = locked {
+        cachedMeta = null
         checkError { errPtr ->
             tflInterpreter.resizeInputTensorAtIndex(
                 index.toULong(),
@@ -140,7 +170,7 @@ internal class IosInterpreter(
                 errPtr
             )
         }
-        checkError { errPtr ->
+        checkError<Boolean> { errPtr ->
             tflInterpreter.allocateTensorsWithError(errPtr)
         }
     }
@@ -148,9 +178,11 @@ internal class IosInterpreter(
     override fun run(
         inputs: List<ByteArray>,
         outputs: Map<Int, ByteArray>
-    ) {
+    ) = locked {
         if (inputs.size > tflInterpreter.inputTensorCount().toInt()) {
-            throw IllegalArgumentException("Wrong inputs dimension.")
+            throw TensorFlowException(
+                "Model has ${tflInterpreter.inputTensorCount()} inputs, got ${inputs.size}"
+            )
         }
 
         inputs.forEachIndexed { index, input ->
@@ -181,8 +213,10 @@ internal class IosInterpreter(
         }
     }
 
-    override fun close() {
-        // do nothing
+    override fun close() = locked {
+        // Ждёт завершения идущего инференса. Повторное закрытие ничего не делает.
+        interpreterOrNull = null
+        cachedMeta = null
     }
 }
 

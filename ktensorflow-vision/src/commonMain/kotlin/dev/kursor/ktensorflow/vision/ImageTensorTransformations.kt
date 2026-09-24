@@ -7,11 +7,12 @@ import kotlin.jvm.JvmName
  * Converts the [ImageTensor] to a grayscale representation using weighted channel summation.
  *
  * This method calculates the luminance of each pixel by applying the provided weights to the
- * red, green, and blue channels. If the source is in RGBA format, the resulting luminance
- * is additionally multiplied by the alpha channel value. If the source is already in
+ * red, green, and blue channels. The alpha channel of an RGBA source is dropped: a grayscale
+ * tensor has a single channel and no transparency. If the source is already in
  * [PixelFormat.Grayscale], the original tensor is returned.
  *
- * Default weights follow the ITU-R 601 standard for luma:
+ * Default weights follow the ITU-R 601 standard for luma, the same as [Image.grayscale] and the
+ * [UByte] overload:
  * - Red: 0.299
  * - Green: 0.587
  * - Blue: 0.114
@@ -28,12 +29,10 @@ fun ImageTensor<Float>.grayscale(
     gWeight: Float = 0.587f,
     bWeight: Float = 0.114f
 ): ImageTensor<Float> {
+    // Альфа в яркость не входит: раньше RGBA-версия умножала яркость на неё, и для обычного
+    // тензора без нормализации (альфа = 255) яркость получалась в 255 раз больше
+    val channels = pixelFormat.rgbIndices() ?: return this
 
-    val pf = pixelFormat
-    if (pf == PixelFormat.Grayscale) return this
-
-    // Батч и layout обязаны сохраниться: иначе для пачки изображений результат оказывался
-    // тензором на одну картинку, а запись по batch-индексу уходила за его пределы.
     val result = ImageTensor(
         width = width,
         height = height,
@@ -43,33 +42,13 @@ fun ImageTensor<Float>.grayscale(
         batchSize = batch
     )
 
-    when (pf) {
-        PixelFormat.Grayscale -> return this
+    val src = ImageOffsets(this)
+    val r = channels.r * src.channel
+    val g = channels.g * src.channel
+    val b = channels.b * src.channel
 
-        is PixelFormat.RGB -> {
-            for (n in 0 until batch) {
-                for (h in 0 until height) {
-                    for (w in 0 until width) {
-                        result[n, h, w, 0] = rWeight * this[n, h, w, pf.rIndex] +
-                                gWeight * this[n, h, w, pf.gIndex] +
-                                bWeight * this[n, h, w, pf.bIndex]
-                    }
-                }
-            }
-        }
-
-        is PixelFormat.RGBA -> {
-            for (n in 0 until batch) {
-                for (h in 0 until height) {
-                    for (w in 0 until width) {
-                        result[n, h, w, 0] = (rWeight * this[n, h, w, pf.rIndex] +
-                                gWeight * this[n, h, w, pf.gIndex] +
-                                bWeight * this[n, h, w, pf.bIndex]) *
-                                this[n, h, w, pf.aIndex]
-                    }
-                }
-            }
-        }
+    forEachPixel(src, ImageOffsets(result), batch) { from, to ->
+        result.setFlat(to, rWeight * getFlat(from + r) + gWeight * getFlat(from + g) + bWeight * getFlat(from + b))
     }
 
     return result
@@ -85,8 +64,7 @@ fun ImageTensor<Float>.grayscale(
  * - Blue: ~0.11 (29/256)
  *
  * If the source is already in [PixelFormat.Grayscale], the original tensor is returned.
- * Note: Unlike the [Float] version, this implementation does not currently account
- * for the alpha channel in RGBA tensors.
+ * The alpha channel of an RGBA source is dropped, as in the [Float] overload.
  *
  * The batch size and layout of the source are preserved.
  *
@@ -94,11 +72,8 @@ fun ImageTensor<Float>.grayscale(
  */
 @JvmName("grayscaleUByte")
 fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
-    val pf = pixelFormat
-    if (pf == PixelFormat.Grayscale) return this
+    val channels = pixelFormat.rgbIndices() ?: return this
 
-    // Батч и layout обязаны сохраниться: иначе для пачки изображений результат оказывался
-    // тензором на одну картинку, а запись по batch-индексу уходила за его пределы.
     val result = ImageTensor<UByte>(
         width = width,
         height = height,
@@ -107,36 +82,21 @@ fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
         batchSize = batch
     )
 
-    val rIdx = when (pf) {
-        is PixelFormat.RGB -> pf.rIndex
-        is PixelFormat.RGBA -> pf.rIndex
-    }
-    val gIdx = when (pf) {
-        is PixelFormat.RGB -> pf.gIndex
-        is PixelFormat.RGBA -> pf.gIndex
-    }
-    val bIdx = when (pf) {
-        is PixelFormat.RGB -> pf.bIndex
-        is PixelFormat.RGBA -> pf.bIndex
+    val src = ImageOffsets(this)
+    val r = channels.r * src.channel
+    val g = channels.g * src.channel
+    val b = channels.b * src.channel
+
+    forEachPixel(src, ImageOffsets(result), batch) { from, to ->
+        val gray = (getFlat(from + r).toInt() * 77 + getFlat(from + g).toInt() * 150 + getFlat(from + b).toInt() * 29) shr 8
+        result.setFlat(to, gray.toUByte())
     }
 
-    for (n in 0 until batch) {
-        for (h in 0 until height) {
-            for (w in 0 until width) {
-                val r = this[n, h, w, rIdx].toInt() and 0xFF
-                val g = this[n, h, w, gIdx].toInt() and 0xFF
-                val b = this[n, h, w, bIdx].toInt() and 0xFF
-
-                val gray = (r * 77 + g * 150 + b * 29) shr 8
-                result[n, h, w, 0] = gray.toUByte()
-            }
-        }
-    }
     return result
 }
 
 /**
- * Resizes the given Picture to the new specified dimensions using Bilinear Interpolation.
+ * Resizes the given image tensor to the new specified dimensions using Bilinear Interpolation.
  *
  * Bilinear interpolation calculates the value of the new pixel based on a weighted average
  * of the four nearest original pixels, providing a smoother result than nearest-neighbor
@@ -159,7 +119,6 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
         return this // No resize needed
     }
 
-    // Батч, layout и формат пикселей переносятся как есть: ресайз меняет только размер.
     val result = ImageTensor(
         width = newWidth,
         height = newHeight,
@@ -169,41 +128,51 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
         batchSize = batch
     )
 
+    val src = ImageOffsets(this)
+    val dst = ImageOffsets(result)
+
     // Отношение (old - 1) / (new - 1) выравнивает границы: крайние пиксели исходника
     // попадают ровно в крайние пиксели результата. Для размера 1 делителя нет, и тогда
     // берётся единственный доступный пиксель, иначе получилась бы Infinity и NaN.
     val xRatio = if (newWidth > 1) (width - 1).toFloat() / (newWidth - 1) else 0f
     val yRatio = if (newHeight > 1) (height - 1).toFloat() / (newHeight - 1) else 0f
 
+    // Столбцы исходника и веса интерполяции от строки не зависят - считаются один раз
+    val left = IntArray(newWidth)
+    val right = IntArray(newWidth)
+    val dx = FloatArray(newWidth)
+    for (nx in 0 until newWidth) {
+        val ox = nx * xRatio
+        val x1 = ox.toInt()
+        left[nx] = x1 * src.column
+        right[nx] = (x1 + 1).coerceAtMost(width - 1) * src.column
+        dx[nx] = ox - x1
+    }
+    val srcChannel = IntArray(channels) { it * src.channel }
+    val dstChannel = IntArray(channels) { it * dst.channel }
+
     for (n in 0 until batch) {
+        var dstRow = dst.batch * n
         for (ny in 0 until newHeight) {
-            // Координаты по вертикали не зависят от столбца, поэтому считаются один раз на строку
             val oy = ny * yRatio
             val y1 = oy.toInt()
-            val y2 = (y1 + 1).coerceAtMost(height - 1)
             val dy = oy - y1
+            val top = src.batch * n + y1 * src.row
+            val bottom = src.batch * n + (y1 + 1).coerceAtMost(height - 1) * src.row
 
+            var to = dstRow
             for (nx in 0 until newWidth) {
-                val ox = nx * xRatio
-                val x1 = ox.toInt()
-                val x2 = (x1 + 1).coerceAtMost(width - 1)
-                val dx = ox - x1
-
+                val fx = dx[nx]
                 for (c in 0 until channels) {
-                    // Четыре соседних пикселя исходника вокруг искомой точки
-                    val topLeft = this[n, y1, x1, c]
-                    val topRight = this[n, y1, x2, c]
-                    val bottomLeft = this[n, y2, x1, c]
-                    val bottomRight = this[n, y2, x2, c]
-
-                    val top = topLeft * (1f - dx) + topRight * dx
-                    val bottom = bottomLeft * (1f - dx) + bottomRight * dx
-
-                    // Без обрезки диапазона: тензор может быть и в 0..255, и нормализованным
-                    // в отрицательные значения, а интерполяция не вправе менять его шкалу.
-                    result[n, ny, nx, c] = top * (1f - dy) + bottom * dy
+                    val co = srcChannel[c]
+                    val upper = getFlat(top + left[nx] + co) * (1f - fx) + getFlat(top + right[nx] + co) * fx
+                    val lower = getFlat(bottom + left[nx] + co) * (1f - fx) + getFlat(bottom + right[nx] + co) * fx
+                    // Без обрезки диапазона: интерполяция не вправе менять шкалу тензора
+                    result.setFlat(to + dstChannel[c], upper * (1f - dy) + lower * dy)
                 }
+                to += dst.column
             }
+            dstRow += dst.row
         }
     }
 
@@ -229,7 +198,6 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
 
     if (newWidth == width && newHeight == height) return this
 
-    // Батч, layout и формат пикселей переносятся как есть: ресайз меняет только размер.
     val result = ImageTensor<UByte>(
         width = newWidth,
         height = newHeight,
@@ -237,23 +205,70 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
         layout = layout,
         batchSize = batch
     )
+
+    val src = ImageOffsets(this)
+    val dst = ImageOffsets(result)
     val xRatio = width.toFloat() / newWidth
     val yRatio = height.toFloat() / newHeight
 
-    // For UInt8 use Nearest Neighbor,
-    // since bilinear interpolation requires converting to float
+    // Для UInt8 - ближайший сосед: билинейная интерполяция потребовала бы перевода во float.
+    // Столбец исходника от строки не зависит и считается один раз.
+    val column = IntArray(newWidth) { (it * xRatio).toInt() * src.column }
+    val srcChannel = IntArray(channels) { it * src.channel }
+    val dstChannel = IntArray(channels) { it * dst.channel }
+
     for (n in 0 until batch) {
+        var dstRow = dst.batch * n
         for (h in 0 until newHeight) {
-            val srcH = (h * yRatio).toInt()
+            val srcRow = src.batch * n + (h * yRatio).toInt() * src.row
+            var to = dstRow
             for (w in 0 until newWidth) {
-                val srcW = (w * xRatio).toInt()
+                val from = srcRow + column[w]
                 for (c in 0 until channels) {
-                    result[n, h, w, c] = this[n, srcH, srcW, c]
+                    result.setFlat(to + dstChannel[c], getFlat(from + srcChannel[c]))
                 }
+                to += dst.column
             }
+            dstRow += dst.row
         }
     }
     return result
+}
+
+/** Индексы цветовых каналов формата; null для формата без цвета. */
+private class RgbIndices(val r: Int, val g: Int, val b: Int)
+
+private fun PixelFormat.rgbIndices(): RgbIndices? = when (this) {
+    PixelFormat.Grayscale -> null
+    is PixelFormat.RGB -> RgbIndices(rIndex, gIndex, bIndex)
+    is PixelFormat.RGBA -> RgbIndices(rIndex, gIndex, bIndex)
+}
+
+/**
+ * Обходит все пиксели батча в тензорах одинакового размера, передавая плоские смещения
+ * пикселя в [src] и [dst]. Смещения только наращиваются - тот же обход, что у тензоризации.
+ */
+private inline fun forEachPixel(
+    src: ImageOffsets,
+    dst: ImageOffsets,
+    batch: Int,
+    action: (from: Int, to: Int) -> Unit
+) {
+    for (n in 0 until batch) {
+        var srcRow = src.batch * n
+        var dstRow = dst.batch * n
+        for (h in 0 until src.height) {
+            var from = srcRow
+            var to = dstRow
+            for (w in 0 until src.width) {
+                action(from, to)
+                from += src.column
+                to += dst.column
+            }
+            srcRow += src.row
+            dstRow += dst.row
+        }
+    }
 }
 
 /**

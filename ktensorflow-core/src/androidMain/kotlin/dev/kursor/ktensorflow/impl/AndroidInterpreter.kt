@@ -5,6 +5,7 @@ import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.ModelMeta
 import dev.kursor.ktensorflow.ModelTensorData
+import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.toKTensorFlow
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -29,13 +30,28 @@ internal class AndroidInterpreter(
         }
     }
 
+    private val lock = Any()
+    private var closed = false
+
+    // Метаданные неизменны до resizeInput, а именованный run запрашивает их на каждом вызове
+    private var cachedMeta: ModelMeta? = null
+
+    private inline fun <T> locked(block: () -> T): T = synchronized(lock) {
+        if (closed) throw TensorFlowException("Interpreter has already been closed")
+        block()
+    }
+
     override val inputTensorCount: Int
-        get() = tensorFlowInterpreter.inputTensorCount
+        get() = locked { tensorFlowInterpreter.inputTensorCount }
 
     override val outputTensorCount: Int
-        get() = tensorFlowInterpreter.outputTensorCount
+        get() = locked { tensorFlowInterpreter.outputTensorCount }
 
-    override fun getModelMeta(): ModelMeta = tensorFlowCall("read the model metadata") {
+    override fun getModelMeta(): ModelMeta = locked {
+        cachedMeta ?: readModelMeta().also { cachedMeta = it }
+    }
+
+    private fun readModelMeta(): ModelMeta = tensorFlowCall("read the model metadata") {
         val rawInputs = (0 until inputTensorCount).map { i ->
             i to tensorFlowInterpreter.getInputTensor(i)
         }
@@ -116,9 +132,12 @@ internal class AndroidInterpreter(
         )
     }
 
-    override fun resizeInput(index: Int, dims: IntArray) = tensorFlowCall("resize input $index") {
-        tensorFlowInterpreter.resizeInput(index, dims)
-        tensorFlowInterpreter.allocateTensors()
+    override fun resizeInput(index: Int, dims: IntArray) = locked {
+        tensorFlowCall("resize input $index") {
+            tensorFlowInterpreter.resizeInput(index, dims)
+            tensorFlowInterpreter.allocateTensors()
+        }
+        cachedMeta = null
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)
@@ -134,15 +153,21 @@ internal class AndroidInterpreter(
                 .apply { order(ByteOrder.nativeOrder()) }
         }
 
-        tensorFlowCall("run inference") {
-            tensorFlowInterpreter.runForMultipleInputsOutputs(
-                inputsArray,
-                outputsArray
-            )
+        locked {
+            tensorFlowCall("run inference") {
+                tensorFlowInterpreter.runForMultipleInputsOutputs(
+                    inputsArray,
+                    outputsArray
+                )
+            }
         }
     }
 
-    override fun close() = tensorFlowCall("close the interpreter") {
-        tensorFlowInterpreter.close()
+    override fun close() = synchronized(lock) {
+        if (!closed) {
+            closed = true
+            cachedMeta = null
+            tensorFlowCall("close the interpreter") { tensorFlowInterpreter.close() }
+        }
     }
 }

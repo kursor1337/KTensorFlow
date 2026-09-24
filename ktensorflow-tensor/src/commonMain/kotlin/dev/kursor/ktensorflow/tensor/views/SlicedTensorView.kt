@@ -16,6 +16,14 @@ internal class SlicedTensorView<T : Any>(
         require(ranges.size == delegate.shape.rank) {
             "Ranges count (${ranges.size}) must match tensor rank (${delegate.shape.rank})"
         }
+        // Индекс view переводится в физическое смещение без проверки по осям, поэтому диапазон
+        // за пределами оси молча читал элементы соседней строки. Проверяется один раз здесь.
+        ranges.forEachIndexed { axis, range ->
+            val size = delegate.shape.dimensions[axis]
+            require(range.first >= 0 && range.last < size && range.first <= range.last + 1) {
+                "Range $range is outside axis $axis of size $size"
+            }
+        }
     }
 
     override val dataType: TensorDataType<T> = delegate.dataType

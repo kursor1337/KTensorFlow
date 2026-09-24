@@ -58,8 +58,7 @@ actual fun Image.grayscale(
 
     val canvas = Canvas(grayBitmap)
     val paint = Paint()
-    val colorMatrix = ColorMatrix().apply { setSaturation(0f) }
-    paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+    paint.colorFilter = ColorMatrixColorFilter(LumaRec601)
 
     canvas.drawBitmap(platformImage, 0f, 0f, paint)
 
@@ -90,3 +89,19 @@ private fun Bitmap.asImage(
     }
     return AndroidImage(this, pixelFormat)
 }
+
+/**
+ * Перевод в яркость по ITU-R 601 (0.299, 0.587, 0.114) с сохранением альфы.
+ *
+ * ColorMatrix.setSaturation(0) для этого не подходит: он считает яркость по Rec.709
+ * (0.213, 0.715, 0.072), и та же картинка давала на Android другие значения, чем на iOS и в
+ * ImageTensor.grayscale - чистый красный превращался в 54 вместо 76.
+ */
+private val LumaRec601 = ColorMatrix(
+    floatArrayOf(
+        0.299f, 0.587f, 0.114f, 0f, 0f,
+        0.299f, 0.587f, 0.114f, 0f, 0f,
+        0.299f, 0.587f, 0.114f, 0f, 0f,
+        0f, 0f, 0f, 1f, 0f,
+    )
+)

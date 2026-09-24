@@ -587,17 +587,28 @@ class VisionModuleTests {
     }
 
     @Test
-    fun imageTensorFloatGrayscaleMultipliesLumaByAlphaForRGBA() {
+    fun imageTensorFloatGrayscaleIgnoresAlphaForRGBA() {
+        // Яркость не зависит от альфы: раньше она на неё умножалась, и при альфе = 255
+        // (обычный тензор без нормализации) выходила в 255 раз больше
         val tensor = ImageTensor<Float>(1, 1, PixelFormat.ARGB)
         val pf = PixelFormat.ARGB
         tensor[0, 0, pf.rIndex] = 0.5f
         tensor[0, 0, pf.gIndex] = 0.6f
         tensor[0, 0, pf.bIndex] = 0.7f
-        tensor[0, 0, pf.aIndex] = 1.0f
+        tensor[0, 0, pf.aIndex] = 0.5f
 
         val gray = tensor.grayscale()
 
         assertFloatEquals(0.5815f, gray[0, 0, 0], tolerance = 1e-3f)
+    }
+
+    @Test
+    fun tensorGrayscaleOfAnUnnormalizedImageStaysWithinTheColorRange() {
+        // Самый обычный путь: tensorizeFloat() без нормализации, затем grayscale
+        val red = (0xFF shl 24) or (255 shl 16)
+        val gray = Image(1, 1, PixelFormat.ARGB, intArrayOf(red)).tensorizeFloat().grayscale()
+
+        assertFloatEquals(76.245f, gray[0, 0, 0], tolerance = 1e-2f)
     }
 
     @Test
@@ -928,6 +939,47 @@ class VisionModuleTests {
 
         twice.close()
         once.close()
+    }
+
+    @Test
+    fun grayscaleUsesRec601WeightsOnBothPlatforms() {
+        // Чистый красный: Rec.601 даёт 0.299 * 255 = 76. Android раньше считал по Rec.709
+        // через ColorMatrix.setSaturation и давал 54, то есть другое значение, чем iOS
+        val red = (0xFF shl 24) or (255 shl 16)
+        val green = (0xFF shl 24) or (255 shl 8)
+        val blue = (0xFF shl 24) or 255
+
+        listOf(red to 76, green to 150, blue to 29).forEach { (color, expected) ->
+            val gray = Image(2, 2, PixelFormat.ARGB, IntArray(4) { color }).grayscale()
+            val luma = gray.getPixels()[0] and 0xFF
+            assertTrue(abs(luma - expected) <= 2, "color ${color.toString(16)}: expected ~$expected, got $luma")
+            gray.close()
+        }
+    }
+
+    @Test
+    fun resizeWithPadLetterboxesAnExtremelyThinImage() {
+        // 1000x3 в 300x300: масштаб 0.3, высота 0.9 раньше округлялась до нуля, и ресайз падал
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val image = Image(1000, 3, PixelFormat.ARGB, IntArray(3000) { color })
+
+        val padded = image.resizeWithPad(300, 300)
+
+        assertEquals(300, padded.width)
+        assertEquals(300, padded.height)
+        // От картинки остаётся одна строка, и лежит она ровно на padY
+        assertColorApprox(color, padded[150, padded.info.padY], tolerance = 8)
+        padded.close()
+    }
+
+    @Test
+    fun resizeWithPadRejectsANonPositiveTarget() {
+        val image = createSolidImage(4, 4, (0xFF shl 24) or 0x102030)
+
+        assertFailsWith<IllegalArgumentException> { image.resizeWithPad(0, 10, closeOriginal = false) }
+        assertFailsWith<IllegalArgumentException> { image.resizeWithPad(10, -1, closeOriginal = false) }
+
+        image.close()
     }
 
     @Test

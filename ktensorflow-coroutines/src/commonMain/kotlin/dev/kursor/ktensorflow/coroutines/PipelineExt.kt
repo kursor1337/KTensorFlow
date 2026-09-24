@@ -5,12 +5,14 @@ import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -72,10 +74,15 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
 
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
- * This function runs the pipeline for every item in the input flow.
- * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the next item is processed.
+ * This function runs the pipeline for every item in the input flow that arrives while it is idle.
  * The pipeline is run asynchronously, and inference is serialized to keep the
  * non-thread-safe interpreter safe.
+ *
+ * The flow takes ownership of every item it receives and closes each one exactly once (using
+ * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
+ * and an item that is processed is closed once the pipeline has finished with it - whether it
+ * succeeded, failed or the collection was cancelled. The pipeline therefore must not keep a
+ * reference to its input after it returns; derive everything the output needs inside the pipeline.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.
@@ -91,9 +98,14 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
  * collected directly from a camera or any other source without manual wrapping.
- * If the pipeline is already running, the item is closed (using [AutoCloseable.close]) and the
- * next item is processed. The pipeline is run asynchronously, and inference is serialized
- * to keep the non-thread-safe interpreter safe.
+ * The pipeline is run asynchronously, and inference is serialized to keep the
+ * non-thread-safe interpreter safe.
+ *
+ * The flow takes ownership of every item it receives and closes each one exactly once (using
+ * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
+ * and an item that is processed is closed once the pipeline has finished with it - whether it
+ * succeeded, failed or the collection was cancelled. The pipeline therefore must not keep a
+ * reference to its input after it returns; derive everything the output needs inside the pipeline.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.
@@ -112,17 +124,22 @@ private fun <I, O> Pipeline<I, O>.processDropping(
     val mutex = Mutex()
 
     inputFlow.collect { item ->
-        if (mutex.tryLock()) {
-            launch(InferenceDispatcher) {
-                try {
-                    val result = run(item)
-                    send(result)
-                } finally {
-                    mutex.unlock()
-                }
-            }
-        } else {
+        if (!mutex.tryLock()) {
             release(item)
+            return@collect
+        }
+
+        // ATOMIC: тело стартует, даже если сбор отменили раньше, чем диспетчер взял задачу.
+        // С обычным запуском отменённая до старта корутина не выполняет ни строчки, и принятый
+        // кадр не попадал ни в пайплайн, ни в release - он просто утекал.
+        launch(InferenceDispatcher, start = CoroutineStart.ATOMIC) {
+            try {
+                if (isActive) send(run(item))
+            } finally {
+                // Кадром владеет поток: он закрывается после пайплайна при любом исходе
+                release(item)
+                mutex.unlock()
+            }
         }
     }
 }.buffer(Channel.RENDEZVOUS)

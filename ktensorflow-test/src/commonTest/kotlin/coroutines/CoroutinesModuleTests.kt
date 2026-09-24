@@ -9,20 +9,28 @@ import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.tuple
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * These tests exercise the real [Pipeline]/[Flow] machinery (kotlinx.coroutines is a real,
@@ -92,12 +100,9 @@ class CoroutinesModuleTests {
 
         assertEquals(listOf(1), results, "only the first item should win the mutex and be processed")
 
+        // Поток владеет каждым кадром: отброшенные закрыты сразу, обработанный - после пайплайна
         items.forEach { item ->
-            if (item.id in results) {
-                assertFalse(item.closed, "a processed item must not be closed by processFlowDropping itself")
-            } else {
-                assertTrue(item.closed, "a dropped item must be closed to avoid leaking its resources")
-            }
+            assertTrue(item.closed, "item ${item.id} must be closed by processFlowDropping")
         }
     }
 
@@ -121,11 +126,64 @@ class CoroutinesModuleTests {
         assertEquals(listOf(tuple(items[0])), received, "the pipeline must receive the item wrapped in Tuple.One")
 
         items.forEach { item ->
-            if (item.id in results) {
-                assertFalse(item.closed, "a processed item must not be closed by processFlowDropping itself")
-            } else {
-                assertTrue(item.closed, "a dropped item must be closed even though it was wrapped in a tuple")
+            assertTrue(item.closed, "item ${item.id} must be closed even though it was wrapped in a tuple")
+        }
+    }
+
+    @Test
+    fun processFlowDroppingClosesAnItemWhosePipelineFailed() = runTest {
+        val item = TrackedItem(1)
+        val failing = Pipeline(Stage<TrackedItem, Int> { error("model failed") })
+
+        assertFailsWith<IllegalStateException> { failing.processFlowDropping(flowOf(item)).toList() }
+
+        assertTrue(item.closed, "an item must be closed even when the pipeline throws on it")
+    }
+
+    @Test
+    fun processFlowDroppingClosesTheItemInFlightWhenTheUpstreamFails() = runTest {
+        val first = TrackedItem(1)
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+        val broken = flow { emit(first); error("camera died") }
+
+        assertFailsWith<IllegalStateException> { pipeline.processFlowDropping(broken).toList() }
+
+        assertTrue(first.closed, "the item accepted before the upstream failed must be closed")
+    }
+
+    @Test
+    fun processFlowDroppingOfAnEmptyFlowCompletesWithoutResults() = runTest {
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+
+        assertEquals(emptyList(), pipeline.processFlowDropping(emptyFlow()).toList())
+    }
+
+    @Test
+    fun itemAcceptedButCancelledBeforeInferenceStartsIsClosed() = runBlocking {
+        withTimeout(15_000.milliseconds) {
+            // Занимаем единственный слот InferenceDispatcher, чтобы инференс для item встал в очередь
+            val gate = Channel<Unit>()
+            val blocker = launch(Dispatchers.Default) {
+                Pipeline(Stage<Unit, Unit> { runBlocking { gate.receive() } }).runSuspend(Unit)
             }
+            delay(100.milliseconds)
+
+            var processed = false
+            val item = TrackedItem(1)
+            val pipeline = Pipeline(Stage<TrackedItem, Int> { processed = true; it.id })
+            val collector = launch(Dispatchers.Default) {
+                pipeline.processFlowDropping(flowOf(item)).collect { }
+            }
+            delay(100.milliseconds)
+
+            // join сразу нельзя: отменённая корутина завершится, только когда её возьмёт диспетчер
+            collector.cancel()
+            gate.send(Unit)
+            blocker.join()
+            collector.join()
+
+            assertFalse(processed, "a cancelled collection must not run the pipeline")
+            assertTrue(item.closed, "an item that was accepted but never processed must still be closed")
         }
     }
 

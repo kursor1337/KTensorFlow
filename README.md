@@ -174,7 +174,9 @@ val result = pipeline.runSuspend(image)
 #### Real-time Video Stream Processing (Backpressure / Frame Dropping)
 If your camera produces 60 FPS, but your ML model can only process 15 FPS, your app will run out of memory (OOM) because unprocessed frames accumulate.
 
-Use **`processFlowDropping`** to automatically discard camera frames when the ML Pipeline is busy. It takes full ownership of the `AutoCloseable` memory, preventing memory leaks!
+Use **`processFlowDropping`** to automatically discard camera frames when the ML Pipeline is busy. It takes full ownership of the `AutoCloseable` memory, preventing memory leaks: every frame it receives is closed exactly once - a dropped frame right away, a processed frame as soon as the pipeline has finished with it (even if it failed or the collection was cancelled).
+
+> **Note:** because the flow closes each frame after the pipeline runs, the pipeline must not keep a reference to its input frame. Derive everything the output needs (tensors, detections, coordinates) inside the pipeline.
 
 ```kotlin
 // Your camera frames flow

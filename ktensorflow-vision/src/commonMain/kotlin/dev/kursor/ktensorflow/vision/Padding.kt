@@ -61,13 +61,19 @@ fun Image.resizeWithPad(
     padColorArgb: Int = 0xFF000000.toInt(),
     closeOriginal: Boolean = true
 ): PaddedImage {
+    require(targetWidth > 0 && targetHeight > 0) {
+        "Target size must be positive, got ${targetWidth}x$targetHeight"
+    }
+
     val scale = minOf(
         targetWidth.toFloat() / width.toFloat(),
         targetHeight.toFloat() / height.toFloat()
     )
 
-    val scaledWidth = (width * scale).toInt()
-    val scaledHeight = (height * scale).toInt()
+    // Не меньше одного пикселя: у очень вытянутой картинки (1000x3 в 300x300) масштабированная
+    // сторона округлялась до нуля, и ресайз падал - на каждой платформе с другим исключением
+    val scaledWidth = (width * scale).toInt().coerceIn(1, targetWidth)
+    val scaledHeight = (height * scale).toInt().coerceIn(1, targetHeight)
 
     val padX = (targetWidth - scaledWidth) / 2
     val padY = (targetHeight - scaledHeight) / 2

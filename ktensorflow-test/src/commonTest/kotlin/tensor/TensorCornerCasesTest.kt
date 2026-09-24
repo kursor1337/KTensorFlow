@@ -8,6 +8,7 @@ import dev.kursor.ktensorflow.tensor.flatten
 import dev.kursor.ktensorflow.tensor.max
 import dev.kursor.ktensorflow.tensor.min
 import dev.kursor.ktensorflow.tensor.normalize
+import dev.kursor.ktensorflow.tensor.permuted
 import dev.kursor.ktensorflow.tensor.plus
 import dev.kursor.ktensorflow.tensor.reshape
 import dev.kursor.ktensorflow.tensor.slice
@@ -160,6 +161,50 @@ class TensorCornerCasesTest {
         val b = Tensor<Float>(shape = TensorShape(3, 2))
 
         assertFails { (a + b).toPhysical().toArray<Array<FloatArray>>() }
+    }
+
+    @Test
+    fun sliceOutsideAnAxisIsRejectedWhenTheViewIsCreated() {
+        // (2, 3) = [[0,1,2],[3,4,5]]: столбцов 3 и 4 нет. Раньше view молча читал 3 и 4
+        // из следующей строки и не падал, потому что плоские смещения оставались в массиве.
+        val tensor = Tensor<Float>(shape = TensorShape(2, 3))
+        repeat(6) { tensor.setFlat(it, it.toFloat()) }
+
+        assertFails { tensor.slice(arrayOf(0..0, 0..4)) }
+        assertFails { tensor.slice(arrayOf(-1..0, 0..2)) }
+    }
+
+    @Test
+    fun anEmptySliceIsAllowed() {
+        val tensor = Tensor<Float>(shape = TensorShape(2, 3))
+
+        val empty = tensor.slice(arrayOf(1..0, 0..2))
+
+        assertEquals(0, empty.shape.flatSize)
+    }
+
+    @Test
+    fun permutedRejectsAxesThatAreNotAPermutation() {
+        // На квадратном тензоре повтор оси не выводит смещения за массив, и раньше
+        // permuted(1, 1) молча возвращал мусор [0,1,2,1,2,3,2,3,4]
+        val tensor = Tensor<Float>(shape = TensorShape(3, 3))
+
+        assertFails { tensor.permuted(1, 1) }
+        assertFails { tensor.permuted(0, 2) }
+        assertEquals(listOf(3, 3), tensor.permuted(1, 0).shape.dimensions.toList())
+    }
+
+    @Test
+    fun negativeDimensionIsRejected() {
+        assertFails { TensorShape(2, -1) }
+    }
+
+    @Test
+    fun squeezeKeepsAZeroSizedDimension() {
+        // Раньше squeeze выбрасывал и нулевые измерения, и пустой тензор (0, 3) превращался в (3)
+        val tensor = Tensor<Float>(shape = TensorShape(1, 0, 3))
+
+        assertEquals(listOf(0, 3), tensor.squeeze().shape.dimensions.toList())
     }
 
     // --- view поверх вырожденной формы ---

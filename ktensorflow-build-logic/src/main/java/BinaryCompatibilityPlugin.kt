@@ -19,7 +19,9 @@ class BinaryCompatibilityPlugin : Plugin<Project> {
     @OptIn(ExperimentalAbiValidation::class)
     override fun apply(project: Project): Unit = with(project) {
         pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
-            extensions.getByType<KotlinMultiplatformExtension>().abiValidation {
+            // Class-вариант getByType, а не reified из kotlin-dsl: импорт reified-расширения
+            // IDE считает неиспользуемым и вырезает при оптимизации импортов, и сборка ломается
+            extensions.getByType(KotlinMultiplatformExtension::class.java).abiValidation {
             }
         }
     }

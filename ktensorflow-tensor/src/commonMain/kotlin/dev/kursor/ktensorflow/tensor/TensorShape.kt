@@ -12,6 +12,14 @@ class TensorShape(
     val dimensions: IntArray
 ) {
 
+    init {
+        // Отрицательное измерение раньше принималось молча: flatSize становился отрицательным,
+        // и ошибка всплывала далеко от места, где форму создали
+        require(dimensions.all { it >= 0 }) {
+            "Tensor dimensions must not be negative, got ${dimensions.contentToString()}"
+        }
+    }
+
     /**
      * Returns the rank of the tensor, which is the number of dimensions.
      */
