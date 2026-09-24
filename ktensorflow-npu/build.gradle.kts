@@ -47,9 +47,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.tensorflow.gpu)
-            implementation(libs.tensorflow.gpu.api)
-
             // api, а не implementation: публичные сигнатуры модуля раскрывают типы
             // этих модулей, поэтому потребителям они нужны транзитивно
             api(projects.ktensorflowCore)

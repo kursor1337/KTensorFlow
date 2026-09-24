@@ -1,9 +1,15 @@
+import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.kursor.ktensorflow.Delegate
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
+import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.gpu.GpuDelegate
 import dev.kursor.ktensorflow.gpu.GpuDelegateOptions
 import dev.kursor.ktensorflow.npu.NpuDelegate
 import dev.kursor.ktensorflow.npu.NpuDelegateOptions
+import dev.kursor.ktensorflow.setDelegates
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.div
@@ -13,7 +19,9 @@ import dev.kursor.ktensorflow.tensor.toFloatTensor
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import org.tensorflow.lite.Interpreter as TFLInterpreter
 
 /**
  * Делегаты GPU и NNAPI: сборка опций, проверка доступности и - если устройство делегат
@@ -29,7 +37,7 @@ class DelegatesTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
-    private fun predictions(delegate: dev.kursor.ktensorflow.Delegate?): List<Int> {
+    private fun predictions(delegate: Delegate?): List<Int> {
         val interpreter = createInterpreter(context, "mnist.tflite", delegate)
         val data = loadDataset(context, "mnist.csv").take(16)
 
@@ -103,5 +111,92 @@ class DelegatesTest {
         }
 
         assertEquals(predictions(null), predictions(delegate))
+    }
+
+    // --- где на самом деле отказывает NNAPI ---
+
+    @Test
+    fun npuDelegateThatCannotBeAppliedFailsAtInterpreterCreation() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
+            println("NNAPI requires Android 8.1+, skipping")
+            return
+        }
+
+        // Конструктор NnApiDelegate ускоритель не проверяет, поэтому делегат считается доступным.
+        // Отказ проявляется только когда интерпретатор применяет делегат к графу модели.
+        val delegate = NpuDelegate(NpuDelegateOptions { setAcceleratorName("does-not-exist") })
+        assertTrue(delegate.isAvailable, "construction alone must not probe the accelerator")
+
+        val failure = assertFailsWith<TensorFlowException> {
+            Interpreter(
+                loadModel(context, "mnist.tflite"),
+                InterpreterOptions(numThreads = 1, useXNNPACK = false, delegates = listOf(delegate))
+            )
+        }
+
+        assertTrue(
+            failure.cause?.message.orEmpty().contains("Failed to apply delegate"),
+            "the platform failure must be kept as the cause, was: ${failure.cause}"
+        )
+    }
+
+    // --- как список делегатов попадает в интерпретатор ---
+    // Фейковые делегаты: addDelegate только складывает их в список опций, нативный код
+    // не вызывается, поэтому семантику можно проверить на любом устройстве.
+
+    private class FakeTflDelegate(val name: String) : org.tensorflow.lite.Delegate {
+        override fun getNativeHandle(): Long = 0L
+    }
+
+    private class FakeDelegate(
+        override val isAvailable: Boolean,
+        private val delegate: org.tensorflow.lite.Delegate?
+    ) : Delegate {
+        var tflDelegateReads = 0
+            private set
+
+        override val tflDelegate: org.tensorflow.lite.Delegate?
+            get() {
+                tflDelegateReads++
+                return delegate
+            }
+    }
+
+    @Test
+    fun everyAvailableDelegateIsPassedInListOrder() {
+        val first = FakeTflDelegate("first")
+        val second = FakeTflDelegate("second")
+
+        val options = TFLInterpreter.Options().setDelegates(
+            listOf(
+                FakeDelegate(isAvailable = true, delegate = first),
+                FakeDelegate(isAvailable = false, delegate = FakeTflDelegate("unavailable")),
+                FakeDelegate(isAvailable = true, delegate = second)
+            )
+        )
+
+        assertEquals(listOf(first, second), options.delegates)
+    }
+
+    @Test
+    fun unavailableDelegatesAreSkippedWithoutTouchingTheirNativePart() {
+        // У GPU-делегата обращение к tflDelegate сразу создаёт нативный делегат - ровно то,
+        // от чего защищает проверка доступности. Поэтому до tflDelegate недоступного
+        // делегата дело доходить не должно вовсе.
+        val unavailable = FakeDelegate(isAvailable = false, delegate = FakeTflDelegate("gpu"))
+
+        val options = TFLInterpreter.Options().setDelegates(listOf(unavailable))
+
+        assertEquals(0, unavailable.tflDelegateReads, "tflDelegate of an unavailable delegate was read")
+        assertTrue(options.delegates.isEmpty())
+    }
+
+    @Test
+    fun anAvailableDelegateWithoutANativeDelegateIsSkipped() {
+        val options = TFLInterpreter.Options().setDelegates(
+            listOf(FakeDelegate(isAvailable = true, delegate = null))
+        )
+
+        assertTrue(options.delegates.isEmpty())
     }
 }

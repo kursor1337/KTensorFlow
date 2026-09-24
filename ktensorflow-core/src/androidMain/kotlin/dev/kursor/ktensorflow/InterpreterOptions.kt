@@ -31,12 +31,16 @@ actual fun InterpreterOptions(
 }
 
 /**
- * Adds [delegates] to the [Interpreter.Options] builder.
- * Only the first delegate from [delegates] that is available will be added.
+ * Adds every available delegate from [delegates] to the [Interpreter.Options] builder, in list
+ * order, exactly as on iOS. TensorFlow Lite applies them one after another: each delegate takes
+ * the operations it supports from what the previous ones left, and the rest runs on the CPU.
+ *
+ * Unavailable delegates are skipped without touching their native part.
  */
 fun Interpreter.Options.setDelegates(delegates: List<Delegate>): Interpreter.Options {
     delegates
-        .firstOrNull { it.isAvailable }
-        ?.let { addDelegate(it.tflDelegate) }
+        .filter { it.isAvailable }
+        .mapNotNull { it.tflDelegate }
+        .forEach { addDelegate(it) }
     return this
 }

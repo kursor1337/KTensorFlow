@@ -6,5 +6,5 @@ actual interface Delegate {
 
     actual val isAvailable: Boolean
 
-    val tflDelegate: TFLDelegate
+    val tflDelegate: TFLDelegate?
 }

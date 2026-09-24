@@ -2,18 +2,14 @@ package dev.kursor.ktensorflow.npu
 
 import android.os.Build
 import org.tensorflow.lite.Delegate
-import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.nnapi.NnApiDelegate
 
 internal class AndroidNpuDelegate(
-    val options: NnApiDelegate.Options
+    options: NnApiDelegate.Options
 ) : NpuDelegate {
-    private val compatList = CompatibilityList()
 
-    override val isAvailable: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
-            compatList.isDelegateSupportedOnThisDevice
+    override val tflDelegate: Delegate? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) NnApiDelegate(options) else null
 
-    override val tflDelegate: Delegate by lazy {
-        NnApiDelegate(options)
-    }
+    override val isAvailable: Boolean = tflDelegate != null
 }
