@@ -6,6 +6,7 @@ package dev.kursor.ktensorflow.vision
  * @param newWidth The new width of the image.
  * @param newHeight The new height of the image.
  * @return A new [Image] with the specified dimensions.
+ * @throws IllegalArgumentException if the new size is not positive.
  */
 expect fun Image.resize(
     newWidth: Int,

@@ -17,7 +17,8 @@ import kotlin.math.roundToInt
  * To build an image from plain packed ARGB values use the `Image(width, height, pixelFormat, pixels)`
  * factory instead.
  *
- * @throws IllegalArgumentException if [pixels] does not hold exactly `width * height` pixels.
+ * @throws IllegalArgumentException if the size is not positive or [pixels] does not hold exactly
+ * `width * height` pixels.
  */
 class IosImage(
     override val width: Int,
@@ -29,6 +30,9 @@ class IosImage(
     private val bytesPerRow = width * bytesPerPixel
 
     init {
+        // Как на Android, где Bitmap отказывается от такого размера: иначе пустое или даже
+        // отрицательное изображение создавалось и падало позже, выходом за массив в resize
+        require(width > 0 && height > 0) { "Image size must be positive, got ${width}x$height" }
         // Неверная длина раньше проявлялась далеко отсюда: выходом за массив при чтении
         // пикселей или молча неверными цветами при построчном сдвиге
         require(pixels.size == height * bytesPerRow) {

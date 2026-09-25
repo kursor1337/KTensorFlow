@@ -8,18 +8,13 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
-import platform.CoreGraphics.CGColorSpaceGetModel
 import platform.CoreGraphics.CGContextDrawImage
-import platform.CoreGraphics.CGImageAlphaInfo
-import platform.CoreGraphics.CGImageGetAlphaInfo
-import platform.CoreGraphics.CGImageGetColorSpace
 import platform.CoreGraphics.CGImageGetHeight
 import platform.CoreGraphics.CGImageGetWidth
 import platform.CoreGraphics.CGImageRef
 import platform.CoreGraphics.CGImageRefVar
 import platform.CoreGraphics.CGImageRelease
 import platform.CoreGraphics.CGRectMake
-import platform.CoreGraphics.kCGColorSpaceModelMonochrome
 import platform.CoreVideo.CVPixelBufferGetBaseAddress
 import platform.CoreVideo.CVPixelBufferGetBytesPerRow
 import platform.CoreVideo.CVPixelBufferGetHeight
@@ -46,8 +41,8 @@ import platform.posix.memcpy
  * device RGB (or device gray) buffer in [pixelFormat].
  *
  * [PixelFormat.BGRA] is the native layout of CoreGraphics and of the camera and is the cheapest.
- * [PixelFormat.Grayscale] converts a color image with the same ITU-R 601 weights as [grayscale],
- * while a gray image without alpha is copied as is.
+ * [PixelFormat.Grayscale] converts the image with the same ITU-R 601 weights as [grayscale]; a
+ * gray image keeps every level unchanged.
  *
  * `UIImage.imageOrientation` is not part of a `CGImage`: pass `uiImage.CGImage` and [rotate] the
  * result if the image is not upright.
@@ -65,14 +60,11 @@ fun Image(
     return when (pixelFormat) {
         is PixelFormat.RGBA, is PixelFormat.RGB -> draw(cgImage, width, height, pixelFormat)
 
-        // Серое без альфы копируется один в один. Цветное переводится через grayscale (vImage,
-        // Rec.601), а не рисованием в серый контекст: CoreGraphics при этом применяет управление
-        // цветом, и яркость заметно расходилась бы с Android.
-        PixelFormat.Grayscale -> if (cgImage.isOpaqueGray()) {
-            draw(cgImage, width, height, PixelFormat.Grayscale)
-        } else {
+        // Через grayscale (vImage, Rec.601), а не рисованием в серый контекст: CoreGraphics
+        // при этом применяет управление цветом, и яркость расходилась бы с Android. Серое
+        // изображение проходит этот путь без потерь - каждый из 256 уровней остаётся собой.
+        PixelFormat.Grayscale ->
             draw(cgImage, width, height, PixelFormat.BGRA).grayscale(closeOriginal = true)
-        }
     }
 }
 
@@ -143,17 +135,6 @@ private fun draw(
         )
     }
     return IosImage(width, height, pixelFormat, out)
-}
-
-private fun CGImageRef.isOpaqueGray(): Boolean {
-    val model = CGColorSpaceGetModel(CGImageGetColorSpace(this))
-    val alpha = CGImageGetAlphaInfo(this)
-    return model == kCGColorSpaceModelMonochrome &&
-        (
-            alpha == CGImageAlphaInfo.kCGImageAlphaNone ||
-                alpha == CGImageAlphaInfo.kCGImageAlphaNoneSkipFirst ||
-                alpha == CGImageAlphaInfo.kCGImageAlphaNoneSkipLast
-            )
 }
 
 private fun copyBgra(pixelBuffer: CVPixelBufferRef): Image {

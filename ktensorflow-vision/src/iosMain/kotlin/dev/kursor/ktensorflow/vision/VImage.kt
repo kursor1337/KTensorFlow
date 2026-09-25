@@ -84,8 +84,6 @@ private inline fun vImage(
     height: Int,
     operation: (CPointer<vImage_Buffer>, CPointer<vImage_Buffer>) -> vImage_Error
 ) {
-    // У пустого массива нет адреса для vImage_Buffer, а обрабатывать в нём нечего
-    if (width == 0 || height == 0) return
     src.usePinned { pinnedSrc ->
         dst.usePinned { pinnedDst ->
             memScoped {

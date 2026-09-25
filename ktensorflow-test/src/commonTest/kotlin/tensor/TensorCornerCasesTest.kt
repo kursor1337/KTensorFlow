@@ -232,4 +232,81 @@ class TensorCornerCasesTest {
         assertEquals(8f, tensor[intArrayOf(1, 1)])
         assertTrue(cell.shape.flatSize == 1)
     }
+
+    // --- toArray ---
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    @Test
+    fun oneDimensionalUByteTensorConvertsToAnArray() {
+        // Выход квантованной модели формы [N]: на Android падал с "Bad number of dimensions: 0",
+        // потому что UByteArray собирается отдельно, а других измерений не оставалось
+        val tensor = Tensor<UByte>(shape = TensorShape(3))
+        tensor.setFlat(2, 7.toUByte())
+
+        val array = tensor.toPhysical().toArray<UByteArray>()
+
+        assertEquals(listOf<UByte>(0u, 0u, 7u), array.toList())
+    }
+
+    @Test
+    fun scalarConvertsToAOneElementArray() {
+        // Скаляр раньше падал на обеих платформах, причём с разными исключениями
+        val scalar = Tensor<Float>(shape = TensorShape())
+        scalar.setFlat(0, 3f)
+
+        val array = scalar.toPhysical().toArray<FloatArray>()
+
+        assertEquals(listOf(3f), array.toList())
+    }
+
+    @Test
+    fun fiveDimensionalTensorConvertsToNestedArrays() {
+        val tensor = Tensor<Float>(shape = TensorShape(1, 2, 1, 2, 3))
+        repeat(12) { tensor.setFlat(it, it.toFloat()) }
+
+        val array = tensor.toPhysical().toArray<Array<Array<Array<Array<FloatArray>>>>>()
+
+        assertEquals(listOf(9f, 10f, 11f), array[0][1][0][1].toList())
+    }
+
+    // --- views: плоский доступ совпадает с вложенным ---
+
+    @Test
+    fun viewOfAViewKeepsEveryElementInPlace() {
+        // (2, 3, 4) -> срез (1, 2, 3) -> перестановка (3, 1, 2): плоский доступ, вложенный доступ
+        // и toPhysical обязаны давать одно и то же
+        val tensor = Tensor<Float>(shape = TensorShape(2, 3, 4))
+        repeat(24) { tensor.setFlat(it, it.toFloat()) }
+
+        val view = tensor.slice(arrayOf(1..1, 1..2, 1..3)).permuted(2, 0, 1)
+        val physical = view.toPhysical()
+
+        assertEquals(listOf(3, 1, 2), view.shape.dimensions.toList())
+        // Элемент view [c, n, h] = исходный [1 + n, 1 + h, 1 + c] = 12 * (1 + n) + 4 * (1 + h) + 1 + c
+        val expected = mutableListOf<Float>()
+        for (c in 0 until 3) for (n in 0 until 1) for (h in 0 until 2) {
+            expected += (12 * (1 + n) + 4 * (1 + h) + 1 + c).toFloat()
+        }
+        assertEquals(expected, List(6) { view.getFlat(it) })
+        assertEquals(expected, List(6) { physical.getFlat(it) })
+        assertEquals(expected[5], view[intArrayOf(2, 0, 1)])
+    }
+
+    @Test
+    fun flatAccessOutsideAViewFails() {
+        val view = Tensor<Float>(shape = TensorShape(3, 3)).slice(arrayOf(0..1, 0..1))
+
+        assertFails { view.getFlat(4) }
+        assertFails { view.getFlat(-1) }
+    }
+
+    @Test
+    fun writingThroughAPermutedViewChangesTheOriginal() {
+        val tensor = Tensor<Float>(shape = TensorShape(2, 3))
+        val transposed = tensor.permuted(1, 0)
+
+        transposed.setFlat(1, 5f) // [0, 1] у view - это [1, 0] у исходника
+
+        assertEquals(5f, tensor[intArrayOf(1, 0)])
+    }
 }

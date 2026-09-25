@@ -1,12 +1,34 @@
 package dev.kursor.ktensorflow.vision
 
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.core.graphics.get
 
+/**
+ * [Image] on Android, backed by a [Bitmap].
+ *
+ * The image takes ownership of the bitmap: [close] recycles it. A `Config.HARDWARE` bitmap, which
+ * `ImageDecoder` returns by default on Android 9+, keeps its pixels in GPU memory where they can be
+ * neither read nor drawn in software, so it is copied to `ARGB_8888` and the original is recycled
+ * right away.
+ *
+ * @param platformImage the bitmap to wrap.
+ * @param pixelFormat the pixel format the image reports and is tensorized in by default.
+ */
 class AndroidImage(
-    override val platformImage: PlatformImage,
+    platformImage: PlatformImage,
     override val pixelFormat: PixelFormat
 ) : Image {
+
+    // Иначе падало всё: getPixels, tensorize и resize - "unable to getPixels()",
+    // grayscale - "Software rendering doesn't support hardware bitmaps"
+    override val platformImage: PlatformImage =
+        // HARDWARE появился в API 26: на более старых системах к полю нельзя даже обращаться
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && platformImage.config == Bitmap.Config.HARDWARE) {
+            platformImage.copy(Bitmap.Config.ARGB_8888, false).also { platformImage.recycle() }
+        } else {
+            platformImage
+        }
 
     private val bitmap: Bitmap get() = platformImage
 

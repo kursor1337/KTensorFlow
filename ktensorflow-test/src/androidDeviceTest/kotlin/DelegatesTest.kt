@@ -75,42 +75,78 @@ class DelegatesTest {
     }
 
     @Test
-    fun gpuDelegateReportsAvailabilityWithoutThrowing() {
-        val delegate = GpuDelegate()
-
+    fun gpuDelegateReportsAvailabilityWithoutThrowing() = GpuDelegate().use { delegate ->
         // Доступность зависит от устройства; важно, что запрос не падает
         println("GPU delegate available: ${delegate.isAvailable}")
         assertTrue(delegate.isAvailable || !delegate.isAvailable)
     }
 
     @Test
-    fun npuDelegateReportsAvailabilityWithoutThrowing() {
-        val delegate = NpuDelegate()
-
+    fun npuDelegateReportsAvailabilityWithoutThrowing() = NpuDelegate().use { delegate ->
         println("NPU delegate available: ${delegate.isAvailable}")
         assertTrue(delegate.isAvailable || !delegate.isAvailable)
     }
 
     @Test
-    fun gpuDelegateProducesTheSamePredictionsAsTheCpu() {
-        val delegate = GpuDelegate()
+    fun gpuDelegateProducesTheSamePredictionsAsTheCpu() = GpuDelegate().use { delegate ->
         if (!delegate.isAvailable) {
             println("GPU delegate is not supported on this device, skipping the parity check")
-            return
+            return@use
         }
 
         assertEquals(predictions(null), predictions(delegate))
     }
 
     @Test
-    fun npuDelegateProducesTheSamePredictionsAsTheCpu() {
-        val delegate = NpuDelegate()
+    fun npuDelegateProducesTheSamePredictionsAsTheCpu() = NpuDelegate().use { delegate ->
         if (!delegate.isAvailable) {
             println("NPU delegate is not supported on this device, skipping the parity check")
-            return
+            return@use
         }
 
         assertEquals(predictions(null), predictions(delegate))
+    }
+
+    // --- жизненный цикл: делегаты держат нативную память без финализаторов ---
+
+    @Test
+    fun closingADelegateTwiceIsSafe() {
+        listOf(GpuDelegate(), NpuDelegate()).forEach { delegate ->
+            delegate.close()
+            delegate.close()
+        }
+    }
+
+    @Test
+    fun aClosedDelegateRefusesToGiveOutItsNativeDelegate() {
+        // Нативный делегат после close уже удалён: отдать его новому интерпретатору значило бы
+        // упасть в нативном коде, поэтому отказ должен быть явным
+        listOf(GpuDelegate(), NpuDelegate()).forEach { delegate ->
+            delegate.close()
+            assertFailsWith<IllegalStateException> { delegate.tflDelegate }
+        }
+    }
+
+    @Test
+    fun aClosedDelegateCannotBeUsedForANewInterpreter() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
+            println("NNAPI requires Android 8.1+, skipping")
+            return
+        }
+        val delegate = NpuDelegate().apply { close() }
+
+        assertFailsWith<IllegalStateException> {
+            InterpreterOptions(numThreads = 1, useXNNPACK = false, delegates = listOf(delegate))
+        }
+    }
+
+    @Test
+    fun delegateIsClosedAfterTheInterpreterThatUsedIt() {
+        // Правильный порядок из документации: сначала интерпретатор, потом делегат
+        NpuDelegate().use { delegate ->
+            val predicted = predictions(delegate)
+            assertEquals(16, predicted.size)
+        }
     }
 
     // --- где на самом деле отказывает NNAPI ---
@@ -160,6 +196,8 @@ class DelegatesTest {
                 tflDelegateReads++
                 return delegate
             }
+
+        override fun close() = Unit
     }
 
     @Test

@@ -19,12 +19,12 @@ class InterpreterTest {
 
     @Test
     fun testWithGpu() {
-        test(GpuDelegate())
+        GpuDelegate().use { test(it) }
     }
 
     @Test
     fun testWithNpu() {
-        test(NpuDelegate())
+        NpuDelegate().use { test(it) }
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)

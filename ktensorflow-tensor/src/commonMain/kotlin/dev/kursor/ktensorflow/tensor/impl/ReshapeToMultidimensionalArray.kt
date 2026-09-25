@@ -7,26 +7,16 @@ import dev.kursor.ktensorflow.tensor.TensorShape
 internal fun <T : Any> ByteArray.toShapedAndTypedArray(
     dataType: TensorDataType<T>,
     shape: TensorShape
-): Any = when (dataType) {
-    TensorDataType.Float32 -> reshapeArray(
-        readFloatArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.Int32 -> reshapeArray(
-        readIntArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.UInt8 -> reshapeArray(
-        readUByteArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.Int64 -> reshapeArray(
-        readLongArray(this),
-        shape.dimensions
-    )
+): Any {
+    // Скаляр (ранг 0) отдаётся массивом из одного элемента. Раньше он падал на обеих
+    // платформах, причём с разными исключениями
+    val dimensions = if (shape.rank == 0) intArrayOf(1) else shape.dimensions
+    return when (dataType) {
+        TensorDataType.Float32 -> reshapeArray(readFloatArray(this), dimensions)
+        TensorDataType.Int32 -> reshapeArray(readIntArray(this), dimensions)
+        TensorDataType.UInt8 -> reshapeArray(readUByteArray(this), dimensions)
+        TensorDataType.Int64 -> reshapeArray(readLongArray(this), dimensions)
+    }
 }
 
 private fun readIntArray(bytes: ByteArray): IntArray {

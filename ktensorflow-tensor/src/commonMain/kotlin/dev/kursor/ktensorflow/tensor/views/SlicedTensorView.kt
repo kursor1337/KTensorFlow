@@ -5,7 +5,6 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
-import dev.kursor.ktensorflow.tensor.toNestedIndex
 
 internal class SlicedTensorView<T : Any>(
     override val delegate: Tensor<T>,
@@ -33,34 +32,20 @@ internal class SlicedTensorView<T : Any>(
         *ranges.map { it.last - it.first + 1 }.toIntArray()
     )
 
-    private val originalStrides = delegate.shape.strides()
-
-    // Считаем стартовое физическое смещение один раз
-    private val startPhysicalOffset: Int = ranges.mapIndexed { i, range ->
-        range.first * originalStrides[i]
-    }.sum()
-
-    override fun get(index: IntArray): T {
-        var physicalOffset = startPhysicalOffset
-        for (i in index.indices) {
-            physicalOffset += index[i] * originalStrides[i]
-        }
-        return delegate.getFlat(physicalOffset)
+    // Оси view совпадают с осями исходника, а начало диапазонов - это постоянный сдвиг
+    private val offsets = delegate.shape.strides().let { strides ->
+        StridedOffsets(
+            shape = shape,
+            strides = strides,
+            base = ranges.indices.sumOf { ranges[it].first * strides[it] }
+        )
     }
 
-    override fun set(index: IntArray, value: T) {
-        var physicalOffset = startPhysicalOffset
-        for (i in index.indices) {
-            physicalOffset += index[i] * originalStrides[i]
-        }
-        delegate.setFlat(physicalOffset, value)
-    }
+    override fun get(index: IntArray): T = delegate.getFlat(offsets.of(index))
 
-    override fun getFlat(index: Int): T {
-        return get(index.toNestedIndex(shape))
-    }
+    override fun set(index: IntArray, value: T) = delegate.setFlat(offsets.of(index), value)
 
-    override fun setFlat(index: Int, value: T) {
-        set(index.toNestedIndex(shape), value)
-    }
+    override fun getFlat(index: Int): T = delegate.getFlat(offsets.of(index))
+
+    override fun setFlat(index: Int, value: T) = delegate.setFlat(offsets.of(index), value)
 }

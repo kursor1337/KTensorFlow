@@ -11,6 +11,8 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
  * @param T The numeric type of the tensor elements.
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @return An [ImageTensor] containing the pixel data of this image.
  */
 inline fun <reified T : Any> Image.tensorize(
@@ -32,6 +34,8 @@ inline fun <reified T : Any> Image.tensorize(
  * @param T The desired primitive type for the tensor elements (e.g., [Float], [Int], [UByte]).
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @return An [ImageTensor] containing the pixel data of this image.
  * @throws IllegalArgumentException If the provided [dataType] is not supported.
  */
@@ -69,6 +73,8 @@ fun <T : Any> Image.tensorize(
  * @param T The numeric type of the tensor elements (e.g., [Float], [Int], [UByte]).
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @return An [ImageTensor] containing the pixel data of all images in the batch.
  * @throws IllegalArgumentException If the list is empty or images have mismatched dimensions.
  */
@@ -92,6 +98,8 @@ inline fun <reified T : Any> List<Image>.tensorizeBatch(
  * @param dataType The [TensorDataType] representing the type [T].
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @return An [ImageTensor] containing the batched pixel data from all images in the list.
  * @throws IllegalArgumentException If the list is empty or if images have inconsistent dimensions.
  */
@@ -143,6 +151,8 @@ fun <T : Any> List<Image>.tensorizeBatch(
  *
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @param normalization The [Normalization] parameters (mean and standard deviation) to apply
  * to the pixel values (defaults to [Normalization.None], which performs no scaling).
  * @return An [ImageTensor] containing the normalized floating-point pixel data.
@@ -180,6 +190,8 @@ fun Image.tensorizeFloat(
  *
  * @param layout The memory layout of the resulting tensor (defaults to [ImageTensorLayout.NHWC]).
  * @param pixelFormat The pixel format of the resulting image tensor (defaults to [Image.pixelFormat]).
+ * [PixelFormat.Grayscale] stores the ITU-R 601 luma of each pixel, so a color image can be
+ * tensorized straight into a single-channel tensor.
  * @param normalization The normalization parameters to apply to each pixel.
  * @return An [ImageTensor] of type [Float] containing the normalized batched pixel data.
  * @throws IllegalArgumentException If the list is empty or if images have inconsistent dimensions.
@@ -291,7 +303,7 @@ private fun <T : Any> writeGrayscale(
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            tensor.setFlat(base, convert(pixels[idx++] and 0xFF))
+            tensor.setFlat(base, convert(luma(pixels[idx++])))
             base += columnStride
         }
         rowBase += rowStride
@@ -405,7 +417,7 @@ private fun writeGrayscaleFloat(
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            tensor.setFlat(base, ((pixels[idx++] and 0xFF).toFloat() - mean) / std)
+            tensor.setFlat(base, (luma(pixels[idx++]).toFloat() - mean) / std)
             base += columnStride
         }
         rowBase += rowStride
@@ -492,6 +504,14 @@ private fun writeRgbaFloat(
 
 // Обратное преобразование тензора в изображение устроено симметрично записи.
 
+/**
+ * Денормализованное значение канала в байт с округлением к ближайшему. Отбрасывание дроби
+ * сдвигало на единицу 6 уровней из 256 при tensorize/toImage с Normalization.ImageNet и
+ * занижало результат билинейного resize. В отличие от roundToInt не падает на NaN (даёт 0).
+ */
+@Suppress("NOTHING_TO_INLINE")
+private inline fun toChannel(value: Float): Int = (value + 0.5f).toInt().coerceIn(0, 255)
+
 private fun readGrayscale(
     tensor: ImageTensor<Float>,
     pixels: IntArray,
@@ -511,7 +531,7 @@ private fun readGrayscale(
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            val v = (tensor.getFlat(base) * std + mean).toInt().coerceIn(0, 255)
+            val v = toChannel(tensor.getFlat(base) * std + mean)
             pixels[idx++] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
             base += columnStride
         }
@@ -546,9 +566,9 @@ private fun readRgb(
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            val r = (tensor.getFlat(base + rOffset) * stdR + meanR).toInt().coerceIn(0, 255)
-            val g = (tensor.getFlat(base + gOffset) * stdG + meanG).toInt().coerceIn(0, 255)
-            val b = (tensor.getFlat(base + bOffset) * stdB + meanB).toInt().coerceIn(0, 255)
+            val r = toChannel(tensor.getFlat(base + rOffset) * stdR + meanR)
+            val g = toChannel(tensor.getFlat(base + gOffset) * stdG + meanG)
+            val b = toChannel(tensor.getFlat(base + bOffset) * stdB + meanB)
             pixels[idx++] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
             base += columnStride
         }
@@ -586,16 +606,26 @@ private fun readRgba(
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            val r = (tensor.getFlat(base + rOffset) * stdR + meanR).toInt().coerceIn(0, 255)
-            val g = (tensor.getFlat(base + gOffset) * stdG + meanG).toInt().coerceIn(0, 255)
-            val b = (tensor.getFlat(base + bOffset) * stdB + meanB).toInt().coerceIn(0, 255)
-            val a = (tensor.getFlat(base + aOffset) * stdA + meanA).toInt().coerceIn(0, 255)
+            val r = toChannel(tensor.getFlat(base + rOffset) * stdR + meanR)
+            val g = toChannel(tensor.getFlat(base + gOffset) * stdG + meanG)
+            val b = toChannel(tensor.getFlat(base + bOffset) * stdB + meanB)
+            val a = toChannel(tensor.getFlat(base + aOffset) * stdA + meanA)
             pixels[idx++] = (a shl 24) or (r shl 16) or (g shl 8) or b
             base += columnStride
         }
         rowBase += rowStride
     }
 }
+
+/**
+ * Яркость упакованного ARGB-пикселя по ITU-R 601 в целых числах - та же формула, что у
+ * ImageTensor<UByte>.grayscale. Раньше в серый тензор писался младший байт, то есть синий канал:
+ * чистый красный давал 0 вместо 76. У серого пикселя (R = G = B) результат прежний, бит в бит,
+ * потому что 77 + 150 + 29 = 256.
+ */
+@Suppress("NOTHING_TO_INLINE")
+private inline fun luma(p: Int): Int =
+    (((p shr 16) and 0xFF) * 77 + ((p shr 8) and 0xFF) * 150 + (p and 0xFF) * 29) shr 8
 
 @Suppress("UNCHECKED_CAST")
 private val <T : Any> TensorDataType<T>.converter: (Int) -> T

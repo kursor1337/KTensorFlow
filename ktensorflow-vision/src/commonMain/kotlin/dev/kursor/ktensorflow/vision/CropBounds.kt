@@ -17,3 +17,12 @@ internal fun Image.requireInsideImage(rect: Rect) {
         "Crop rect $rect is outside the ${width}x$height image"
     }
 }
+
+/**
+ * Проверяет размер результата resize. Как и с кропом, без общей проверки платформы падали
+ * по-разному: Bitmap бросал IllegalArgumentException, а на iOS нулевой размер доходил до
+ * CGBitmapContext и заканчивался выходом за пустой массив.
+ */
+internal fun requirePositiveSize(width: Int, height: Int) {
+    require(width > 0 && height > 0) { "New size must be positive, got ${width}x$height" }
+}

@@ -5,7 +5,6 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
-import dev.kursor.ktensorflow.tensor.toNestedIndex
 
 internal class PermutedTensorView<T : Any>(
     override val delegate: Tensor<T>,
@@ -18,32 +17,20 @@ internal class PermutedTensorView<T : Any>(
         *IntArray(delegate.shape.rank) { delegate.shape.dimensions[permuteAxes[it]] }
     )
 
-    private val originalStrides = delegate.shape.strides()
-
-    override fun get(index: IntArray): T {
-        var physicalOffset = 0
-        for (i in index.indices) {
-            // Магия: мапим ось View обратно на оригинальную ось и умножаем на оригинальный страйд
-            val origAxis = permuteAxes[i]
-            physicalOffset += index[i] * originalStrides[origAxis]
-        }
-        return delegate.getFlat(physicalOffset)
+    // Шаг оси view - это шаг той оси исходника, на которую она переставлена
+    private val offsets = delegate.shape.strides().let { strides ->
+        StridedOffsets(
+            shape = shape,
+            strides = IntArray(permuteAxes.size) { strides[permuteAxes[it]] },
+            base = 0
+        )
     }
 
-    override fun set(index: IntArray, value: T) {
-        var physicalOffset = 0
-        for (i in index.indices) {
-            val origAxis = permuteAxes[i]
-            physicalOffset += index[i] * originalStrides[origAxis]
-        }
-        delegate.setFlat(physicalOffset, value)
-    }
+    override fun get(index: IntArray): T = delegate.getFlat(offsets.of(index))
 
-    override fun getFlat(index: Int): T {
-        return get(index.toNestedIndex(shape))
-    }
+    override fun set(index: IntArray, value: T) = delegate.setFlat(offsets.of(index), value)
 
-    override fun setFlat(index: Int, value: T) {
-        set(index.toNestedIndex(shape), value)
-    }
+    override fun getFlat(index: Int): T = delegate.getFlat(offsets.of(index))
+
+    override fun setFlat(index: Int, value: T) = delegate.setFlat(offsets.of(index), value)
 }

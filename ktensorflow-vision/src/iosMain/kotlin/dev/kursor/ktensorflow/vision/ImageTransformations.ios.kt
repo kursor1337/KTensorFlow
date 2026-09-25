@@ -21,6 +21,8 @@ actual fun Image.resize(
     newHeight: Int,
     closeOriginal: Boolean
 ): Image {
+    requirePositiveSize(newWidth, newHeight)
+
     val out = ByteArray(newWidth * newHeight * pixelFormat.channels)
     withBitmapContext(out, newWidth, newHeight, pixelFormat) { ctx ->
         withCGImage { cgImage ->

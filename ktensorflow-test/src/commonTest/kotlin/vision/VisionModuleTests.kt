@@ -255,7 +255,7 @@ class VisionModuleTests {
         // Значения, которые при денормализации выйдут за пределы 0..255
         val pixelFormat = PixelFormat.RGB
         tensor[0, 0, 0, pixelFormat.rIndex] = -1.5f // Ожидаем 0
-        tensor[0, 0, 0, pixelFormat.gIndex] = 0.5f // Ожидаем 127
+        tensor[0, 0, 0, pixelFormat.gIndex] = 0.5f // 127.5 округляется до 128
         tensor[0, 0, 0, pixelFormat.bIndex] = 2.0f // Ожидаем 255
 
         val img = tensor.toImage(normalization = Normalization.ZeroToOne)
@@ -267,7 +267,7 @@ class VisionModuleTests {
         val b = p and 0xFF
 
         assertEquals(0, r, "Red channel should be clamped to 0")
-        assertEquals(127, g, "Green channel should be 127")
+        assertEquals(128, g, "Green channel should round 127.5 to 128")
         assertEquals(255, b, "Blue channel should be clamped to 255")
     }
 
@@ -866,25 +866,6 @@ class VisionModuleTests {
     }
 
     @Test
-    fun imageGrayscalePreservesLuminanceForAnAlreadyNeutralColor() {
-        // При r=g=b итоговая яркость не зависит от весов формулы (ITU-R 601 vs 709),
-        // поэтому тест остаётся детерминированным на обеих платформах
-        val gray = 150
-        val color = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
-        val original = createSolidImage(4, 4, color)
-
-        val grayscaled = original.grayscale()
-
-        assertEquals(PixelFormat.Grayscale, grayscaled.pixelFormat)
-        grayscaled.getPixels().forEach { p ->
-            val luma = p and 0xFF
-            assertTrue(abs(luma - gray) <= 2, "expected ~$gray, got $luma")
-        }
-
-        grayscaled.close()
-    }
-
-    @Test
     fun rotateBy90DegreesSwapsDimensionsAndTurnsClockwiseOnBothPlatforms() {
         // Поворот кадра камеры на 90 градусов - самый частый случай, и направление
         // поворота обязано совпадать на обеих платформах: Matrix.postRotate и
@@ -1326,5 +1307,106 @@ class VisionModuleTests {
 
         image.close()
         image.close()
+    }
+
+    // --- тензоризация в серый, обратное преобразование, размер изображения ---
+
+    @Test
+    fun tensorizingAColorImageToGrayscaleStoresItsLuma() {
+        // Раньше в серый тензор писался младший байт, то есть синий канал: красный давал 0
+        val red = (0xFF shl 24) or (255 shl 16)
+        val green = (0xFF shl 24) or (255 shl 8)
+        val blue = (0xFF shl 24) or 255
+        val image = Image(3, 1, PixelFormat.ARGB, intArrayOf(red, green, blue))
+
+        val floats = image.tensorizeFloat(pixelFormat = PixelFormat.Grayscale)
+        val bytes = image.tensorize<UByte>(pixelFormat = PixelFormat.Grayscale)
+
+        // Та же формула, что у ImageTensor<UByte>.grayscale: (77, 150, 29) * 255 shr 8
+        listOf(76, 149, 28).forEachIndexed { w, expected ->
+            assertEquals(expected.toFloat(), floats[0, w, 0], "float pixel $w")
+            assertEquals(expected.toUByte(), bytes[0, w, 0], "ubyte pixel $w")
+        }
+        image.close()
+    }
+
+    @Test
+    fun tensorizingAGrayImageToGrayscaleKeepsEveryLevel() {
+        // У серого пикселя яркость обязана совпасть с ним самим - прежнее поведение для серых
+        // картинок не меняется
+        val levels = IntArray(256) { (0xFF shl 24) or (it shl 16) or (it shl 8) or it }
+        val image = Image(16, 16, PixelFormat.ARGB, levels)
+
+        val tensor = image.tensorizeFloat(pixelFormat = PixelFormat.Grayscale)
+
+        assertContentEquals(FloatArray(256) { it.toFloat() }, FloatArray(256) { tensor.getFlat(it) })
+        image.close()
+    }
+
+    @Test
+    fun toImageRestoresEveryLevelForEveryBuiltInNormalization() {
+        // С отбрасыванием дроби ImageNet сдвигал 6 уровней из 256 на единицу вниз
+        val levels = IntArray(256) { (0xFF shl 24) or (it shl 16) or (it shl 8) or it }
+        val normalizations = listOf(
+            Normalization.None,
+            Normalization.ZeroToOne,
+            Normalization.MinusOneToOne,
+            Normalization.ImageNet
+        )
+
+        for (normalization in normalizations) {
+            val image = Image(16, 16, PixelFormat.ARGB, levels)
+            val restored = image.tensorizeFloat(normalization = normalization).toImage(normalization)
+
+            assertContentEquals(levels, restored.getPixels(), "normalization $normalization")
+            image.close()
+            restored.close()
+        }
+    }
+
+    @Test
+    fun toImageRoundsInterpolatedValuesToTheNearestLevel() {
+        val tensor = ImageTensor<Float>(2, 1, PixelFormat.Grayscale)
+        tensor[0, 0, 0] = 127.6f
+        tensor[0, 1, 0] = Float.NaN
+
+        val pixels = tensor.toImage().getPixels()
+
+        assertEquals(128, pixels[0] and 0xFF, "127.6 rounds up")
+        assertEquals(0, pixels[1] and 0xFF, "NaN becomes black instead of failing")
+    }
+
+    @Test
+    fun anImageWithoutPixelsIsRejectedOnBothPlatforms() {
+        // Android отказывал сразу (Bitmap), а iOS создавал такое изображение и падал позже
+        assertFailsWith<IllegalArgumentException> { Image(0, 0, PixelFormat.ARGB, IntArray(0)) }
+        assertFailsWith<IllegalArgumentException> { Image(0, 4, PixelFormat.ARGB, IntArray(0)) }
+        assertFailsWith<IllegalArgumentException> { Image(-1, -3, PixelFormat.Grayscale, IntArray(3)) }
+    }
+
+    @Test
+    fun resizeToANonPositiveSizeIsRejectedOnBothPlatforms() {
+        // На iOS нулевой размер доходил до CGBitmapContext и падал выходом за пустой массив,
+        // а Android бросал IllegalArgumentException из Bitmap
+        for (format in listOf(PixelFormat.ARGB, PixelFormat.RGB, PixelFormat.Grayscale)) {
+            val image = Image(2, 2, format, IntArray(4))
+            assertFailsWith<IllegalArgumentException>("format $format") { image.resize(0, 2, closeOriginal = false) }
+            assertFailsWith<IllegalArgumentException>("format $format") { image.resize(2, -1, closeOriginal = false) }
+            image.close()
+        }
+    }
+
+    @Test
+    fun nmsHandlesBoxesWithNegativeCoordinates() {
+        // Боксы у края кадра после обратного маппинга легко уходят в минус
+        val detections = listOf(
+            Rect(-10, -10, 10, 10) to 0.9f,
+            Rect(-9, -9, 11, 11) to 0.8f,
+            Rect(-50, -50, -30, -30) to 0.7f
+        )
+
+        val kept = detections.nms<Pair<Rect, Float>, Any?>(scoreSelector = { it.second }, boxSelector = { it.first })
+
+        assertEquals(listOf(0.9f, 0.7f), kept.map { it.second })
     }
 }

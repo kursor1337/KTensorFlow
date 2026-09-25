@@ -8,8 +8,27 @@ internal class AndroidNpuDelegate(
     options: NnApiDelegate.Options
 ) : NpuDelegate {
 
-    override val tflDelegate: Delegate? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) NnApiDelegate(options) else null
+    private var delegate: NnApiDelegate? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            NnApiDelegate(options)
+        } else {
+            null
+        }
 
-    override val isAvailable: Boolean = tflDelegate != null
+    private var closed = false
+
+    override val isAvailable: Boolean = delegate != null
+
+    override val tflDelegate: Delegate?
+        @Synchronized get() {
+            check(!closed) { "NPU delegate has already been closed" }
+            return delegate
+        }
+
+    @Synchronized
+    override fun close() {
+        closed = true
+        delegate?.close()
+        delegate = null
+    }
 }

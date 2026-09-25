@@ -29,11 +29,13 @@ final enum class dev.kursor.ktensorflow/DataType : kotlin/Enum<dev.kursor.ktenso
     final fun values(): kotlin/Array<dev.kursor.ktensorflow/DataType> // dev.kursor.ktensorflow/DataType.values|values#static(){}[0]
 }
 
-abstract interface dev.kursor.ktensorflow/Delegate { // dev.kursor.ktensorflow/Delegate|null[0]
+abstract interface dev.kursor.ktensorflow/Delegate : kotlin/AutoCloseable { // dev.kursor.ktensorflow/Delegate|null[0]
     abstract val isAvailable // dev.kursor.ktensorflow/Delegate.isAvailable|{}isAvailable[0]
         abstract fun <get-isAvailable>(): kotlin/Boolean // dev.kursor.ktensorflow/Delegate.isAvailable.<get-isAvailable>|<get-isAvailable>(){}[0]
     abstract val tflDelegate // dev.kursor.ktensorflow/Delegate.tflDelegate|{}tflDelegate[0]
         abstract fun <get-tflDelegate>(): cocoapods.TensorFlowLiteObjC/TFLDelegate? // dev.kursor.ktensorflow/Delegate.tflDelegate.<get-tflDelegate>|<get-tflDelegate>(){}[0]
+
+    abstract fun close() // dev.kursor.ktensorflow/Delegate.close|close(){}[0]
 }
 
 abstract interface dev.kursor.ktensorflow/Interpreter : kotlin/AutoCloseable { // dev.kursor.ktensorflow/Interpreter|null[0]

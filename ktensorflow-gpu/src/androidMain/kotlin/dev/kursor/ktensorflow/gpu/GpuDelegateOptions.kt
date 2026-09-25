@@ -16,7 +16,8 @@ fun GpuDelegateOptions(builder: GpuDelegateFactory.Options.() -> Unit): GpuDeleg
 }
 
 actual fun GpuDelegateOptions(): GpuDelegateOptions {
-    return GpuDelegateOptions(CompatibilityList().bestOptionsForThisDevice)
+    // Опции - обычный Java-объект и не зависят от списка, а сам список держит нативную память
+    return GpuDelegateOptions(CompatibilityList().use { it.bestOptionsForThisDevice })
 }
 
 actual fun GpuDelegateOptions(

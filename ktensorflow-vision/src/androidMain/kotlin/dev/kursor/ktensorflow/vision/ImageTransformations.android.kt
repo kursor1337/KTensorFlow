@@ -13,9 +13,13 @@ actual fun Image.resize(
     newWidth: Int,
     newHeight: Int,
     closeOriginal: Boolean
-): Image = platformImage
-    .scale(newWidth, newHeight)
-    .asImage(source = this, pixelFormat = pixelFormat, closeOriginal = closeOriginal)
+): Image {
+    requirePositiveSize(newWidth, newHeight)
+
+    return platformImage
+        .scale(newWidth, newHeight)
+        .asImage(source = this, pixelFormat = pixelFormat, closeOriginal = closeOriginal)
+}
 
 actual fun Image.crop(
     rect: Rect,

@@ -236,14 +236,26 @@ There are built-in Delegates to run inference on GPU and NPU in modules `ktensor
 
 Delegates can be provided to interpreter using `InterpreterOptions`
 ```kotlin
-val options = InterpreterOptions(
-  numThreads = 4,
-  useXNNPACK = true,
-  delegates = listOf(GpuDelegate(), NpuDelegate())
+val gpu = GpuDelegate()
+val npu = NpuDelegate()
+val interpreter = Interpreter(
+  modelDesc,
+  InterpreterOptions(
+    numThreads = 4,
+    useXNNPACK = true,
+    delegates = listOf(gpu, npu)
+  )
 )
+
+// ...
+
+// Delegates hold native resources: close them after every interpreter that uses them
+interpreter.close()
+gpu.close()
+npu.close()
 ```
 
-Delegates are provided to the `Interpreter` as a list of possible variants, and only the first available will be used.
+Every available delegate is applied, in list order: each one takes the operations it supports from what the previous ones left, and the rest runs on the CPU. Unavailable delegates are skipped.
 
 ### Providing platform-specific options
 If you need to provide platform specific option to the `Interpreter` or `GpuDelegate` you can use platform-specific builder functions:

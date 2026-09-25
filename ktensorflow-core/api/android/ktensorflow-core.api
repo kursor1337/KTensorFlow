@@ -9,7 +9,8 @@ public final class dev/kursor/ktensorflow/DataType : java/lang/Enum {
 	public static fun values ()[Ldev/kursor/ktensorflow/DataType;
 }
 
-public abstract interface class dev/kursor/ktensorflow/Delegate {
+public abstract interface class dev/kursor/ktensorflow/Delegate : java/lang/AutoCloseable {
+	public abstract fun close ()V
 	public abstract fun getTflDelegate ()Lorg/tensorflow/lite/Delegate;
 	public abstract fun isAvailable ()Z
 }

@@ -63,8 +63,8 @@ interface Image : AutoCloseable {
  * @param pixelFormat The format to be used for internal storage.
  * @param pixels Initial pixel data as packed ARGB values (0xAARRGGBB). For
  * [PixelFormat.Grayscale] the single stored channel is taken from the lowest byte of each
- * value, the same byte [tensorize] reads, so passing colored pixels keeps their blue channel.
- * Use [grayscale] to convert colors to luminance properly.
+ * value, so passing colored pixels keeps their blue channel. Use [grayscale] to convert colors
+ * to luminance properly.
  * @return A platform-specific implementation of [Image].
  */
 expect fun Image(

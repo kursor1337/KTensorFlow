@@ -25,6 +25,10 @@ interface PhysicalTensor<T : Any> : Tensor<T> {
 /**
  * Converts this [PhysicalTensor] to a multidimensional array of type [R].
  *
+ * A tensor of rank N becomes N nested arrays with a primitive array innermost, for example
+ * `Array<FloatArray>` for a 2D [Float] tensor or `UByteArray` for a 1D [UByte] tensor.
+ * A scalar (rank 0) is returned as a one-element array.
+ *
  * @param R - type of the array
  */
 fun <R : Any> PhysicalTensor<*>.toArray(): R =
