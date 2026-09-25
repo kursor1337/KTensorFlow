@@ -4,6 +4,7 @@ import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.argmax
+import dev.kursor.ktensorflow.tensor.argmin
 import dev.kursor.ktensorflow.tensor.avg
 import dev.kursor.ktensorflow.tensor.flatten
 import dev.kursor.ktensorflow.tensor.max
@@ -403,5 +404,41 @@ class TensorCornerCasesTest {
         assertFailsWith<IllegalArgumentException> { Tensor(TensorDataType.Float32, TensorShape(2, 2), ByteArray(4)) }
         assertFailsWith<IllegalArgumentException> { Tensor(TensorDataType.Float32, TensorShape(1), ByteArray(64)) }
         assertEquals(4, Tensor(TensorDataType.Float32, TensorShape(2, 2), ByteArray(16)).shape.flatSize)
+    }
+
+    // --- пустой тензор ---
+
+    @Test
+    fun aggregatesOfAnEmptyTensorFailTheSameWay() {
+        // Раньше каждая функция вела себя по-своему: min и max возвращали заглушки, argmax падал
+        // с IllegalArgumentException про индекс, avg давал NaN или ArithmeticException
+        val floats = Tensor<Float>(shape = TensorShape(0))
+        val ints = Tensor<Int>(shape = TensorShape(2, 0))
+
+        assertEquals(0f, floats.sum())
+        assertEquals(0, ints.sum())
+        listOf<() -> Any>(
+            { floats.avg() }, { floats.min() }, { floats.max() }, { floats.argmax() }, { floats.argmin() },
+            { ints.avg() }, { ints.min() }, { ints.max() }, { ints.argmax() }, { ints.argmin() }
+        ).forEachIndexed { i, aggregate ->
+            assertFailsWith<NoSuchElementException>("aggregate $i") { aggregate() }
+        }
+    }
+
+    // --- вывод формы из вложенных массивов ---
+
+    @Test
+    fun anEmptyNestedArrayExplainsWhyItsShapeIsUnknown() {
+        // Раньше: "Unsupported tensor data type: class kotlin.Array"
+        val failure = assertFailsWith<IllegalArgumentException> { Tensor<Float>(arrayOf<FloatArray>()) }
+
+        assertTrue("explicit TensorShape" in failure.message.orEmpty(), "message: ${failure.message}")
+    }
+
+    @Test
+    fun anEmptyInnermostArrayGivesAZeroSizedTensor() {
+        val tensor = Tensor<Float>(arrayOf(FloatArray(0), FloatArray(0)))
+
+        assertEquals(listOf(2, 0), tensor.shape.dimensions.toList())
     }
 }

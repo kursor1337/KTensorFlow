@@ -7,5 +7,8 @@ internal fun TFLDataType.toKTensorFlow(): DataType = when (this) {
     TFLDataType.INT32 -> DataType.Int32
     TFLDataType.UINT8 -> DataType.UInt8
     TFLDataType.INT64 -> DataType.Int64
-    else -> throw IllegalArgumentException("Unsupported data type: $this")
+    TFLDataType.INT8 -> DataType.Int8
+    TFLDataType.INT16 -> DataType.Int16
+    TFLDataType.BOOL -> DataType.Bool
+    TFLDataType.STRING -> DataType.String
 }

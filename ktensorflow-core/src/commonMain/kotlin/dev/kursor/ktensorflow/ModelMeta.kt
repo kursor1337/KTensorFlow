@@ -34,7 +34,8 @@ data class ModelTensorData(
     val numElements: Int get() = shape.fold(1) { acc, i -> acc * i }
 
     /**
-     * Total size of the tensor data in bytes.
+     * Total size of the tensor data in bytes, or 0 for a [DataType.String] tensor, whose size
+     * depends on its contents.
      */
     val totalByteSize: Int get() = numElements * dataType.byteSize
 }

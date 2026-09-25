@@ -251,7 +251,7 @@ class CoroutinesModuleTests {
             (1..8).map { value -> async { pipeline.runSuspend(value) } }.awaitAll()
         }
 
-        assertFalse(overlapped, "inference must never run concurrently: Interpreter.run is not thread-safe")
+        assertFalse(overlapped, "inference through the coroutine API must queue on the shared dispatcher")
         assertEquals(listOf(2, 4, 6, 8, 10, 12, 14, 16), results)
     }
 }

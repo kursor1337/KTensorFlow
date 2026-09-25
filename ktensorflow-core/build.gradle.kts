@@ -44,15 +44,15 @@ kotlin {
         // не линкуется ("symbol multiply defined", KT-46358; с Kotlin 2.4.20 - гарантированно).
         pod("TensorFlowLiteObjC") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
         }
         pod("TensorFlowLiteObjC/Metal") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
         }
         pod("TensorFlowLiteObjC/CoreML") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
         }
     }
 

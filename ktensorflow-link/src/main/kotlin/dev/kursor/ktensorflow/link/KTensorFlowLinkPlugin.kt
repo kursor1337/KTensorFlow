@@ -12,7 +12,8 @@ class KTensorFlowLinkPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         extensions.configure<KotlinMultiplatformExtension> {
             extensions.configure<CocoapodsExtension> {
-                val tflVersion = "2.17.0"
+                // Сгенерирована из каталога версий: та же версия, против которой собрана библиотека
+                val tflVersion = TENSORFLOW_LITE_OBJC_VERSION
 
                 pod("TensorFlowLiteObjC") {
                     moduleName = "TFLTensorFlowLite"

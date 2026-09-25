@@ -19,7 +19,7 @@ internal class AndroidInterpreter(
     private val tensorFlowInterpreter = tensorFlowCall("load the model") {
         when (modelDesc) {
             is ModelDesc.ByteBuffer -> TFLInterpreter(
-                modelDesc.buffer,
+                modelDesc.buffer.asDirect(),
                 options.tflOptions,
             )
 
@@ -171,3 +171,18 @@ internal class AndroidInterpreter(
         }
     }
 }
+
+/**
+ * TensorFlow Lite принимает модель только в direct- или отображённом буфере: обычный
+ * ByteBuffer.wrap(bytes) отклонялся с "Failed to load the model". Такой буфер один раз
+ * копируется в нативную память; позиция буфера вызывающего не меняется.
+ */
+private fun ByteBuffer.asDirect(): ByteBuffer =
+    if (isDirect) {
+        this
+    } else {
+        ByteBuffer.allocateDirect(remaining())
+            .order(ByteOrder.nativeOrder())
+            .put(duplicate())
+            .apply { rewind() }
+    }

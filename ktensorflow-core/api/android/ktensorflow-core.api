@@ -1,7 +1,14 @@
 public final class dev/kursor/ktensorflow/DataType : java/lang/Enum {
+	public static final field BFloat16 Ldev/kursor/ktensorflow/DataType;
+	public static final field Bool Ldev/kursor/ktensorflow/DataType;
+	public static final field Float16 Ldev/kursor/ktensorflow/DataType;
 	public static final field Float32 Ldev/kursor/ktensorflow/DataType;
+	public static final field Float64 Ldev/kursor/ktensorflow/DataType;
+	public static final field Int16 Ldev/kursor/ktensorflow/DataType;
 	public static final field Int32 Ldev/kursor/ktensorflow/DataType;
 	public static final field Int64 Ldev/kursor/ktensorflow/DataType;
+	public static final field Int8 Ldev/kursor/ktensorflow/DataType;
+	public static final field String Ldev/kursor/ktensorflow/DataType;
 	public static final field UInt8 Ldev/kursor/ktensorflow/DataType;
 	public final fun getByteSize ()I
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;

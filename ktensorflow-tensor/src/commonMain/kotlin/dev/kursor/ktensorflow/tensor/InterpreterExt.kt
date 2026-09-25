@@ -7,7 +7,9 @@ import kotlin.jvm.JvmName
  * Runs model inference for multiple inputs and outputs.
  * Result of the inference will be written to the output [Tensor]s, which should be
  * allocated beforehand and passed to this method.
- * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param inputs List of input [Tensor]s.
  * @param outputs Map of output [Tensor]s, key is index of the output [Tensor]
  */
@@ -23,7 +25,9 @@ fun Interpreter.run(
  * Runs model inference for multiple inputs and outputs.
  * Result of the inference will be written to the output [Tensor]s, which should be
  * allocated beforehand and passed to this method.
- * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param inputs List of input [Tensor]s.
  * @param outputs Map of output [Tensor]s, key is index of the output [Tensor]
  */
@@ -53,7 +57,9 @@ fun Interpreter.run(
  * Runs model inference for single input and output.
  * Result of the inference will be written to the output [Tensor], which should be
  * allocated beforehand and passed to this method.
- * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param input input [Tensor].
  * @param output output [Tensor]
  */

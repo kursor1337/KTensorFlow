@@ -15,9 +15,16 @@ open annotation class dev.kursor.ktensorflow/InternalKTensorFlowApi : kotlin/Ann
 }
 
 final enum class dev.kursor.ktensorflow/DataType : kotlin/Enum<dev.kursor.ktensorflow/DataType> { // dev.kursor.ktensorflow/DataType|null[0]
+    enum entry BFloat16 // dev.kursor.ktensorflow/DataType.BFloat16|null[0]
+    enum entry Bool // dev.kursor.ktensorflow/DataType.Bool|null[0]
+    enum entry Float16 // dev.kursor.ktensorflow/DataType.Float16|null[0]
     enum entry Float32 // dev.kursor.ktensorflow/DataType.Float32|null[0]
+    enum entry Float64 // dev.kursor.ktensorflow/DataType.Float64|null[0]
+    enum entry Int16 // dev.kursor.ktensorflow/DataType.Int16|null[0]
     enum entry Int32 // dev.kursor.ktensorflow/DataType.Int32|null[0]
     enum entry Int64 // dev.kursor.ktensorflow/DataType.Int64|null[0]
+    enum entry Int8 // dev.kursor.ktensorflow/DataType.Int8|null[0]
+    enum entry String // dev.kursor.ktensorflow/DataType.String|null[0]
     enum entry UInt8 // dev.kursor.ktensorflow/DataType.UInt8|null[0]
 
     final val byteSize // dev.kursor.ktensorflow/DataType.byteSize|{}byteSize[0]

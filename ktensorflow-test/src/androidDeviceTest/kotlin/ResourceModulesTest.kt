@@ -2,11 +2,15 @@ import android.app.Application
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
+import dev.kursor.ktensorflow.Interpreter
+import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.compose.ComposeUri
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.nio.ByteBuffer
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -75,5 +79,26 @@ class ResourceModulesTest {
         assertSame(context.applicationContext, stored)
         assertTrue(stored is Application, "the stored context must be the application, not an activity")
         assertTrue(initializer.dependencies().isEmpty())
+    }
+
+    @Test
+    fun composeUriLoadsAModelFromAJavaResourceOfTheApk() {
+        // compose-resources отдаёт ресурс не из assets как java-ресурс APK: jar:file:/…/base.apk!/…
+        // Раньше такой URI уходил в AssetManager как путь и не находился
+        val uri = checkNotNull(javaClass.classLoader?.getResource("mnist.tflite")).toString()
+        assertTrue(uri.startsWith("jar:"), "test resources must come from the APK, was $uri")
+
+        Interpreter(ModelDesc.ComposeUri(uri), InterpreterOptions()).close()
+    }
+
+    @Test
+    fun aModelInAnOrdinaryByteBufferLoads() {
+        // TensorFlow Lite принимает только direct-буфер; ByteBuffer.wrap раньше отклонялся
+        val bytes = checkNotNull(javaClass.classLoader?.getResourceAsStream("mnist.tflite")).use { it.readBytes() }
+        val buffer = ByteBuffer.wrap(bytes)
+
+        Interpreter(ModelDesc.ByteBuffer(buffer), InterpreterOptions()).close()
+
+        assertEquals(0, buffer.position(), "the caller's buffer must be left as it was")
     }
 }

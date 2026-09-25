@@ -5,6 +5,9 @@ junitVersion = "1.2.1"
 kotlin = "2.4.20"
 
 tensorflow-android = "1.4.2"
+# Поды TensorFlowLiteObjC для iOS: из этой версии собирается cinterop в ktensorflow-core, её же
+# линкует плагин ktensorflow-link у пользователя и тестовый модуль. Разойтись им нельзя
+tensorflow-ios = "2.17.0"
 qnn = "2.48.0"
 
 moko-resources = "0.26.4"

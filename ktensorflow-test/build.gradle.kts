@@ -65,17 +65,17 @@ kotlin {
 
         pod("TensorFlowLiteObjC") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
         pod("TensorFlowLiteObjC/Metal") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
         pod("TensorFlowLiteObjC/CoreML") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
     }

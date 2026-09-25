@@ -33,9 +33,15 @@ interface Interpreter : AutoCloseable {
      * Runs model inference for multiple inputs and outputs.
      * Result of the inference will be written to the output [ByteArray]s, which should be
      * allocated beforehand and passed to this method.
-     * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+     *
+     * Every input of the model must be given, in model order, and each output buffer must hold at
+     * least the size of its tensor. Calls from several threads are safe: the interpreter
+     * serializes them, so they run one after another. Calls after [close] fail with
+     * [TensorFlowException].
+     *
      * @param inputs List of input [ByteArray]s.
-     * @param outputs Map of output [ByteArray]s, key is output index..
+     * @param outputs Map of output [ByteArray]s, key is output index.
+     * @throws TensorFlowException if the buffers do not match the model or inference fails.
      */
     fun run(
         inputs: List<ByteArray>,
@@ -60,7 +66,9 @@ expect fun Interpreter(
  * Runs model inference for single input and output.
  * Result of the inference will be written to the output [ByteArray], which should be
  * allocated beforehand and passed to this method.
- * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param input Input [ByteArray].
  * @param output Output [ByteArray].
  */
@@ -73,7 +81,9 @@ fun Interpreter.run(
  * Runs model inference for multiple inputs and outputs.
  * Result of the inference will be written to the output [ByteArray]s, which should be
  * allocated beforehand and passed to this method.
- * WARNING: This function is not thread-safe. You should not call it from multiple threads.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param inputs List of input [ByteArray]s.
  * @param outputs Map of output [ByteArray]s, key is output name.
  */

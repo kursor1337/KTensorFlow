@@ -19,7 +19,8 @@ import org.junit.Test
  */
 class KTensorFlowLinkPluginTest {
 
-    private val expectedTfLiteVersion = "2.17.0"
+    // Версия из каталога, против которой собран cinterop библиотеки
+    private val expectedTfLiteVersion = TENSORFLOW_LITE_OBJC_VERSION
 
     private fun kmpProjectWithPlugin(): Project {
         val project = ProjectBuilder.builder().build()
