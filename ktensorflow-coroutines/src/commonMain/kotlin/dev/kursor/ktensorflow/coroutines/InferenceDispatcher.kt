@@ -6,18 +6,19 @@ import kotlinx.coroutines.Dispatchers
 /**
  * Dispatcher every inference in this module runs on.
  *
- * `Interpreter.run` is not thread-safe: the underlying native interpreter must not be entered
- * from two threads at once. Sequential calls are fine even from different threads, because
- * `withContext` establishes happens-before, but plain [Dispatchers.Default] is a thread pool,
- * so two concurrent `runSuspend` calls on the same interpreter would enter native code in
- * parallel and corrupt its state.
+ * Thread safety does not depend on it: every `Interpreter` serializes its own calls with a lock,
+ * so concurrent `run` calls cannot corrupt the native interpreter. What this dispatcher adds is
+ * how the waiting happens. On plain [Dispatchers.Default], concurrent `runSuspend` calls on one
+ * interpreter would each take a pool thread and block it on that lock, so a burst of calls could
+ * park every Default thread and starve the rest of the app. Limiting parallelism to one makes
+ * them queue as suspended coroutines that hold no thread.
  *
- * Limiting parallelism to one makes that impossible: inference calls queue instead of racing.
- * The work itself still runs off the caller's thread, and TensorFlow Lite keeps parallelising
- * internally through its own `numThreads` option, so a single inference still uses several cores.
+ * The work still runs off the caller's thread, and TensorFlow Lite parallelises internally
+ * through its own `numThreads` option, so a single inference still uses several cores. Running
+ * two models at once would mostly compete for the same cores.
  *
- * The trade-off is that inference is serialized process-wide, so two different models cannot be
- * inferred at the same time. That is the safe default; direct calls to `Interpreter.run` outside
- * this module are of course not covered by it.
+ * The trade-off is that inference through this module is serialized process-wide, so two
+ * different models are not inferred at the same time. To run them in parallel, call
+ * `Interpreter.run` from a dispatcher of your own: that is safe.
  */
 internal val InferenceDispatcher: CoroutineDispatcher = Dispatchers.Default.limitedParallelism(1)

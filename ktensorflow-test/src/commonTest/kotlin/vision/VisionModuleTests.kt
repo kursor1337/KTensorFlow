@@ -59,13 +59,13 @@ class VisionModuleTests {
 
     // Сравнение цветов ARGB с допуском - реальные платформенные реализации (Bitmap/CGImage)
     // могут давать расхождение в 1-2 единицы из-за округления (premultiplied alpha на iOS и т.д.)
-    private fun assertColorApprox(expected: Int, actual: Int, tolerance: Int = 2) {
+    private fun assertColorApprox(expected: Int, actual: Int, tolerance: Int = 2, message: String = "") {
         for (shift in intArrayOf(24, 16, 8, 0)) {
             val e = (expected shr shift) and 0xFF
             val a = (actual shr shift) and 0xFF
             assertTrue(
                 abs(e - a) <= tolerance,
-                "channel at shift $shift differs: expected=$e actual=$a " +
+                "$message: channel at shift $shift differs: expected=$e actual=$a " +
                     "(expected=0x${expected.toUInt().toString(16)} actual=0x${actual.toUInt().toString(16)})"
             )
         }
@@ -398,6 +398,18 @@ class VisionModuleTests {
         assertEquals(Rect(0, 0, 0, 0), rect)
     }
 
+    @Test
+    fun scaleForContainerReturnsEmptyRectForAnUnmeasuredOrNegativeContainer() {
+        // Размер ещё не измеренного контейнера может быть NaN или Infinity: roundToInt падал
+        // на NaN, а отрицательный исходный размер давал зеркальный бокс
+        val box = Rect(1, 1, 2, 2)
+        val empty = Rect(0, 0, 0, 0)
+
+        assertEquals(empty, box.scaleForContainer(10, 10, Float.NaN, 100f))
+        assertEquals(empty, box.scaleForContainer(10, 10, 100f, Float.POSITIVE_INFINITY))
+        assertEquals(empty, box.scaleForContainer(-10, 10, 100f, 100f))
+    }
+
     // --- 5. ТЕСТЫ НА NMS (NON-MAXIMUM SUPPRESSION) ---
 
     private data class Detection(val rect: Rect, val score: Float, val cls: Int = 0)
@@ -456,6 +468,43 @@ class VisionModuleTests {
             withClasses.toSet(),
             "multi-class NMS should keep boxes from different classes independently"
         )
+    }
+
+    @Test
+    fun multiClassNmsReturnsDetectionsSortedByScore() {
+        // Раньше результат шёл группами по классам: сначала весь класс 1, потом весь класс 2
+        val a = Detection(Rect(0, 0, 10, 10), 0.6f, cls = 1)
+        val b = Detection(Rect(20, 20, 30, 30), 0.9f, cls = 2)
+        val c = Detection(Rect(40, 40, 50, 50), 0.7f, cls = 1)
+        val d = Detection(Rect(60, 60, 70, 70), 0.8f, cls = 2)
+
+        val result = listOf(a, b, c, d).nms(
+            scoreThreshold = 0f,
+            scoreSelector = { it.score },
+            boxSelector = { it.rect },
+            classSelector = { it.cls }
+        )
+
+        assertEquals(listOf(b, d, c, a), result)
+    }
+
+    @Test
+    fun nmsCallsTheSelectorsOncePerItem() {
+        // Сортировка звала scoreSelector на каждое сравнение, а подавление - boxSelector для
+        // каждой пары; тяжёлый селектор (разбор выхода модели) превращал NMS в O(n^2) вызовов
+        val detections = List(50) { Detection(Rect(it * 20, 0, it * 20 + 10, 10), 1f - it / 100f) }
+        var scoreCalls = 0
+        var boxCalls = 0
+
+        val result = detections.nms<Detection, Any?>(
+            scoreThreshold = 0.6f,
+            scoreSelector = { scoreCalls++; it.score },
+            boxSelector = { boxCalls++; it.rect }
+        )
+
+        assertEquals(41, result.size, "scores 1.0 down to 0.6 pass the threshold")
+        assertEquals(50, scoreCalls)
+        assertEquals(41, boxCalls, "boxes are only needed for items above the threshold")
     }
 
     @Test
@@ -1050,6 +1099,57 @@ class VisionModuleTests {
         }
     }
 
+    // Эталон по прежнему алгоритму: resize, затем построчное копирование в массив, залитый полями
+    private fun letterboxReference(image: Image, targetWidth: Int, targetHeight: Int, pad: Int): IntArray {
+        val scale = minOf(targetWidth.toFloat() / image.width, targetHeight.toFloat() / image.height)
+        val scaledWidth = (image.width * scale).toInt().coerceIn(1, targetWidth)
+        val scaledHeight = (image.height * scale).toInt().coerceIn(1, targetHeight)
+        val padX = (targetWidth - scaledWidth) / 2
+        val padY = (targetHeight - scaledHeight) / 2
+
+        val scaled = image.resize(scaledWidth, scaledHeight, closeOriginal = false)
+        val scaledPixels = scaled.getPixels()
+        scaled.close()
+
+        val out = IntArray(targetWidth * targetHeight) { pad }
+        for (y in 0 until scaledHeight) {
+            scaledPixels.copyInto(out, (y + padY) * targetWidth + padX, y * scaledWidth, (y + 1) * scaledWidth)
+        }
+        return out
+    }
+
+    @Test
+    fun resizeWithPadMatchesResizingAndPlacingThePixels() {
+        // resizeWithPad рисует нативно за один проход; результат обязан совпасть с прежним
+        // resize + копированием: поля - точно, картинка - с точностью до интерполяции
+        val pad = (0xFF shl 24) or (0x20 shl 16) or (0x40 shl 8) or 0x60
+        val grayPad = (0xFF shl 24) or (0x60 shl 16) or (0x60 shl 8) or 0x60
+        val pixels = IntArray(37 * 23) { i ->
+            val x = i % 37
+            val y = i / 37
+            (0xFF shl 24) or ((x * 7) shl 16) or ((y * 11) shl 8) or ((x + y) * 3)
+        }
+
+        for (format in listOf(PixelFormat.ARGB, PixelFormat.RGB, PixelFormat.Grayscale)) {
+            for ((targetWidth, targetHeight) in listOf(32 to 32, 20 to 40, 37 to 23)) {
+                val image = Image(37, 23, format, pixels)
+                val expectedPad = if (format == PixelFormat.Grayscale) grayPad else pad
+                val expected = letterboxReference(image, targetWidth, targetHeight, expectedPad)
+
+                val padded = image.resizeWithPad(targetWidth, targetHeight, padColorArgb = pad)
+                val actual = padded.getPixels()
+
+                val where = "format $format, target ${targetWidth}x$targetHeight"
+                assertEquals(targetWidth, padded.width, where)
+                assertEquals(targetHeight, padded.height, where)
+                for (i in actual.indices) {
+                    assertColorApprox(expected[i], actual[i], tolerance = 2, message = "$where, pixel $i")
+                }
+                padded.close()
+            }
+        }
+    }
+
     @Test
     fun resizeWithPadLetterboxesAnExtremelyThinImage() {
         // 1000x3 в 300x300: масштаб 0.3, высота 0.9 раньше округлялась до нуля, и ресайз падал
@@ -1382,6 +1482,28 @@ class VisionModuleTests {
         assertFailsWith<IllegalArgumentException> { Image(0, 0, PixelFormat.ARGB, IntArray(0)) }
         assertFailsWith<IllegalArgumentException> { Image(0, 4, PixelFormat.ARGB, IntArray(0)) }
         assertFailsWith<IllegalArgumentException> { Image(-1, -3, PixelFormat.Grayscale, IntArray(3)) }
+    }
+
+    @Test
+    fun anIdentityTransformationKeptApartFromTheOriginalIsIndependent() {
+        // На Android Bitmap возвращает тот же bitmap, если преобразование ничего не меняет, и
+        // при closeOriginal = false оба изображения делили его: закрытие результата ломало
+        // исходник. На iOS эти операции копировали всегда
+        val color = (0xFF shl 24) or (10 shl 16) or (20 shl 8) or 30
+        val original = createSolidImage(4, 3, color)
+        val identities = listOf<(Image) -> Image>(
+            { it.resize(4, 3, closeOriginal = false) },
+            { it.crop(Rect(0, 0, 4, 3), closeOriginal = false) },
+            { it.rotate(0f, closeOriginal = false) }
+        )
+
+        identities.forEachIndexed { i, transform ->
+            val result = transform(original)
+            assertEquals(color, result[1, 1], "transformation $i")
+            result.close()
+            assertEquals(color, original[1, 1], "the original must survive closing result $i")
+        }
+        original.close()
     }
 
     @Test

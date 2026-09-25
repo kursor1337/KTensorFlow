@@ -3,13 +3,18 @@ package dev.kursor.ktensorflow.vision
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import platform.CoreGraphics.CGBitmapContextCreate
+import platform.CoreGraphics.CGBlendMode
 import platform.CoreGraphics.CGColorSpaceCreateDeviceGray
 import platform.CoreGraphics.CGColorSpaceCreateDeviceRGB
 import platform.CoreGraphics.CGColorSpaceRelease
 import platform.CoreGraphics.CGContextDrawImage
+import platform.CoreGraphics.CGContextFillRect
 import platform.CoreGraphics.CGContextRef
 import platform.CoreGraphics.CGContextRelease
 import platform.CoreGraphics.CGContextRotateCTM
+import platform.CoreGraphics.CGContextSetBlendMode
+import platform.CoreGraphics.CGContextSetGrayFillColor
+import platform.CoreGraphics.CGContextSetRGBFillColor
 import platform.CoreGraphics.CGContextTranslateCTM
 import platform.CoreGraphics.CGImageCreateWithImageInRect
 import platform.CoreGraphics.CGImageRelease
@@ -180,6 +185,51 @@ actual fun Image.grayscale(
         pixelFormat = PixelFormat.Grayscale,
         pixels = out
     )
+}
+
+internal actual fun Image.drawLetterboxed(
+    scaledWidth: Int,
+    scaledHeight: Int,
+    targetWidth: Int,
+    targetHeight: Int,
+    padX: Int,
+    padY: Int,
+    padColorArgb: Int
+): Image {
+    val out = ByteArray(targetWidth * targetHeight * pixelFormat.channels)
+    withBitmapContext(out, targetWidth, targetHeight, pixelFormat) { ctx ->
+        // Copy, а не обычное наложение: и заливка, и картинка заменяют пиксели, как при
+        // копировании массива, иначе полупрозрачные пиксели смешались бы с цветом полей
+        CGContextSetBlendMode(ctx, CGBlendMode.kCGBlendModeCopy)
+
+        val r = ((padColorArgb shr 16) and 0xFF) / 255.0
+        val g = ((padColorArgb shr 8) and 0xFF) / 255.0
+        val b = (padColorArgb and 0xFF) / 255.0
+        // У RGB нет альфы: поля хранят цвет как есть, как и фабрика Image для этого формата
+        val a = if (pixelFormat is PixelFormat.RGB) 1.0 else ((padColorArgb ushr 24) and 0xFF) / 255.0
+        if (pixelFormat == PixelFormat.Grayscale) {
+            CGContextSetGrayFillColor(ctx, b, a)
+        } else {
+            CGContextSetRGBFillColor(ctx, r, g, b, a)
+        }
+        CGContextFillRect(ctx, CGRectMake(0.0, 0.0, targetWidth.toDouble(), targetHeight.toDouble()))
+
+        withCGImage { cgImage ->
+            CGContextDrawImage(
+                c = ctx,
+                // Ось Y у CoreGraphics направлена вверх: отступ сверху превращается в отступ снизу
+                rect = CGRectMake(
+                    x = padX.toDouble(),
+                    y = (targetHeight - padY - scaledHeight).toDouble(),
+                    width = scaledWidth.toDouble(),
+                    height = scaledHeight.toDouble()
+                ),
+                image = cgImage
+            )
+        }
+    }
+
+    return IosImage(targetWidth, targetHeight, pixelFormat, out)
 }
 
 internal fun <R> withBitmapContext(

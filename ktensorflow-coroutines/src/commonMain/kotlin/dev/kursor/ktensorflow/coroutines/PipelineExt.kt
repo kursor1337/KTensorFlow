@@ -33,9 +33,9 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
 /**
  * Runs the pipeline with the given input flow.
  * This function runs the pipeline for every item in the input flow.
- * The pipeline is run asynchronously on the specified [dispatcher].
- * By default inference is serialized, because the interpreter behind a pipeline is not
- * thread-safe; pass a dispatcher explicitly only if the pipeline does not run inference.
+ * The pipeline is run asynchronously on the specified [dispatcher]. By default it is the shared
+ * inference dispatcher, where concurrent inference queues instead of blocking threads; any
+ * other dispatcher is also safe, because the interpreter serializes its own calls.
  *
  * @param inputFlow The input flow to the pipeline.
  * @param dispatcher The dispatcher to run the pipeline on.
@@ -55,9 +55,9 @@ fun <I, O> Pipeline<I, O>.processFlow(
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
  * collected directly from a camera or any other source without manual wrapping.
- * The pipeline is run asynchronously on the specified [dispatcher]. By default inference is
- * serialized, because the interpreter behind a pipeline is not thread-safe; pass a dispatcher
- * explicitly only if the pipeline does not run inference.
+ * The pipeline is run asynchronously on the specified [dispatcher]. By default it is the shared
+ * inference dispatcher, where concurrent inference queues instead of blocking threads; any
+ * other dispatcher is also safe, because the interpreter serializes its own calls.
  *
  * @param inputFlow The input flow to the pipeline.
  * @param dispatcher The dispatcher to run the pipeline on.
@@ -75,14 +75,18 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
  * This function runs the pipeline for every item in the input flow that arrives while it is idle.
- * The pipeline is run asynchronously, and inference is serialized to keep the
- * non-thread-safe interpreter safe.
+ * The pipeline is run asynchronously on the shared inference dispatcher, one item at a time.
  *
  * The flow takes ownership of every item it receives and closes each one exactly once (using
  * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
  * and an item that is processed is closed once the pipeline has finished with it - whether it
  * succeeded, failed or the collection was cancelled. The pipeline therefore must not keep a
  * reference to its input after it returns; derive everything the output needs inside the pipeline.
+ *
+ * Items that never reach this flow stay with the upstream: if it buffers frames, the ones still
+ * in its buffer when collection stops are never delivered here and are not closed. Close them in
+ * the upstream, for example with a `Channel(capacity, onUndeliveredElement = { it.close() })`
+ * consumed through `receiveAsFlow()`.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.
@@ -98,14 +102,18 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
  * collected directly from a camera or any other source without manual wrapping.
- * The pipeline is run asynchronously, and inference is serialized to keep the
- * non-thread-safe interpreter safe.
+ * The pipeline is run asynchronously on the shared inference dispatcher, one item at a time.
  *
  * The flow takes ownership of every item it receives and closes each one exactly once (using
  * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
  * and an item that is processed is closed once the pipeline has finished with it - whether it
  * succeeded, failed or the collection was cancelled. The pipeline therefore must not keep a
  * reference to its input after it returns; derive everything the output needs inside the pipeline.
+ *
+ * Items that never reach this flow stay with the upstream: if it buffers frames, the ones still
+ * in its buffer when collection stops are never delivered here and are not closed. Close them in
+ * the upstream, for example with a `Channel(capacity, onUndeliveredElement = { it.close() })`
+ * consumed through `receiveAsFlow()`.
  *
  * @param inputFlow The input flow to the pipeline.
  * @return The output flow of the pipeline.

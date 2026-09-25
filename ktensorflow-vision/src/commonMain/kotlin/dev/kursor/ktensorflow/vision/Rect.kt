@@ -179,7 +179,8 @@ fun Rect.intersectionOverUnion(other: Rect): Float {
  * @param containerWidth The width of the container to scale the rectangle to.
  * @param containerHeight The height of the container to scale the rectangle to.
  * @param isCrop Whether to crop the rectangle to fit the container.
- * @return A new [Rect] with the scaled coordinates.
+ * @return A new [Rect] with the scaled coordinates, or an empty [Rect] if the original container
+ * is empty or the container size is not finite.
  */
 fun Rect.scaleForContainer(
     originalContainerWidth: Int,
@@ -188,7 +189,11 @@ fun Rect.scaleForContainer(
     containerHeight: Float,
     isCrop: Boolean = true
 ): Rect {
-    if (originalContainerWidth == 0 || originalContainerHeight == 0) {
+    // Пустой контейнер или ещё не измеренный размер (NaN, Infinity) дают пустой прямоугольник:
+    // иначе roundToInt падал на NaN, а отрицательный масштаб зеркалил бокс
+    if (originalContainerWidth <= 0 || originalContainerHeight <= 0 ||
+        !containerWidth.isFinite() || !containerHeight.isFinite()
+    ) {
         return Rect(0, 0, 0, 0)
     }
     val scaleX = containerWidth / originalContainerWidth

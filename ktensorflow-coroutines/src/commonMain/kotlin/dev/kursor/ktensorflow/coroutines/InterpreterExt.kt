@@ -11,8 +11,8 @@ import kotlin.jvm.JvmName
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
  * on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread (e.g., the Main/UI thread).
@@ -33,8 +33,8 @@ suspend fun Interpreter.runSuspend(
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
  * on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -55,8 +55,8 @@ suspend fun Interpreter.runSuspend(
  * Suspends the current coroutine and runs model inference for a single input and output
  * on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. The result of the inference will be
@@ -76,8 +76,8 @@ suspend fun Interpreter.runSuspend(
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
  * using [PhysicalTensor]s on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -98,8 +98,8 @@ suspend fun Interpreter.runSuspend(
  * Suspends the current coroutine and runs model inference for multiple inputs and outputs
  * using [PhysicalTensor]s on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. Results of the inference will be
@@ -120,8 +120,8 @@ suspend fun Interpreter.runSuspend(
  * Suspends the current coroutine and runs model inference for a single input and output
  * using [PhysicalTensor]s on a background thread.
  *
- * Inference is serialized: [Interpreter.run] is not thread-safe, so concurrent calls queue
- * instead of entering the native interpreter in parallel.
+ * Inference runs on a shared single-thread dispatcher: concurrent calls queue as suspended
+ * coroutines instead of blocking threads while the interpreter is busy.
  *
  * This is a safe, non-blocking alternative to [Interpreter.run] that ensures heavy
  * CPU computations do not block the calling thread. The result of the inference will be

@@ -78,45 +78,36 @@ fun Image.resizeWithPad(
     val padX = (targetWidth - scaledWidth) / 2
     val padY = (targetHeight - scaledHeight) / 2
 
-    // Нельзя закрывать исходник здесь: если масштабирование не требуется, платформа
-    // (например, Bitmap.createScaledBitmap) возвращает ТОТ ЖЕ буфер, и закрытие исходника
-    // сделало бы scaledImage нечитаемым.
-    val scaledImage = this.resize(scaledWidth, scaledHeight, closeOriginal = false)
-    val scaledPixels = scaledImage.getPixels()
-
-    val paddedPixels = IntArray(targetWidth * targetHeight) { padColorArgb }
-
-    for (y in 0 until scaledHeight) {
-        val srcOffset = y * scaledWidth
-        val dstOffset = (y + padY) * targetWidth + padX
-
-        scaledPixels.copyInto(
-            destination = paddedPixels,
-            destinationOffset = dstOffset,
-            startIndex = srcOffset,
-            endIndex = srcOffset + scaledWidth
-        )
+    // Масштабирование и заливка за одну нативную отрисовку, без трёх полноразмерных копий
+    // пикселей в Kotlin (resize, getPixels, массив с полями). Серое изображение хранит один канал,
+    // поэтому цвет полей для него берётся из младшего байта - как у фабрики Image
+    val fill = if (pixelFormat == PixelFormat.Grayscale) {
+        val v = padColorArgb and 0xFF
+        (0xFF shl 24) or (v shl 16) or (v shl 8) or v
+    } else {
+        padColorArgb
     }
+    val finalImage = drawLetterboxed(scaledWidth, scaledHeight, targetWidth, targetHeight, padX, padY, fill)
 
-    if (scaledImage.platformImage !== platformImage) {
-        scaledImage.close()
-    }
+    val info = PadInfo(width, height, targetWidth, targetHeight, padX, padY, scale)
     if (closeOriginal) {
         close()
     }
 
-    val finalImage = Image(targetWidth, targetHeight, pixelFormat, paddedPixels)
-
-    return PaddedImage(
-        delegate = finalImage,
-        info = PadInfo(
-            width,
-            height,
-            targetWidth,
-            targetHeight,
-            padX,
-            padY,
-            scale
-        )
-    )
+    return PaddedImage(delegate = finalImage, info = info)
 }
+
+/**
+ * Рисует это изображение, отмасштабированное до [scaledWidth] x [scaledHeight], в точку
+ * ([padX], [padY]) нового изображения [targetWidth] x [targetHeight], залитого [padColorArgb].
+ * Пиксели изображения заменяют заливку, а не смешиваются с ней, - как при копировании.
+ */
+internal expect fun Image.drawLetterboxed(
+    scaledWidth: Int,
+    scaledHeight: Int,
+    targetWidth: Int,
+    targetHeight: Int,
+    padX: Int,
+    padY: Int,
+    padColorArgb: Int
+): Image

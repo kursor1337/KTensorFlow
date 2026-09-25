@@ -7,6 +7,7 @@ import dev.kursor.ktensorflow.tensor.avg
 import dev.kursor.ktensorflow.tensor.flatten
 import dev.kursor.ktensorflow.tensor.max
 import dev.kursor.ktensorflow.tensor.min
+import dev.kursor.ktensorflow.tensor.minus
 import dev.kursor.ktensorflow.tensor.normalize
 import dev.kursor.ktensorflow.tensor.permuted
 import dev.kursor.ktensorflow.tensor.plus
@@ -308,5 +309,31 @@ class TensorCornerCasesTest {
         transposed.setFlat(1, 5f) // [0, 1] у view - это [1, 0] у исходника
 
         assertEquals(5f, tensor[intArrayOf(1, 0)])
+    }
+
+    // --- арифметика ---
+
+    @Test
+    fun arithmeticWithAViewOperandUsesItsLogicalOrder() {
+        // Операнды обходятся по плоскому индексу: у транспонированного view он логический,
+        // а не физический порядок в памяти исходника
+        val source = Tensor<Float>(shape = TensorShape(2, 3))
+        repeat(6) { source.setFlat(it, it.toFloat()) } // [[0,1,2],[3,4,5]]
+        val transposed = source.transpose() // [[0,3],[1,4],[2,5]]
+        val ones = Tensor<Float>(shape = TensorShape(3, 2))
+        repeat(6) { ones.setFlat(it, 1f) }
+
+        val sum = ones + transposed
+
+        assertEquals(listOf(1f, 4f, 2f, 5f, 3f, 6f), List(6) { sum.getFlat(it) })
+    }
+
+    @Test
+    fun ubyteArithmeticWrapsAroundAsDocumented() {
+        val a = Tensor<UByte>(shape = TensorShape(1)).apply { setFlat(0, 200.toUByte()) }
+        val b = Tensor<UByte>(shape = TensorShape(1)).apply { setFlat(0, 100.toUByte()) }
+
+        assertEquals(44.toUByte(), (a + b).getFlat(0))
+        assertEquals(156.toUByte(), (b - a).getFlat(0))
     }
 }

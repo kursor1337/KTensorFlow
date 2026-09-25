@@ -19,25 +19,18 @@ internal fun <T : Any> ByteArray.toShapedAndTypedArray(
     }
 }
 
-private fun readIntArray(bytes: ByteArray): IntArray {
-    val count = bytes.size / 4
-    val result = IntArray(count)
-    for (i in 0 until count) {
-        val offset = i * 4
-        result[i] =
-            (bytes[offset + 0].toInt() and 0xFF) or
-                    ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
-                    ((bytes[offset + 2].toInt() and 0xFF) shl 16) or
-                    ((bytes[offset + 3].toInt() and 0xFF) shl 24)
-    }
-    return result
-}
+private fun ByteArray.intAt(offset: Int): Int =
+    (this[offset].toInt() and 0xFF) or
+        ((this[offset + 1].toInt() and 0xFF) shl 8) or
+        ((this[offset + 2].toInt() and 0xFF) shl 16) or
+        ((this[offset + 3].toInt() and 0xFF) shl 24)
 
-private fun readFloatArray(bytes: ByteArray): FloatArray {
-    val count = bytes.size / 4
-    val ints = readIntArray(bytes)
-    return FloatArray(count) { i -> Float.fromBits(ints[i]) }
-}
+private fun readIntArray(bytes: ByteArray): IntArray =
+    IntArray(bytes.size / 4) { i -> bytes.intAt(i * 4) }
+
+// Сразу во FloatArray: раньше значения сначала читались в промежуточный IntArray того же размера
+private fun readFloatArray(bytes: ByteArray): FloatArray =
+    FloatArray(bytes.size / 4) { i -> Float.fromBits(bytes.intAt(i * 4)) }
 
 @OptIn(ExperimentalUnsignedTypes::class)
 private fun readUByteArray(bytes: ByteArray): UByteArray =

@@ -152,6 +152,28 @@ class CoroutinesModuleTests {
     }
 
     @Test
+    fun processFlowDroppingFailsInsteadOfHangingWhenClosingAnItemThrows() = runBlocking {
+        // Если close() бросает, mutex остаётся занятым - но зависания нет: исключение роняет
+        // весь поток, и следующих кадров, которые упёрлись бы в mutex, уже не будет
+        class BrokenItem : AutoCloseable {
+            override fun close() = error("close failed")
+        }
+        val pipeline = Pipeline(Stage<BrokenItem, Int> { 1 })
+        val frames = flow {
+            repeat(5) {
+                emit(BrokenItem())
+                delay(20.milliseconds)
+            }
+        }
+
+        val failure = withTimeout(5_000.milliseconds) {
+            assertFailsWith<IllegalStateException> { pipeline.processFlowDropping(frames).toList() }
+        }
+
+        assertEquals("close failed", failure.message)
+    }
+
+    @Test
     fun processFlowDroppingOfAnEmptyFlowCompletesWithoutResults() = runTest {
         val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
 

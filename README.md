@@ -178,7 +178,7 @@ Running inference on the UI thread causes ANRs. The `ktensorflow-coroutines` mod
 
 #### Async Inference
 ```kotlin
-// Safely moves execution to Dispatchers.Default
+// Runs off the calling thread; concurrent calls queue instead of blocking threads
 val result = pipeline.runSuspend(image) 
 ```
 

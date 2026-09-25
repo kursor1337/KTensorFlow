@@ -6,8 +6,11 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import android.graphics.Rect as AndroidRect
 
 actual fun Image.resize(
     newWidth: Int,
@@ -73,25 +76,57 @@ actual fun Image.grayscale(
     )
 }
 
+internal actual fun Image.drawLetterboxed(
+    scaledWidth: Int,
+    scaledHeight: Int,
+    targetWidth: Int,
+    targetHeight: Int,
+    padX: Int,
+    padY: Int,
+    padColorArgb: Int
+): Image {
+    val out = createBitmap(targetWidth, targetHeight)
+    val canvas = Canvas(out)
+    // SRC, а не SRC_OVER: и заливка, и картинка заменяют пиксели, как при копировании массива,
+    // иначе полупрозрачные пиксели смешались бы с цветом полей
+    canvas.drawColor(padColorArgb, PorterDuff.Mode.SRC)
+    val paint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+    }
+    canvas.drawBitmap(
+        platformImage,
+        null,
+        AndroidRect(padX, padY, padX + scaledWidth, padY + scaledHeight),
+        paint
+    )
+    return AndroidImage(out, pixelFormat)
+}
+
 /**
- * Оборачивает результат преобразования в [AndroidImage], закрывая исходное изображение.
+ * Оборачивает результат преобразования в [AndroidImage] и при необходимости закрывает исходник.
  *
  * Bitmap.scale и Bitmap.createBitmap возвращают ИСХОДНЫЙ bitmap, когда преобразование ничего
  * не меняет: тот же размер при масштабировании, единичная матрица при повороте, вырезание
- * всего изображения целиком. Закрыть оригинал в этом случае означало бы переработать тот
- * самый bitmap, который только что отдали наружу, - и следующее же чтение пикселей упало бы
- * на переработанном bitmap. Поэтому оригинал закрывается, только если результат
- * действительно другой объект.
+ * всего изображения целиком. Тогда:
+ * - если исходник закрывается, bitmap просто переходит к результату - переработать его значило
+ *   бы сломать только что отданное изображение;
+ * - если исходник остаётся, результату нужна своя копия: иначе оба изображения делили бы один
+ *   bitmap, и закрытие любого ломало бы второе. На iOS эти операции копируют всегда.
  */
 private fun Bitmap.asImage(
     source: Image,
     pixelFormat: PixelFormat,
     closeOriginal: Boolean
 ): Image {
-    if (closeOriginal && this !== source.platformImage) {
-        source.close()
+    val bitmap = when {
+        this !== source.platformImage -> {
+            if (closeOriginal) source.close()
+            this
+        }
+        closeOriginal -> this
+        else -> copy(config ?: Bitmap.Config.ARGB_8888, isMutable)
     }
-    return AndroidImage(this, pixelFormat)
+    return AndroidImage(bitmap, pixelFormat)
 }
 
 /**

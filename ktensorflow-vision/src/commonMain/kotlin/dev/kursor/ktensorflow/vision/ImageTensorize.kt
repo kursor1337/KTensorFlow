@@ -123,15 +123,18 @@ fun <T : Any> List<Image>.tensorizeBatch(
 
     val offsets = ImageOffsets(tensor)
     val convert = dataType.converter
+    // Один буфер пикселей на весь батч: размеры у изображений одинаковые
+    val pixels = IntArray(first.width * first.height)
 
     forEachIndexed { batchIndex, image ->
         require(image.width == first.width && image.height == first.height) {
             "All images must have the same size"
         }
+        image.getPixels(pixels)
 
         writeImage(
             tensor = tensor,
-            pixels = image.getPixels(),
+            pixels = pixels,
             offsets = offsets,
             batchIndex = batchIndex,
             pixelFormat = pixelFormat,
@@ -215,15 +218,18 @@ fun List<Image>.tensorizeBatchFloat(
     )
 
     val offsets = ImageOffsets(tensor)
+    // Один буфер пикселей на весь батч: размеры у изображений одинаковые
+    val pixels = IntArray(first.width * first.height)
 
     forEachIndexed { batchIndex, image ->
         require(image.width == first.width && image.height == first.height) {
             "All images must have the same size"
         }
+        image.getPixels(pixels)
 
         writeImageFloat(
             tensor = tensor,
-            pixels = image.getPixels(),
+            pixels = pixels,
             offsets = offsets,
             batchIndex = batchIndex,
             pixelFormat = pixelFormat,
