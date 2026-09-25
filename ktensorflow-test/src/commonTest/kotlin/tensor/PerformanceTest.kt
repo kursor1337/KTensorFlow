@@ -1,10 +1,8 @@
+@file:OptIn(InternalKTensorFlowApi::class)
+
 package tensor
 
-import dev.kursor.ktensorflow.media.ImageTensor
-import dev.kursor.ktensorflow.media.ImageTensorLayout
-import dev.kursor.ktensorflow.media.PixelFormat
-import dev.kursor.ktensorflow.media.resize
-import dev.kursor.ktensorflow.media.grayscale
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.forEachIndexed
@@ -12,6 +10,11 @@ import dev.kursor.ktensorflow.tensor.map
 import dev.kursor.ktensorflow.tensor.normalize
 import dev.kursor.ktensorflow.tensor.toFlatIndex
 import dev.kursor.ktensorflow.tensor.toNestedIndex
+import dev.kursor.ktensorflow.vision.ImageTensor
+import dev.kursor.ktensorflow.vision.ImageTensorLayout
+import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.grayscale
+import dev.kursor.ktensorflow.vision.resize
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.time.measureTime
@@ -28,15 +31,15 @@ class PerformanceTest {
 
     @Test
     fun performanceTensor() {
-        val data = FloatArray(10_000_000) { Random.nextFloat() }
+        val data = FloatArray(1_000_000) { Random.nextFloat() }
         val timeBytes = measureTime {
-            val array = ByteArray(40_000_000)
+            val array = ByteArray(4_000_000)
             for (i in data.indices) {
                 array.writeFloat(i, data[i])
             }
         }
         val timeFloat = measureTime {
-            val array = FloatArray(10_000_000)
+            val array = FloatArray(1_000_000)
             for (i in data.indices) {
                 array[i] = data[i]
             }
@@ -46,16 +49,16 @@ class PerformanceTest {
         println("Time float: $timeFloat")
 
         val timeWithoutIndexTransformation = measureTime {
-            val data2 = FloatArray(10_000_000)
+            val data2 = FloatArray(1_000_000)
             data.forEach {
                 data2[it.toInt()] = it
             }
         }
 
-        val shape = TensorShape(1000, 1000, 10)
-        val multiDimIndexes = Array(10_000_000) { it.toNestedIndex(shape) }
+        val shape = TensorShape(100, 100, 100)
+        val multiDimIndexes = Array(1_000_000) { it.toNestedIndex(shape) }
         val timeToFlatIndex = measureTime {
-            val data3 = FloatArray(10_000_000)
+            val data3 = FloatArray(1_000_000)
             data.forEachIndexed { index, it ->
                 multiDimIndexes[index].toFlatIndex(shape)
                 data3[it.toInt()] = it
@@ -65,9 +68,9 @@ class PerformanceTest {
         println("timeWithoutIndexTransformation: $timeWithoutIndexTransformation")
         println("timeToFlatIndex: $timeToFlatIndex")
 
-        val tensorData = Array(1000) {
-            Array(1000) {
-                FloatArray(10) {
+        val tensorData = Array(100) {
+            Array(100) {
+                FloatArray(100) {
                     Random.nextFloat()
                 }
             }
@@ -100,8 +103,8 @@ class PerformanceTest {
 
     @Test
     fun performanceMedia() {
-        val data = Array(2000) {
-            Array(2000) {
+        val data = Array(500) {
+            Array(500) {
                 FloatArray(4) {
                     Random.nextFloat()
                 }

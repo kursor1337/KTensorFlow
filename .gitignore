@@ -8,3 +8,23 @@ captures
 .cxx
 local.properties
 xcuserdata
+
+# Kotlin build output
+.kotlin
+
+# CocoaPods: podspec генерируется kotlin.native.cocoapods, Pods - результат pod install
+*.podspec
+Pods/
+Podfile.lock
+
+# Xcode генерирует это внутри .xcodeproj
+**/*.xcodeproj/project.xcworkspace/
+
+# Модели и датасеты: mnist.csv - 105 МБ на копию, chess-ai.tflite - 27 МБ,
+# mobile_net_ssd_v2.tflite - 7 МБ. Чтобы тесты можно было гонять на CI и с другой
+# машины, стоит закоммитить только маленькую модель (408 КБ), раскомментировав:
+# !ktensorflow-test/src/**/mnist.tflite
+files/data/
+files/models/
+*.tflite
+mnist.csv

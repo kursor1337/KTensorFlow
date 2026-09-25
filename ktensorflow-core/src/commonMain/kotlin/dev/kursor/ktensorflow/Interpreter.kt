@@ -3,14 +3,45 @@ package dev.kursor.ktensorflow
 /**
  * Interpreter to run inference on a model.
  */
-interface Interpreter {
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
+interface Interpreter : AutoCloseable {
+
+    /**
+     * Input tensor count.
+     */
+    val inputTensorCount: Int
+
+    /**
+     * Output tensor count.
+     */
+    val outputTensorCount: Int
+
+    /**
+     * Returns model metadata.
+     * @see ModelMeta
+     */
+    fun getModelMeta(): ModelMeta
+
+    /**
+     * Resizes the input tensor at the given index.
+     * @param index Index of the input tensor.
+     * @param dims Array of dimensions for the new shape.
+     */
+    fun resizeInput(index: Int, dims: IntArray)
 
     /**
      * Runs model inference for multiple inputs and outputs.
      * Result of the inference will be written to the output [ByteArray]s, which should be
      * allocated beforehand and passed to this method.
+     *
+     * Every input of the model must be given, in model order, and each output buffer must hold at
+     * least the size of its tensor. Calls from several threads are safe: the interpreter
+     * serializes them, so they run one after another. Calls after [close] fail with
+     * [TensorFlowException].
+     *
      * @param inputs List of input [ByteArray]s.
-     * @param outputs Map of output [ByteArray]s, key is output index..
+     * @param outputs Map of output [ByteArray]s, key is output index.
+     * @throws TensorFlowException if the buffers do not match the model or inference fails.
      */
     fun run(
         inputs: List<ByteArray>,
@@ -20,7 +51,7 @@ interface Interpreter {
     /**
      * Release resources associated with the [Interpreter].
      */
-    fun close()
+    override fun close()
 }
 
 /**
@@ -35,6 +66,9 @@ expect fun Interpreter(
  * Runs model inference for single input and output.
  * Result of the inference will be written to the output [ByteArray], which should be
  * allocated beforehand and passed to this method.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
  * @param input Input [ByteArray].
  * @param output Output [ByteArray].
  */
@@ -42,3 +76,31 @@ fun Interpreter.run(
     input: ByteArray,
     output: ByteArray
 ) = run(listOf(input), mapOf(0 to output))
+
+/**
+ * Runs model inference for multiple inputs and outputs.
+ * Result of the inference will be written to the output [ByteArray]s, which should be
+ * allocated beforehand and passed to this method.
+ *
+ * Calls from several threads are safe: the interpreter serializes them.
+ *
+ * @param inputs List of input [ByteArray]s.
+ * @param outputs Map of output [ByteArray]s, key is output name.
+ */
+fun Interpreter.run(
+    inputs: List<ByteArray>,
+    outputs: Map<String, ByteArray>
+) {
+    val modelMeta = getModelMeta()
+    // Неизвестное имя раньше молча превращалось в индекс 0: результат писался не в тот
+    // буфер, а два неизвестных имени ещё и схлопывались в один ключ, теряя выход целиком
+    val outputMap = outputs.mapKeys { (name, _) ->
+        val output = modelMeta.outputsByName[name]
+        requireNotNull(output) {
+            "Model has no output named '$name'. Available outputs: " +
+                modelMeta.outputsByName.keys.joinToString()
+        }
+        output.index
+    }
+    run(inputs, outputMap)
+}

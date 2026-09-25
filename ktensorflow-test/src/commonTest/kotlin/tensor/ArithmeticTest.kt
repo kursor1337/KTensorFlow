@@ -2,12 +2,16 @@ package tensor
 
 import assertContentDeepEquals
 import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.dec
 import dev.kursor.ktensorflow.tensor.div
+import dev.kursor.ktensorflow.tensor.inc
 import dev.kursor.ktensorflow.tensor.minus
 import dev.kursor.ktensorflow.tensor.plus
 import dev.kursor.ktensorflow.tensor.rem
 import dev.kursor.ktensorflow.tensor.times
 import dev.kursor.ktensorflow.tensor.toArray
+import dev.kursor.ktensorflow.tensor.unaryMinus
+import dev.kursor.ktensorflow.tensor.unaryPlus
 import kotlin.test.Test
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -66,7 +70,7 @@ class ArithmeticTest {
         val first = Tensor<Float>(createDataFloat(1f))
         val second = Tensor<Float>(createDataFloat(2f))
         val expected = createDataFloat(3f)
-        val actual = (first + second).toArray<Array<Array<Array<FloatArray>>>>()
+        val actual = (first + second).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -75,7 +79,7 @@ class ArithmeticTest {
         val first = Tensor<Int>(createDataInt(1))
         val second = Tensor<Int>(createDataInt(2))
         val expected = createDataInt(3)
-        val actual = (first + second).toArray<Array<Array<Array<IntArray>>>>()
+        val actual = (first + second).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -84,7 +88,7 @@ class ArithmeticTest {
         val first = Tensor<UByte>(createDataUByte(1u))
         val second = Tensor<UByte>(createDataUByte(2u))
         val expected = createDataUByte(3u)
-        val actual = (first + second).toArray<Array<Array<Array<UByteArray>>>>()
+        val actual = (first + second).toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -93,7 +97,7 @@ class ArithmeticTest {
         val first = Tensor<Long>(createDataLong(1))
         val second = Tensor<Long>(createDataLong(2))
         val expected = createDataLong(3)
-        val actual = (first + second).toArray<Array<Array<Array<LongArray>>>>()
+        val actual = (first + second).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -102,7 +106,7 @@ class ArithmeticTest {
         val first = Tensor<Float>(createDataFloat(1f))
         val second = Tensor<Float>(createDataFloat(2f))
         val expected = createDataFloat(-1f)
-        val actual = (first - second).toArray<Array<Array<Array<FloatArray>>>>()
+        val actual = (first - second).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -111,7 +115,7 @@ class ArithmeticTest {
         val first = Tensor<Int>(createDataInt(1))
         val second = Tensor<Int>(createDataInt(2))
         val expected = createDataInt(-1)
-        val actual = (first - second).toArray<Array<Array<Array<IntArray>>>>()
+        val actual = (first - second).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -120,7 +124,7 @@ class ArithmeticTest {
         val first = Tensor<UByte>(createDataUByte(2u))
         val second = Tensor<UByte>(createDataUByte(1u))
         val expected = createDataUByte(1u)
-        val actual = (first - second).toArray<Array<Array<Array<UByteArray>>>>()
+        val actual = (first - second).toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -129,7 +133,7 @@ class ArithmeticTest {
         val first = Tensor<Long>(createDataLong(1))
         val second = Tensor<Long>(createDataLong(2))
         val expected = createDataLong(-1)
-        val actual = (first - second).toArray<Array<Array<Array<LongArray>>>>()
+        val actual = (first - second).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -138,7 +142,7 @@ class ArithmeticTest {
         val first = Tensor<Float>(createDataFloat(3f))
         val second = Tensor<Float>(createDataFloat(2f))
         val expected = createDataFloat(6f)
-        val actual = (first * second).toArray<Array<Array<Array<FloatArray>>>>()
+        val actual = (first * second).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -147,7 +151,7 @@ class ArithmeticTest {
         val first = Tensor<Int>(createDataInt(3))
         val second = Tensor<Int>(createDataInt(2))
         val expected = createDataInt(6)
-        val actual = (first * second).toArray<Array<Array<Array<IntArray>>>>()
+        val actual = (first * second).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -156,7 +160,7 @@ class ArithmeticTest {
         val first = Tensor<UByte>(createDataUByte(3u))
         val second = Tensor<UByte>(createDataUByte(2u))
         val expected = createDataUByte(6u)
-        val actual = (first * second).toArray<Array<Array<Array<UByteArray>>>>()
+        val actual = (first * second).toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -165,7 +169,7 @@ class ArithmeticTest {
         val first = Tensor<Long>(createDataLong(3))
         val second = Tensor<Long>(createDataLong(2))
         val expected = createDataLong(6)
-        val actual = (first * second).toArray<Array<Array<Array<LongArray>>>>()
+        val actual = (first * second).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -174,7 +178,7 @@ class ArithmeticTest {
         val first = Tensor<Float>(createDataFloat(6f))
         val second = Tensor<Float>(createDataFloat(3f))
         val expected = createDataFloat(2f)
-        val actual = (first / second).toArray<Array<Array<Array<FloatArray>>>>()
+        val actual = (first / second).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -183,7 +187,7 @@ class ArithmeticTest {
         val first = Tensor<Int>(createDataInt(6))
         val second = Tensor<Int>(createDataInt(2))
         val expected = createDataInt(3)
-        val actual = (first / second).toArray<Array<Array<Array<IntArray>>>>()
+        val actual = (first / second).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -192,7 +196,7 @@ class ArithmeticTest {
         val first = Tensor<UByte>(createDataUByte(4u))
         val second = Tensor<UByte>(createDataUByte(2u))
         val expected = createDataUByte(2u)
-        val actual = (first / second).toArray<Array<Array<Array<UByteArray>>>>()
+        val actual = (first / second).toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -201,7 +205,7 @@ class ArithmeticTest {
         val first = Tensor<Long>(createDataLong(4))
         val second = Tensor<Long>(createDataLong(2))
         val expected = createDataLong(2)
-        val actual = (first / second).toArray<Array<Array<Array<LongArray>>>>()
+        val actual = (first / second).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -210,7 +214,7 @@ class ArithmeticTest {
         val first = Tensor<Float>(createDataFloat(4f))
         val second = Tensor<Float>(createDataFloat(3f))
         val expected = createDataFloat(4f % 3)
-        val actual = (first % second).toArray<Array<Array<Array<FloatArray>>>>()
+        val actual = (first % second).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -219,7 +223,7 @@ class ArithmeticTest {
         val first = Tensor<Int>(createDataInt(4))
         val second = Tensor<Int>(createDataInt(3))
         val expected = createDataInt(1)
-        val actual = (first % second).toArray<Array<Array<Array<IntArray>>>>()
+        val actual = (first % second).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -228,7 +232,7 @@ class ArithmeticTest {
         val first = Tensor<UByte>(createDataUByte(4u))
         val second = Tensor<UByte>(createDataUByte(3u))
         val expected = createDataUByte(1u)
-        val actual = (first % second).toArray<Array<Array<Array<UByteArray>>>>()
+        val actual = (first % second).toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 
@@ -237,7 +241,149 @@ class ArithmeticTest {
         val first = Tensor<Long>(createDataLong(4))
         val second = Tensor<Long>(createDataLong(3))
         val expected = createDataLong(1)
-        val actual = (first % second).toArray<Array<Array<Array<LongArray>>>>()
+        val actual = (first % second).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    // --- унарные операторы ---
+    // Каждый объявлен отдельно для Float/Int/Long/UByte, поэтому перепутанный знак или
+    // слагаемое в одной из перегрузок не виден, пока не проверена каждая из них.
+
+    @Test
+    fun incFloatTest() {
+        val tensor = Tensor<Float>(createDataFloat(1f))
+        val expected = createDataFloat(2f)
+        val actual = tensor.inc().toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun incIntTest() {
+        val tensor = Tensor<Int>(createDataInt(1))
+        val expected = createDataInt(2)
+        val actual = tensor.inc().toPhysical().toArray<Array<Array<Array<IntArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun incLongTest() {
+        val tensor = Tensor<Long>(createDataLong(1))
+        val expected = createDataLong(2)
+        val actual = tensor.inc().toPhysical().toArray<Array<Array<Array<LongArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun incUByteTest() {
+        val tensor = Tensor<UByte>(createDataUByte(1u))
+        val expected = createDataUByte(2u)
+        val actual = tensor.inc().toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun incUByteWrapsAroundAtTheTopOfTheRange() {
+        // 255 + 1 не влезает в UByte и обязано дать 0, а не выбросить исключение
+        val tensor = Tensor<UByte>(createDataUByte(255u))
+        val expected = createDataUByte(0u)
+        val actual = tensor.inc().toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun decFloatTest() {
+        val tensor = Tensor<Float>(createDataFloat(2f))
+        val expected = createDataFloat(1f)
+        val actual = tensor.dec().toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun decIntTest() {
+        val tensor = Tensor<Int>(createDataInt(2))
+        val expected = createDataInt(1)
+        val actual = tensor.dec().toPhysical().toArray<Array<Array<Array<IntArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun decLongTest() {
+        val tensor = Tensor<Long>(createDataLong(2))
+        val expected = createDataLong(1)
+        val actual = tensor.dec().toPhysical().toArray<Array<Array<Array<LongArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun decUByteTest() {
+        val tensor = Tensor<UByte>(createDataUByte(2u))
+        val expected = createDataUByte(1u)
+        val actual = tensor.dec().toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun decUByteWrapsAroundAtTheBottomOfTheRange() {
+        // 0 - 1 не влезает в UByte и обязано дать 255
+        val tensor = Tensor<UByte>(createDataUByte(0u))
+        val expected = createDataUByte(255u)
+        val actual = tensor.dec().toPhysical().toArray<Array<Array<Array<UByteArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryMinusFloatTest() {
+        val tensor = Tensor<Float>(createDataFloat(3f))
+        val expected = createDataFloat(-3f)
+        val actual = (-tensor).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryMinusIntTest() {
+        val tensor = Tensor<Int>(createDataInt(3))
+        val expected = createDataInt(-3)
+        val actual = (-tensor).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryMinusLongTest() {
+        val tensor = Tensor<Long>(createDataLong(3))
+        val expected = createDataLong(-3)
+        val actual = (-tensor).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryMinusAppliedTwiceRestoresTheOriginal() {
+        val tensor = Tensor<Float>(createDataFloat(3f))
+        val expected = createDataFloat(3f)
+        val actual = (-(-tensor)).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryPlusFloatTest() {
+        val tensor = Tensor<Float>(createDataFloat(-3f))
+        val expected = createDataFloat(-3f)
+        val actual = (+tensor).toPhysical().toArray<Array<Array<Array<FloatArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryPlusIntTest() {
+        val tensor = Tensor<Int>(createDataInt(-3))
+        val expected = createDataInt(-3)
+        val actual = (+tensor).toPhysical().toArray<Array<Array<Array<IntArray>>>>()
+        assertContentDeepEquals(expected, actual)
+    }
+
+    @Test
+    fun unaryPlusLongTest() {
+        val tensor = Tensor<Long>(createDataLong(-3))
+        val expected = createDataLong(-3)
+        val actual = (+tensor).toPhysical().toArray<Array<Array<Array<LongArray>>>>()
         assertContentDeepEquals(expected, actual)
     }
 }

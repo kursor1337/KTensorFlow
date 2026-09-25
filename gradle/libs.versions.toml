@@ -2,9 +2,12 @@
 agp = "9.2.1"
 core = "1.6.1"
 junitVersion = "1.2.1"
-kotlin = "2.4.0"
+kotlin = "2.4.20"
 
 tensorflow-android = "1.4.2"
+# Поды TensorFlowLiteObjC для iOS: из этой версии собирается cinterop в ktensorflow-core, её же
+# линкует плагин ktensorflow-link у пользователя и тестовый модуль. Разойтись им нельзя
+tensorflow-ios = "2.17.0"
 qnn = "2.48.0"
 
 moko-resources = "0.26.4"
@@ -45,7 +48,6 @@ essenty = "2.5.0"
 ktensorflow = "1.2"
 
 # API Compatibility
-binary-compatibility = "0.18.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -90,6 +92,7 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 decompose-core = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
@@ -108,6 +111,7 @@ cocoapods-gradle-plugin = { module = "org.jetbrains.kotlin.native.cocoapods:org.
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 publishing-gradle-plugin = { module = "com.vanniktech.maven.publish:com.vanniktech.maven.publish.gradle.plugin", version.ref = "publishing" }
+
 
 # KTensorFlow
 ktensorflow-core = { module = "dev.kursor.ktensorflow:ktensorflow-core", version.ref="ktensorflow" }
@@ -130,9 +134,9 @@ ktensorflow-link = { id = "dev.kursor.ktensorflow.link", version.ref = "ktensorf
 
 publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref= "binary-compatibility" }
 
 # Convention plugins
 convention-detekt = { id = "convention.detekt" }
 convention-publishing = { id = "convention.publishing" }
 convention-verify = { id = "convention.verify" }
+convention-binary-compatibility = { id = "convention.binaryCompatibility" }

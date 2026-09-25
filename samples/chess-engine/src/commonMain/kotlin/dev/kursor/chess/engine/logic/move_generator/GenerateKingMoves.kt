@@ -17,8 +17,8 @@ fun generateKingMoves(board: Board, square: Square, color: Color): List<Move> {
     val moves = mutableListOf<Move>()
     val offsets = listOf(
         -1 to -1, 0 to -1, 1 to -1,
-        -1 to 0,           1 to 0,
-        -1 to 1,  0 to 1,  1 to 1
+        -1 to 0, 1 to 0,
+        -1 to 1, 0 to 1, 1 to 1
     )
 
     for ((dx, dy) in offsets) {

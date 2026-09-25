@@ -15,9 +15,7 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.argmax
 import dev.kursor.ktensorflow.tensor.normalize
-import dev.kursor.ktensorflow.tensor.toArray
 import dev.kursor.ktensorflow.tensor.toFloatTensor
-import floatify
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -86,7 +84,6 @@ class PipelineTest {
         data.forEachIndexed { index, pair ->
             val (label, image) = pair
             val result = pipelineRun(image)
-            println("test $index: prediction = $result, label = $label")
             if (result == label.toString()) {
                 accuratePredictions++
             }
@@ -121,7 +118,6 @@ fun <T> Stage<T, Tensor<UByte>>.floatify() = this.then {
 fun <T> Stage<T, Tensor<Float>>.normalize() = this.then {
     it.normalize()
 }
-
 
 @OptIn(ExperimentalKTensorFlowApi::class)
 fun <T> Stage<T, Tensor<Float>>.argmax() = this.then {

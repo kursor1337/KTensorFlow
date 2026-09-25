@@ -2,101 +2,89 @@
 [![Maven Central](https://img.shields.io/maven-central/v/dev.kursor.ktensorflow/ktensorflow-core)](https://repo1.maven.org/maven2/dev/kursor/ktensorflow/ktensorflow-core/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-# KTensorFlow
+# KTensorFlow 2.0
 KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow Lite) neural network models from common code. It abstracts platform-specific implementation details, making it easier to load models and run inference across Android and iOS.
+
+**Version 2.0** brings massive architectural improvements, including a dedicated **Computer Vision** module, **Coroutines & Flow** support with built-in Backpressure, and **Zero-Copy Tensor Views**.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
   - [Model loading](#load-the-model)
-    - [Moko resources extensions](#moko-resources-extensions)
     - [Compose resources extensions](#compose-resources-extensions)
-  - [Inference](#run-inference)
-    - [Data transformation with Tensors](#data-transformation-with-tensors)
+    - [Moko resources extensions](#moko-resources-extensions)
+  - [Inference & Data Transformation](#inference--data-transformation)
+    - [Zero-Copy Tensor Views](#zero-copy-tensor-views)
+  - [Computer Vision (New)](#computer-vision-vision-module)
+  - [Coroutines & Video Streams (New)](#coroutines--video-streams-coroutines-module)
+  - [Pipelines (Preprocessing & Postprocessing)](#pipelines)
   - [Hardware acceleration](#hardware-acceleration)
   - [Providing platform-specific options](#providing-platform-specific-options)
   - [Writing custom delegates](#writing-custom-delegates)
-  - [Preprocessing and postprocessing of the data](#preprocessing-and-postprocessing-of-the-data)
 
 ## Installation
 First add dependencies:
 
 ```kotlin
 dependencies {
-  // core module, contains Interpreter and other core classes and functions
-  implementation("dev.kursor.ktensorflow:ktensorflow-core:1.2")
+  val ktfVersion = "2.0"
 
-  // tensors module, adds support for Tensors and allows easy data transformation
-  // highly recommended if you don't want to convert your model inputs and outputs to and from ByteArray manually
-  implementation("dev.kursor.ktensorflow:ktensorflow-tensor:1.2")
+  // Core module, contains Interpreter and model loading functions
+  implementation("dev.kursor.ktensorflow:ktensorflow-core:$ktfVersion")
 
-  // gpu module, contains delegate to run inference on the gpu
-  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:1.2")
+  // Tensors module: allows easy data transformation and shape manipulation
+  implementation("dev.kursor.ktensorflow:ktensorflow-tensor:$ktfVersion")
 
-  // npu module, contains delegate to run inference on the npu
-  implementation("dev.kursor.ktensorflow:ktensorflow-npu:1.2")
+  // Vision module (NEW): Cross-platform Image, Bounding Boxes, NMS, and Resizing
+  implementation("dev.kursor.ktensorflow:ktensorflow-vision:$ktfVersion")
 
-  // pipeline module, contains utils to create pipelines for preprocessing and postprocessing of the data
-  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:1.2")
+  // Coroutines module (NEW): Flow processing, async inference, and Frame Dropping
+  implementation("dev.kursor.ktensorflow:ktensorflow-coroutines:$ktfVersion")
 
-  // moko module, contains extensions to load models from moko-resources (ModelDesc.FileResource and ModelDesc.AssetResource)
-  implementation("dev.kursor.ktensorflow:ktensorflow-moko:1.2")
+  // Pipeline module: utils to create declarative ML pipelines
+  implementation("dev.kursor.ktensorflow:ktensorflow-pipeline:$ktfVersion")
 
-  // compose module, contains extension to load models from compose-resources (ModelDesc.ComposeUri)
-  implementation("dev.kursor.ktensorflow:ktensorflow-compose:1.2")
+  // GPU & NPU delegates
+  implementation("dev.kursor.ktensorflow:ktensorflow-gpu:$ktfVersion")
+  implementation("dev.kursor.ktensorflow:ktensorflow-npu:$ktfVersion")
+
+  // Compose Multiplatform resources support
+  implementation("dev.kursor.ktensorflow:ktensorflow-compose:$ktfVersion")
+  
+  // Moko resources support (optional)
+  implementation("dev.kursor.ktensorflow:ktensorflow-moko:$ktfVersion")
 }
 ```
 
 To link TensorFlow Lite binaries to iOS you need to add Linking plugin
 ```kotlin
 plugins {
-  id("dev.kursor.ktensorflow.link") version "1.2"
+  id("dev.kursor.ktensorflow.link") version "2.0"
 }
 ```
-**Currently, this library only supports projects, that are being linked to iOS app via CocoaPods**
+**Currently, this library only supports projects that are being linked to iOS app via CocoaPods**
 
 ## Usage
 ### Load the model
 First, you need to create `ModelDesc`, that would provide model to the library.
-By default `ModelDesc` needs to be created in platform-specific code, since Android and iOS have different ways of loading the model.
-But there are extensions for Moko and Compose Resources in `ktensorflow-moko` and `ktensorflow-compose` modules.
-
-Android examples with Compose Multiplatform Resources:
-* ModelDesc.File
-```kotlin
-val bytes = Res.readBytes("files/model.tflite")
-val tmpFile = File.createTempFile("prefix", "suffix", context.cacheDir)
-tmpFile.writeBytes(bytes)
-val modelDesc = ModelDesc.File(tmpFile)
-```
-
-* ModelDesc.ByteBuffer
-```kotlin
-val bytes = Res.readBytes("files/model.tflite")
-val byteBuffer = ByteBuffer.wrap(bytes).apply { order(ByteOrder.nativeOrder()) }
-val modelDesc = ModelDesc.ByteBuffer(byteBuffer)
-```
-
-iOS example with Compose Multiplatform Resources:
-* ModelDesc.PathInBundle
-```kotlin
-val modelDesc = ModelDesc.PathInBundle(Res.getUri("files/model.tflite").removePrefix("file://"))
-```
-
-#### Moko resources extensions
-
-Module `ktensorflow-moko` contains useful extension functions to create a `ModelDesc` from [moko-resources](https://github.com/icerockdev/moko-resources).
-
-It adds 2 useful functions:
-* `ModelDesc.FileResource(resource: FileResource)` to load a model from moko's `FileResource`
-* `ModelDesc.AssetResource(resource: AssetResource)` to load a model from moko's `AssetResource`
+There are extensions for Compose and Moko Resources in `ktensorflow-compose` and `ktensorflow-moko` modules.
 
 #### Compose resources extensions
 Module `ktensorflow-compose` contains useful extension function to create `ModelDesc` from [compose-resources](https://github.com/JetBrains/compose-multiplatform)
 * `ModelDesc.ComposeUri(uri: String)` to load model with `Res.getUri(<filePath>)`
 
-### Run inference
+```kotlin
+// Common code
+val modelDesc = ModelDesc.ComposeUri(Res.getUri("files/model.tflite"))
+```
+
+#### Moko resources extensions
+Module `ktensorflow-moko` contains useful extension functions to create a `ModelDesc` from [moko-resources](https://github.com/icerockdev/moko-resources).
+* `ModelDesc.FileResource(resource: FileResource)` to load a model from moko's `FileResource`
+* `ModelDesc.AssetResource(resource: AssetResource)` to load a model from moko's `AssetResource`
+
+### Inference & Data Transformation
 To run the inference, create `Interpreter`:
 ```kotlin
 val interpreter = Interpreter(
@@ -105,63 +93,169 @@ val interpreter = Interpreter(
 )
 ```
 
-Then run the model:
+The `Tensor` class provides a multidimensional array representation that supports arithmetic operations, `forEach`, `map`, `min`, `max`, `argmin`, `argmax`, etc.
+
 ```kotlin
-val inputArray = Array(28) {
-  FloatArray(28) {
-    Random.nextFloat()
-  }
-}
-val input = Tensor<Float>(inputArray)
-val output = Tensor<Float>(
-  shape = TensorShape(10),
-  dataType = TensorDataType.Float32
-)
-interpreter.run(input, output)
+val input = Tensor<Float>(Array(28) { FloatArray(28) { Random.nextFloat() } })
+val output = Tensor<Float>(shape = TensorShape(10), dataType = TensorDataType.Float32)
+
+interpreter.run(input, output) // Single input/output syntax sugar
 val result = output.argmax()[0]
 ```
 
-**Note**
-By default, `Interpreter.run` accepts only `ByteArray` for inputs and output. `Tensor` class is provided as separate module, but is highly recommended to use for easier data manipulation.
+#### Zero-Copy Tensor Views
+In version 2.0, shape manipulation functions do **not** copy memory. `reshape()`, `flatten()`, `transpose()`, `permuted()`, `squeeze()`, and `slice()` return a `TensorView`, which mathematically maps coordinates to the original memory block (`PhysicalTensor`) with zero overhead.
 
-#### Data transformation with Tensors
-Tensors support arithmetic, and transformation operations, as well as `forEach`, `sum`, `min`, `max`, `argmin`, `argmax` functions.
-You can create Tensors from multidimensional primitive arrays with:
-- `Tensor<T>(any: Any)` - where `T` is `Float`, `Int`, `UByte`, `Long` and `any: Any` is N-dimensional primitive array of these types, for example: `Array<Array<FloatArray>>`, etc.
-
-And you can transform Tensors to primitive arrays with:
-- `Tensor<T>.toArray<R>()` - returns primitive multidimensional array of type `R` with data from the Tensor
-
-Example:
 ```kotlin
-val tensor1: Tensor<Float> = Tensor(Array(28) { FloatArray(28) { Random.nextFloat() } })
-val tensor2: Tensor<Float> = Tensor(Array(28) { FloatArray(28) { Random.nextFloat() } })
-val tensor3: Tensor<Float> = tensor1 + tensor2 
-val array = tensor3.toArray<Array<FloatArray>>()
-val argmax: IntArray = tensor3.argmax()
+val tensor: Tensor<Float> = Tensor(Array(28) { FloatArray(28) { Random.nextFloat() } })
+
+// Zero-copy transformations!
+val transposedView = tensor.transpose()
+val slicedView = tensor.slice(0..13, 0..27)
+
+// Extract data
+val argmax: IntArray = tensor.argmax()
+val array = tensor.toPhysical().toArray<Array<FloatArray>>()
 ```
 
-Tensors support these types which translate to corresponding Kotlin types:
-- `TensorDataType.Float32` -> `Float`
-- `TensorDataType.Int32` -> `Int`
-- `TensorDataType.UInt8` -> `UByte`
-- `TensorDataType.Int64` -> `Long`
+### Computer Vision (Vision Module)
+The new `ktensorflow-vision` module provides cross-platform Computer Vision primitives, hiding the differences between Android's `Bitmap` and iOS's `CGImage`/`CVPixelBuffer`.
 
-
-### Hardware acceleration
-Hardware acceleration is provided by delegates.
-There are built-in Delegates to run inference on GPU and NPU in modules `ktensorflow-gpu` and `ktensorflow-npu`
-
-Delegates can be provided to interpreter using `InterpreterOptions`
+#### Obtaining an Image
 ```kotlin
-val options = InterpreterOptions(
-  numThreads = 4,
-  useXNNPack = true,
-  delegates = listOf(GpuDelegate())
+// Android: wrap a Bitmap (ARGB_8888)
+val image: Image = AndroidImage(bitmap, PixelFormat.ARGB)
+
+// iOS: copy a camera frame or a CoreGraphics image; the caller keeps ownership of the source
+val frame: Image = Image(CMSampleBufferGetImageBuffer(sampleBuffer)!!)
+val picture: Image = Image(uiImage.CGImage!!)
+```
+Camera frames arrive in the sensor orientation on both platforms, so `rotate` them to make them upright.
+
+#### Images & Tensorization
+```kotlin
+val originalImage: Image = // ... obtain from Camera or File
+
+// Resize maintaining aspect ratio and adding padding (Letterbox)
+val paddedImage = originalImage.resizeWithPad(320, 320)
+
+// Convert Image directly to Tensor (normalized to [-1.0, 1.0])
+val tensor = paddedImage.tensorizeFloat(
+    layout = ImageTensorLayout.NHWC,
+    normalization = Normalization.MinusOneToOne
 )
 ```
 
-Delegates are provided to the `Interpreter` as a list of possible variants, and only the first available will be used.
+#### Bounding Boxes & NMS
+KTensorFlow makes it extremely easy to map Neural Network coordinates back to your UI:
+
+```kotlin
+val detections = mutableListOf<DetectedObject>()
+
+for (i in 0 until count) {
+    // 1. Parse Normalized, YOLO or COCO formats
+    // 2. PadInfo automatically removes letterbox padding and scales coordinates back to the original Camera Frame!
+    val rect = Rect.fromNormalized(
+        ymin, xmin, ymax, xmax,
+        padInfo = paddedImage.info 
+    )
+    detections.add(DetectedObject(label, score, rect))
+}
+
+// Built-in Non-Maximum Suppression (NMS) to filter overlapping boxes!
+val finalDetections = detections.nms(
+    iouThreshold = 0.5f,
+    scoreThreshold = 0.3f,
+    scoreSelector = { it.confidence },
+    boxSelector = { it.rect },
+    classSelector = { it.label } // Multi-class NMS
+)
+```
+To draw the `Rect` on the screen in Compose, you can scale it easily using `rect.scaleForContainer(originalWidth, originalHeight, containerWidth, containerHeight, isCrop = true)`.
+
+### Coroutines & Video Streams (Coroutines Module)
+Running inference on the UI thread causes ANRs. The `ktensorflow-coroutines` module provides safety and flow stream operators.
+
+#### Async Inference
+```kotlin
+// Runs off the calling thread; concurrent calls queue instead of blocking threads
+val result = pipeline.runSuspend(image) 
+```
+
+#### Real-time Video Stream Processing (Backpressure / Frame Dropping)
+If your camera produces 60 FPS, but your ML model can only process 15 FPS, your app will run out of memory (OOM) because unprocessed frames accumulate.
+
+Use **`processFlowDropping`** to automatically discard camera frames when the ML Pipeline is busy. It takes full ownership of the `AutoCloseable` memory, preventing memory leaks: every frame it receives is closed exactly once - a dropped frame right away, a processed frame as soon as the pipeline has finished with it (even if it failed or the collection was cancelled).
+
+> **Note:** because the flow closes each frame after the pipeline runs, the pipeline must not keep a reference to its input frame. Derive everything the output needs (tensors, detections, coordinates) inside the pipeline.
+
+```kotlin
+// Your camera frames flow
+val frameFlow: Flow<Image> = // ...
+
+val detectionResultsFlow = pipeline
+    // Automatic Frame Dropping! Zero latency, zero OOMs.
+    .processFlowDropping(
+        // Use mapAndClose to avoid leaking the original frame after resizing
+        inputFlow = frameFlow.mapAndClose { it.resizeWithPad(300, 300) }
+    )
+    .map { tupleOutput ->
+        mapToDomainModel(tupleOutput)
+    }
+```
+
+### Pipelines
+You can create declarative pipelines to encapsulate pre/post-processing. KTensorFlow 2.0 automatically extracts SignatureDefs from your `.tflite` model, so you can use human-readable signature names instead of hardcoded output indices!
+
+```kotlin
+val detectionPipeline = Pipeline
+  .input(Stage<PaddedImage>().then { it.tensorizeFloat() })
+  .inference(interpreter)
+  .output(
+    name = "detection_boxes", // Fetches correct index from ModelMeta dynamically!
+    dataType = TensorDataType.Float32,
+    shape = TensorShape(1, 100, 4),
+    postprocessing = Stage<Tensor<Float>>().then { toBoundingBoxes(it) }
+  )
+  .output(
+    name = "detection_classes",
+    dataType = TensorDataType.Float32,
+    shape = TensorShape(1, 100),
+    postprocessing = Stage<Tensor<Float>>().then { toClassIds(it) }
+  )
+  .build()
+
+// Run pipeline
+// Билдер строит Pipeline<Tuple.One<PaddedImage>, ...>, поэтому вход оборачивается в tuple()
+val (boxes, classes) = detectionPipeline.run(tuple(paddedImage))
+```
+
+### Hardware acceleration
+Hardware acceleration is provided by delegates.
+There are built-in Delegates to run inference on GPU and NPU in modules `ktensorflow-gpu` and `ktensorflow-npu`.
+
+Delegates can be provided to interpreter using `InterpreterOptions`
+```kotlin
+val gpu = GpuDelegate()
+val npu = NpuDelegate()
+val interpreter = Interpreter(
+  modelDesc,
+  InterpreterOptions(
+    numThreads = 4,
+    useXNNPACK = true,
+    delegates = listOf(gpu, npu)
+  )
+)
+
+// ...
+
+// Delegates hold native resources: close them after every interpreter that uses them
+interpreter.close()
+gpu.close()
+npu.close()
+```
+
+Every available delegate is applied, in list order: each one takes the operations it supports from what the previous ones left, and the rest runs on the CPU. Unavailable delegates are skipped.
 
 ### Providing platform-specific options
 If you need to provide platform specific option to the `Interpreter` or `GpuDelegate` you can use platform-specific builder functions:
@@ -191,69 +285,17 @@ val gpuDelegateOptions = GpuDelegateOptions { // this: TFLMetalDelegateOptions
   setWaitType(TFLMetalDelegateThreadWaitType.TFLMetalDelegateThreadWaitTypeActive)
 }
 
-val npuDelegateOptions = NpuDelefateOptions { // this: TFLCoreMLDelegateOptions
+val npuDelegateOptions = NpuDelegateOptions { // this: TFLCoreMLDelegateOptions
   setMaxDelegatedPartitions(maxDelegatedPartitions.toULong())
 }
 ```
 
 ### Writing custom delegates
-If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface
-
-### Preprocessing and postprocessing of the data
-You can create pipelines to make preprocessing and postprocessing of the data easier
-
-You can create 2 types of pipelines: single input/output and multiple input/output
-
-Single i/o pipeline creation
-```kotlin
-val pipeline = Pipeline.linear<Array<UByteArray>>()
-  .floatify()
-  .normalize()
-  .tensorize()
-  .inference(
-    interpreter = interpreter,
-    index = 0,
-    dataType = TensorDataType.Float32,
-    shape = TensorShape(10)
-  )
-  .argmax()
-  .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
-```
-
-Multiple i/o pipeline creation
-```kotlin
-val pipeline = Pipeline
-  .input(
-    preprocessing = Stage<Array<UByteArray>>()
-      .floatify()
-      .normalize()
-      .tensorize()
-  )
-  .inference(interpreter)
-  .output(
-    index = 0,
-    dataType = TensorDataType.Float32,
-    shape = TensorShape(10),
-    preprocessing = Stage<Tensor>()
-      .argmax()
-      .classify(listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
-  )
-  .build()
-```
-
-Then you can call
-```kotlin
-val output = pipeline.run(input)
-```
-
-## Library development plan
-* Add utils for media and text processing
-
-If you have any other suggestions, feel free to create an issue, I'd love to hear your thoughts!
+If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface.
 
 ## License
 ```
-Copyright 2025 Sergey Kurochkin
+Copyright 2026 Sergey Kurochkin
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

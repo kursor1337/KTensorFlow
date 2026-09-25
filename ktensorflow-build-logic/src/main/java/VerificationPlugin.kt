@@ -10,7 +10,9 @@ private val modulesNeededToBePublished = setOf(
     "ktensorflow-moko",
     "ktensorflow-compose",
     "ktensorflow-pipeline",
-    "ktensorflow-tensor"
+    "ktensorflow-tensor",
+    "ktensorflow-vision",
+    "ktensorflow-coroutines"
 )
 
 private val modulesToApiCheck =
@@ -48,24 +50,33 @@ class VerificationPlugin : Plugin<Project> {
             }
         }
 
-        project.tasks.forEach {
-            println(it.name)
-        }
         gradle.afterProject {
             val runAllTestsPath = ":ktensorflow-test:runAllTests"
             val runAllTests = rootProject.tasks.findByPath(runAllTestsPath)
                 ?: throw GradleException("Task '$runAllTestsPath' not found — make sure ktensorflow-test defines it")
 
+            // ktensorflow-link - Gradle-плагин, он не входит в KMP-набор тестов,
+            // поэтому его собственные тесты подключаются к публикации отдельно
+            val linkPluginTestsPath = ":ktensorflow-link:test"
+            val linkPluginTests = rootProject.tasks.findByPath(linkPluginTestsPath)
+                ?: throw GradleException("Task '$linkPluginTestsPath' not found — make sure ktensorflow-link is covered by tests")
+
             val apiCheckTasks = modulesToApiCheck
-                .map { ":$it:apiCheck" }
-                .map { rootProject.tasks.findByPath(it) }
+                .map { ":$it:checkKotlinAbi" }
+                .map { path ->
+                    rootProject.tasks.findByPath(path)
+                        ?: throw GradleException(
+                            "Task '$path' not found — make sure the module applies convention.binary.compatibility"
+                        )
+                }
 
             rootProject.allprojects.forEach { sub ->
                 sub.tasks.matching { it.name == "publishToMavenCentral" }.configureEach {
                     dependsOn(runAllTests)
+                    dependsOn(linkPluginTests)
                     dependsOn(verifyModulesTask)
-                    apiCheckTasks.forEach { dependsOn(it!!) }
-                    println("✔ Linked $runAllTestsPath and :verifyModules to ${sub.path}:$name")
+                    apiCheckTasks.forEach { dependsOn(it) }
+                    println("✔ Linked $runAllTestsPath, $linkPluginTestsPath and :verifyModules to ${sub.path}:$name")
                 }
             }
         }

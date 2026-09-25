@@ -7,47 +7,30 @@ import dev.kursor.ktensorflow.tensor.TensorShape
 internal fun <T : Any> ByteArray.toShapedAndTypedArray(
     dataType: TensorDataType<T>,
     shape: TensorShape
-): Any = when (dataType) {
-    TensorDataType.Float32 -> reshapeArray(
-        readFloatArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.Int32 -> reshapeArray(
-        readIntArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.UInt8 -> reshapeArray(
-        readUByteArray(this),
-        shape.dimensions
-    )
-
-    TensorDataType.Int64 -> reshapeArray(
-        readLongArray(this),
-        shape.dimensions
-    )
-}
-
-private fun readIntArray(bytes: ByteArray): IntArray {
-    val count = bytes.size / 4
-    val result = IntArray(count)
-    for (i in 0 until count) {
-        val offset = i * 4
-        result[i] =
-            (bytes[offset + 0].toInt() and 0xFF) or
-                    ((bytes[offset + 1].toInt() and 0xFF) shl 8) or
-                    ((bytes[offset + 2].toInt() and 0xFF) shl 16) or
-                    ((bytes[offset + 3].toInt() and 0xFF) shl 24)
+): Any {
+    // Скаляр (ранг 0) отдаётся массивом из одного элемента. Раньше он падал на обеих
+    // платформах, причём с разными исключениями
+    val dimensions = if (shape.rank == 0) intArrayOf(1) else shape.dimensions
+    return when (dataType) {
+        TensorDataType.Float32 -> reshapeArray(readFloatArray(this), dimensions)
+        TensorDataType.Int32 -> reshapeArray(readIntArray(this), dimensions)
+        TensorDataType.UInt8 -> reshapeArray(readUByteArray(this), dimensions)
+        TensorDataType.Int64 -> reshapeArray(readLongArray(this), dimensions)
     }
-    return result
 }
 
-private fun readFloatArray(bytes: ByteArray): FloatArray {
-    val count = bytes.size / 4
-    val ints = readIntArray(bytes)
-    return FloatArray(count) { i -> Float.fromBits(ints[i]) }
-}
+private fun ByteArray.intAt(offset: Int): Int =
+    (this[offset].toInt() and 0xFF) or
+        ((this[offset + 1].toInt() and 0xFF) shl 8) or
+        ((this[offset + 2].toInt() and 0xFF) shl 16) or
+        ((this[offset + 3].toInt() and 0xFF) shl 24)
+
+private fun readIntArray(bytes: ByteArray): IntArray =
+    IntArray(bytes.size / 4) { i -> bytes.intAt(i * 4) }
+
+// Сразу во FloatArray: раньше значения сначала читались в промежуточный IntArray того же размера
+private fun readFloatArray(bytes: ByteArray): FloatArray =
+    FloatArray(bytes.size / 4) { i -> Float.fromBits(bytes.intAt(i * 4)) }
 
 @OptIn(ExperimentalUnsignedTypes::class)
 private fun readUByteArray(bytes: ByteArray): UByteArray =

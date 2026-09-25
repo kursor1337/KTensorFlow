@@ -15,6 +15,12 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     val iosConfigure: KotlinNativeTarget.() -> Unit = {
@@ -59,17 +65,17 @@ kotlin {
 
         pod("TensorFlowLiteObjC") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
         pod("TensorFlowLiteObjC/Metal") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
         pod("TensorFlowLiteObjC/CoreML") {
             moduleName = "TFLTensorFlowLite"
-            version = "2.17.0"
+            version = libs.versions.tensorflow.ios.get()
             linkOnly = true
         }
     }
@@ -82,25 +88,32 @@ kotlin {
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowPipeline)
-            implementation(projects.ktensorflowMedia)
+            implementation(projects.ktensorflowVision)
+            implementation(projects.ktensorflowCoroutines)
+            implementation(projects.ktensorflowCompose)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.coroutines.test)
         }
 
-        androidInstrumentedTest.dependencies {
-            implementation(libs.junit)
-            implementation(libs.androidx.test.core)
-            implementation(libs.androidx.test.junit)
-            implementation(libs.androidx.test.runner)
-            implementation(libs.kotlin.test)
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.kotlin.test)
+            }
         }
     }
 }
 
 val copyIosSimulatorArm64TestResources = tasks.register<Copy>("copyIosSimulatorArm64TestResources") {
     from("src/iosTest/resources")
+    // moko FileResource ищет ресурс в подпапке files/ бандла, поэтому модель кладётся ещё и туда
+    from("src/iosTest/resources/mnist.tflite") { into("files") }
     into("build/bin/iosSimulatorArm64/debugTest/Contents/Resources")
 }
 

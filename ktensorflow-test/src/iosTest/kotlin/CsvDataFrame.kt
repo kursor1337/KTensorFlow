@@ -14,7 +14,7 @@ class CsvDataFrame(
             .trim()
             .lines()
             .drop(1)
-            .map { transformation(CsvDataRow( it, columns)) }
+            .map { transformation(CsvDataRow(it, columns)) }
             .toList()
     }
 }

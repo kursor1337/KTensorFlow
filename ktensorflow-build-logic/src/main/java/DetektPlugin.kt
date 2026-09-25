@@ -1,5 +1,4 @@
 import io.gitlab.arturbosch.detekt.Detekt
-import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -21,12 +20,15 @@ class DetektPlugin : Plugin<Project> {
             disableDefaultRuleSets = true
         }
 
-        DetektPlugin
         dependencies {
             add("detektPlugins", libs.detekt.formatting)
         }
 
         tasks.withType<Detekt>().configureEach {
+            // ./gradlew detekt -PdetektAutoCorrect - чинит форматирование на месте,
+            // чтобы косметика не копилась и гейт не приходилось держать красным
+            autoCorrect = providers.gradleProperty("detektAutoCorrect").isPresent
+
             exclude(
                 "**/build/**",
                 "**/resources/**"

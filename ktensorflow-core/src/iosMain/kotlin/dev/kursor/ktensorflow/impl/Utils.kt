@@ -18,10 +18,7 @@ import platform.posix.memcpy
 
 @OptIn(BetaInteropApi::class)
 internal fun <T : Any> checkError(block: (CPointer<ObjCObjectVar<NSError?>>) -> T?): T {
-    val (result, error) = memScoped {
-        val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-        block(errorPtr.ptr) to errorPtr.value
-    }
+    val (result, error) = callWithError(block)
 
     if (error != null) {
         throw TensorFlowException(error.description, error.code.toInt(), null)
@@ -34,14 +31,34 @@ internal fun <T : Any> checkError(block: (CPointer<ObjCObjectVar<NSError?>>) -> 
 
 @OptIn(BetaInteropApi::class)
 internal fun <T : Any> checkErrorNullable(block: (CPointer<ObjCObjectVar<NSError?>>) -> T?): T? {
-    val (result, error) = memScoped {
-        val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-        block(errorPtr.ptr) to errorPtr.value
-    }
+    val (result, error) = callWithError(block)
+
     if (error != null) {
         throw TensorFlowException(error.description)
     }
     return result
+}
+
+/**
+ * Вызывает [block] с указателем на NSError и возвращает результат вместе с ошибкой.
+ *
+ * Часть Obj-C инициализаторов объявлена в биндинге как возвращающая non-null, но при отказе
+ * они отдают nil, и Kotlin/Native падает с NullPointerException ещё до того, как мы успеем
+ * посмотреть на NSError. Наружу такой отказ обязан приходить как [TensorFlowException],
+ * поэтому NPE здесь превращается в отсутствующий результат: ниже его разберёт NSError,
+ * а если ошибки нет - общее сообщение про null.
+ */
+@OptIn(BetaInteropApi::class)
+private fun <T : Any> callWithError(
+    block: (CPointer<ObjCObjectVar<NSError?>>) -> T?
+): Pair<T?, NSError?> = memScoped {
+    val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+    val result = try {
+        block(errorPtr.ptr)
+    } catch (_: NullPointerException) {
+        null
+    }
+    result to errorPtr.value
 }
 
 @OptIn(BetaInteropApi::class)
