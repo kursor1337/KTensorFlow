@@ -2,8 +2,6 @@ package dev.kursor.ktensorflow.pipeline.builder
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
-import dev.kursor.ktensorflow.tensor.Tensor
-import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.CombinedStage
@@ -11,7 +9,9 @@ import dev.kursor.ktensorflow.pipeline.stage.InferenceOutputData
 import dev.kursor.ktensorflow.pipeline.stage.MultiInferenceStage
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.then
+import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import kotlin.jvm.JvmName
 
 /**
@@ -29,6 +29,13 @@ class OutputPipelineBuilder<Input : Tuple, OutputInput : Tuple, Output : Tuple> 
      * Builds the pipeline.
      */
     fun build(): Pipeline<Input, Output> {
+        // Выход, объявленный дважды, схлопывался в один ключ карты выходов, и кортеж оказывался
+        // короче, чем список стадий постобработки
+        val indices = outputData.map { it.index }
+        require(indices.toSet().size == indices.size) {
+            "Each model output can be declared only once, got output indices $indices"
+        }
+
         val inferenceStage = MultiInferenceStage(
             interpreter,
             outputData.map {
@@ -46,7 +53,10 @@ class OutputPipelineBuilder<Input : Tuple, OutputInput : Tuple, Output : Tuple> 
 
         return inputStage
             .then(inferenceStage)
-            .then { it.toTuple<OutputInput>() }
+            // Кортеж собирается в порядке объявления выходов - том же, в котором стоят стадии
+            // постобработки. Раньше он сортировался по индексу тензора, и при объявлении не по
+            // возрастанию индексов каждая стадия молча получала чужой тензор
+            .then { tensors -> indices.map { tensors.getValue(it) }.toTuple<OutputInput>() }
             .then(outputStage)
             .let(::Pipeline)
     }
@@ -301,8 +311,8 @@ internal data class PipelineOutputData<Output, T : Any>(
 
 @Suppress("UNCHECKED_CAST")
 @ExperimentalKTensorFlowApi
-internal fun <T : Tuple> Map<Int, Tensor<*>>.toTuple(): T {
-    val list = this.toList().sortedBy { it.first }.map { it.second }
+internal fun <T : Tuple> List<Tensor<*>>.toTuple(): T {
+    val list = this
     return when (list.size) {
         0 -> Tuple.Zero
         1 -> Tuple.One(list[0])

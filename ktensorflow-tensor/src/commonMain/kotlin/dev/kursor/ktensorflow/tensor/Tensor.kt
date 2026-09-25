@@ -95,18 +95,27 @@ operator fun <T : Any> Tensor<T>.set(vararg index: Int, value: T) {
  * @param dataType - data type of the [Tensor]
  * @param shape - shape of the [Tensor]
  * @param data - raw data of the [Tensor]. Initialized to ByteArray of zeros by default.
+ * @throws IllegalArgumentException if [data] does not hold exactly one value per element.
  */
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(
     dataType: TensorDataType<T>,
     shape: TensorShape,
     data: ByteArray = ByteArray(shape.flatSize * dataType.byteSize)
-): PhysicalTensor<T> = when (dataType) {
-    TensorDataType.Float32 -> FloatTensor(shape, data)
-    TensorDataType.Int32 -> IntTensor(shape, data)
-    TensorDataType.UInt8 -> UByteTensor(shape, data)
-    TensorDataType.Int64 -> LongTensor(shape, data)
-} as PhysicalTensor<T>
+): PhysicalTensor<T> {
+    // Короткий массив раньше падал только при чтении последних элементов, а длинный
+    // принимался молча - обычно это ошибка в форме, а не лишние байты
+    require(data.size == shape.flatSize * dataType.byteSize) {
+        "Data of a $dataType tensor of shape $shape must hold " +
+            "${shape.flatSize * dataType.byteSize} bytes, got ${data.size}"
+    }
+    return when (dataType) {
+        TensorDataType.Float32 -> FloatTensor(shape, data)
+        TensorDataType.Int32 -> IntTensor(shape, data)
+        TensorDataType.UInt8 -> UByteTensor(shape, data)
+        TensorDataType.Int64 -> LongTensor(shape, data)
+    } as PhysicalTensor<T>
+}
 
 /**
  * Creates a [Tensor] with the specified shape and data.
@@ -129,6 +138,7 @@ inline fun <reified T : Any> Tensor(
  *
  * @param dataType - data type of the [Tensor]
  * @param data - raw data of the [Tensor]
+ * @throws IllegalArgumentException if the nested arrays are ragged or hold another element type.
  */
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(

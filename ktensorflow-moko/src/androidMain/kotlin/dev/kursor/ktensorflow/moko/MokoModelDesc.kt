@@ -30,6 +30,12 @@ actual fun ModelDesc.Companion.AssetResource(resource: AssetResource): ModelDesc
  * ресурс приходится выкладывать на диск. Имя детерминированное: раньше здесь создавался
  * File.createTempFile("prefix", "suffix"), и каждая загрузка модели оставляла в кеше новый
  * файл размером с модель, который никто не удалял.
+ *
+ * Новое содержимое пишется во временный файл рядом и атомарно подменяет старое переименованием.
+ * Перезаписывать файл на месте нельзя: TensorFlow Lite отображает модель в память (mmap), и
+ * обрезка файла под уже работающим интерпретатором роняла процесс с SIGBUS - например, когда
+ * модель из того же ресурса загружалась второй раз, пока первая ещё считала. После
+ * переименования старый интерпретатор продолжает читать прежний файл, пока не закроется.
  */
 private inline fun copyToCache(context: Context, name: String, open: () -> InputStream): File {
     val directory = File(context.cacheDir, "ktensorflow-models").apply { mkdirs() }
@@ -37,13 +43,22 @@ private inline fun copyToCache(context: Context, name: String, open: () -> Input
 
     // Отказ приводится к TensorFlowException, чтобы отсутствующий или нечитаемый ресурс
     // ловился в общем коде так же, как на iOS
-    try {
-        open().use { input ->
-            file.outputStream().use(input::copyTo)
+    val temporary = try {
+        File.createTempFile("$name.", ".tmp", directory).also { temporary ->
+            try {
+                open().use { input -> temporary.outputStream().use(input::copyTo) }
+            } catch (e: IOException) {
+                temporary.delete()
+                throw e
+            }
         }
     } catch (e: IOException) {
         throw TensorFlowException("Failed to read the model resource '$name'", e)
     }
 
+    if (!temporary.renameTo(file)) {
+        temporary.delete()
+        throw TensorFlowException("Failed to store the model resource '$name' in the cache")
+    }
     return file
 }

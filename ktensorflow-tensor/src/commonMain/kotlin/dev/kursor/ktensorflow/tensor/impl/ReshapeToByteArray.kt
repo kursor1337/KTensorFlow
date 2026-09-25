@@ -24,36 +24,40 @@ internal fun <T : Any> Any.toByteArray(
 private fun flattenFloatArray(array: Any, shape: TensorShape): FloatArray {
     val flat = FloatArray(shape.flatSize)
     var index = 0
-    fun recurse(curr: Any) {
+    fun recurse(curr: Any?, depth: Int) {
         when (curr) {
             is FloatArray -> {
-                for (f in curr) flat[index++] = f
+                requireLength(curr.size, shape, depth)
+                for (v in curr) flat[index++] = v
             }
             is Array<*> -> {
-                for (sub in curr) recurse(sub!!)
+                requireLength(curr.size, shape, depth)
+                for (sub in curr) recurse(sub, depth + 1)
             }
-            else -> error("Unsupported type in FloatArray: ${curr::class}")
+            else -> unsupportedElement(curr, "FloatArray")
         }
     }
-    recurse(array)
+    recurse(array, 0)
     return flat
 }
 
 private fun flattenIntArray(array: Any, shape: TensorShape): IntArray {
     val flat = IntArray(shape.flatSize)
     var index = 0
-    fun recurse(curr: Any) {
+    fun recurse(curr: Any?, depth: Int) {
         when (curr) {
             is IntArray -> {
+                requireLength(curr.size, shape, depth)
                 for (v in curr) flat[index++] = v
             }
             is Array<*> -> {
-                for (sub in curr) recurse(sub!!)
+                requireLength(curr.size, shape, depth)
+                for (sub in curr) recurse(sub, depth + 1)
             }
-            else -> error("Unsupported type in IntArray: ${curr::class}")
+            else -> unsupportedElement(curr, "IntArray")
         }
     }
-    recurse(array)
+    recurse(array, 0)
     return flat
 }
 
@@ -61,36 +65,40 @@ private fun flattenIntArray(array: Any, shape: TensorShape): IntArray {
 private fun flattenUByteArray(array: Any, shape: TensorShape): UByteArray {
     val flat = UByteArray(shape.flatSize)
     var index = 0
-    fun recurse(curr: Any) {
+    fun recurse(curr: Any?, depth: Int) {
         when (curr) {
             is UByteArray -> {
+                requireLength(curr.size, shape, depth)
                 for (v in curr) flat[index++] = v
             }
             is Array<*> -> {
-                for (sub in curr) recurse(sub!!)
+                requireLength(curr.size, shape, depth)
+                for (sub in curr) recurse(sub, depth + 1)
             }
-            else -> error("Unsupported type in ByteArray: ${curr::class}")
+            else -> unsupportedElement(curr, "UByteArray")
         }
     }
-    recurse(array)
+    recurse(array, 0)
     return flat
 }
 
 private fun flattenLongArray(array: Any, shape: TensorShape): LongArray {
     val flat = LongArray(shape.flatSize)
     var index = 0
-    fun recurse(curr: Any) {
+    fun recurse(curr: Any?, depth: Int) {
         when (curr) {
             is LongArray -> {
+                requireLength(curr.size, shape, depth)
                 for (v in curr) flat[index++] = v
             }
             is Array<*> -> {
-                for (sub in curr) recurse(sub!!)
+                requireLength(curr.size, shape, depth)
+                for (sub in curr) recurse(sub, depth + 1)
             }
-            else -> error("Unsupported type in LongArray: ${curr::class}")
+            else -> unsupportedElement(curr, "LongArray")
         }
     }
-    recurse(array)
+    recurse(array, 0)
     return flat
 }
 
@@ -130,3 +138,20 @@ private fun writeFlatLongArray(src: LongArray, dest: ByteArray) {
         }
     }
 }
+
+/**
+ * Проверяет длину подмассива на глубине [depth]. Форма берётся по первому элементу каждого
+ * уровня, поэтому рваный массив раньше проходил: короткая строка молча дополнялась нулями
+ * (и все следующие строки сдвигались), а длинная падала невнятным выходом за массив.
+ */
+private fun requireLength(size: Int, shape: TensorShape, depth: Int) {
+    require(depth < shape.rank && size == shape.dimensions[depth]) {
+        "Nested arrays must form a regular tensor of shape $shape, " +
+            "but an array at depth $depth has $size elements"
+    }
+}
+
+private fun unsupportedElement(element: Any?, expected: String): Nothing =
+    throw IllegalArgumentException(
+        "Expected nested arrays of $expected, got ${element?.let { it::class.simpleName } ?: "null"}"
+    )

@@ -193,10 +193,16 @@ fun <T : Any> Tensor<T>.squeeze(): Tensor<T> = reshape(
 
 /**
  * Returns the sum of all elements in the [Tensor].
+ *
+ * The sum is accumulated in [Double], so it stays accurate for tensors of millions of elements.
  */
 @JvmName("sumFloat")
-fun Tensor<Float>.sum(): Float {
-    var sum = 0f
+fun Tensor<Float>.sum(): Float = sumAsDouble().toFloat()
+
+// Во float накопленная сумма миллиона значений 0.1 уходила на 1%: каждое следующее слагаемое
+// округлялось к шагу, который растёт вместе с суммой
+private fun Tensor<Float>.sumAsDouble(): Double {
+    var sum = 0.0
     forEach { sum += it }
     return sum
 }
@@ -213,6 +219,9 @@ fun Tensor<Int>.sum(): Int {
 
 /**
  * Returns the sum of all elements in the [Tensor].
+ *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin: a sum of 20000
+ * gives `32`. Convert with [toIntTensor] first to get the full sum; [avg] is not affected.
  */
 @JvmName("sumUByte")
 fun Tensor<UByte>.sum(): UByte {
@@ -235,19 +244,31 @@ fun Tensor<Long>.sum(): Long {
  * Returns the average of all elements in the [Tensor].
  */
 @JvmName("avgFloat")
-fun Tensor<Float>.avg(): Float = sum() / shape.flatSize
+fun Tensor<Float>.avg(): Float = (sumAsDouble() / shape.flatSize).toFloat()
 
 /**
- * Returns the average of all elements in the [Tensor].
+ * Returns the average of all elements in the [Tensor], rounded toward zero.
+ *
+ * The sum is accumulated in [Long], so the average is correct even when the sum overflows [Int].
  */
 @JvmName("avgInt")
-fun Tensor<Int>.avg(): Int = sum() / shape.flatSize
+fun Tensor<Int>.avg(): Int {
+    // Сумма в Int переполнялась: среднее трёх Int.MAX_VALUE выходило 715827881
+    var sum = 0L
+    forEach { sum += it }
+    return (sum / shape.flatSize).toInt()
+}
 
 /**
- * Returns the average of all elements in the [Tensor].
+ * Returns the average of all elements in the [Tensor], rounded toward zero.
  */
 @JvmName("avgUByte")
-fun Tensor<UByte>.avg(): UByte = (sum() / shape.flatSize.toUInt()).toUByte()
+fun Tensor<UByte>.avg(): UByte {
+    // Раньше делилась сумма, уже обрезанная до UByte: среднее ста значений 200 выходило 0
+    var sum = 0L
+    forEach { sum += it.toLong() }
+    return (sum / shape.flatSize).toInt().toUByte()
+}
 
 /**
  * Returns the average of all elements in the [Tensor].

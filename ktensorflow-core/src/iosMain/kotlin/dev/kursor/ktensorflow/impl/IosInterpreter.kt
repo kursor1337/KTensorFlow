@@ -10,7 +10,6 @@ import dev.kursor.ktensorflow.ModelTensorData
 import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.toKTensorFlow
 import platform.Foundation.NSRecursiveLock
-import kotlin.math.min
 
 // private val on options because it is required to keep references so that they are not
 // garbage collected since kotlin gc does not know if objects are passed to obj-c
@@ -179,7 +178,9 @@ internal class IosInterpreter(
         inputs: List<ByteArray>,
         outputs: Map<Int, ByteArray>
     ) = locked {
-        if (inputs.size > tflInterpreter.inputTensorCount().toInt()) {
+        // Ровно столько входов, сколько у модели, как требует Android: при меньшем числе
+        // недостающие входы молча оставались от предыдущего вызова
+        if (inputs.size != tflInterpreter.inputTensorCount().toInt()) {
             throw TensorFlowException(
                 "Model has ${tflInterpreter.inputTensorCount()} inputs, got ${inputs.size}"
             )
@@ -206,10 +207,14 @@ internal class IosInterpreter(
             }
                 .toByteArray()
 
-            array.copyInto(
-                destination = byteArray,
-                endIndex = min(array.size, byteArray.size)
-            )
+            // Короткий буфер раньше молча обрезал результат; Android в этом случае падает.
+            // Буфер длиннее тензора допустим на обеих платформах: хвост остаётся нетронутым
+            if (byteArray.size < array.size) {
+                throw TensorFlowException(
+                    "Output $i holds ${array.size} bytes, the buffer has only ${byteArray.size}"
+                )
+            }
+            array.copyInto(destination = byteArray)
         }
     }
 

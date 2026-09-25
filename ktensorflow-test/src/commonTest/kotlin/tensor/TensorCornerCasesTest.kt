@@ -1,6 +1,7 @@
 package tensor
 
 import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.argmax
 import dev.kursor.ktensorflow.tensor.avg
@@ -20,6 +21,7 @@ import dev.kursor.ktensorflow.tensor.transpose
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -335,5 +337,71 @@ class TensorCornerCasesTest {
 
         assertEquals(44.toUByte(), (a + b).getFlat(0))
         assertEquals(156.toUByte(), (b - a).getFlat(0))
+    }
+
+    // --- агрегаты без переполнения и потери точности ---
+
+    @Test
+    fun ubyteAverageIsNotComputedFromAWrappedSum() {
+        // Сумма обрезалась до UByte ещё до деления: среднее ста значений 200 выходило 0
+        val tensor = Tensor<UByte>(shape = TensorShape(100))
+        repeat(100) { tensor.setFlat(it, 200.toUByte()) }
+
+        assertEquals(200.toUByte(), tensor.avg())
+    }
+
+    @Test
+    fun intAverageSurvivesASumThatOverflowsInt() {
+        val tensor = Tensor<Int>(shape = TensorShape(3))
+        repeat(3) { tensor.setFlat(it, Int.MAX_VALUE) }
+
+        assertEquals(Int.MAX_VALUE, tensor.avg())
+    }
+
+    @Test
+    fun floatSumAndAverageStayAccurateForAMillionElements() {
+        // Во float сумма миллиона значений 0.1 уходила на 1%
+        val tensor = Tensor<Float>(shape = TensorShape(1_000_000))
+        repeat(1_000_000) { tensor.setFlat(it, 0.1f) }
+
+        assertEquals(0.1f, tensor.avg(), absoluteTolerance = 1e-6f)
+        assertEquals(100_000f, tensor.sum(), absoluteTolerance = 1f)
+    }
+
+    // --- создание тензора из данных ---
+
+    @Test
+    fun raggedNestedArraysAreRejected() {
+        // Короткая строка раньше молча дополнялась нулями, длинная падала выходом за массив
+        assertFailsWith<IllegalArgumentException> {
+            Tensor<Float>(arrayOf(floatArrayOf(1f, 2f, 3f), floatArrayOf(4f, 5f)))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            Tensor<Float>(arrayOf(floatArrayOf(1f, 2f), floatArrayOf(3f, 4f, 5f)))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            Tensor<Int>(arrayOf(arrayOf(intArrayOf(1)), arrayOf(intArrayOf(2), intArrayOf(3))))
+        }
+    }
+
+    @Test
+    fun nestedArraysOfAnotherTypeAreRejected() {
+        assertFailsWith<IllegalArgumentException> { Tensor<Float>(arrayOf(intArrayOf(1, 2))) }
+    }
+
+    @Test
+    fun regularNestedArraysKeepEveryValueInPlace() {
+        val tensor = Tensor<Long>(arrayOf(longArrayOf(1, 2, 3), longArrayOf(4, 5, 6)))
+
+        assertEquals(listOf(2, 3), tensor.shape.dimensions.toList())
+        assertEquals(listOf(1L, 2L, 3L, 4L, 5L, 6L), List(6) { tensor.getFlat(it) })
+    }
+
+    @Test
+    fun rawDataOfTheWrongSizeIsRejected() {
+        // Короткий массив падал только при чтении последних элементов, длинный принимался молча
+        assertFailsWith<IllegalArgumentException> { Tensor(TensorDataType.Float32, TensorShape(2, 2), ByteArray(4)) }
+        assertFailsWith<IllegalArgumentException> { Tensor(TensorDataType.Float32, TensorShape(1), ByteArray(64)) }
+        assertEquals(4, Tensor(TensorDataType.Float32, TensorShape(2, 2), ByteArray(16)).shape.flatSize)
     }
 }
