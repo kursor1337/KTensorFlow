@@ -171,9 +171,12 @@ actual fun Image.grayscale(
 
         // Буфер premultiplied: без обратного умножения полупрозрачные пиксели потемнели бы,
         // и результат разошёлся бы с Android, где ColorMatrix работает с прямым цветом
+        // vImage снимает premultiply только с альфой в первом или последнем канале, поэтому
+        // нестандартный порядок сначала переставляется в стандартный
         is PixelFormat.RGBA -> {
-            val straight = unpremultiply(bytes, format, width, height)
-            lumaRec601(straight, format, out, width, height)
+            val standard = format.coreGraphicsFormat as PixelFormat.RGBA
+            val straight = unpremultiply(toCoreGraphicsLayout(bytes, format, width, height), standard, width, height)
+            lumaRec601(straight, standard, out, width, height)
         }
     }
 
@@ -240,12 +243,13 @@ internal fun <R> withBitmapContext(
     block: (CGContextRef?) -> R
 ): R {
     // CoreGraphics не рисует в 3-канальный буфер: рисуем в RGBA и упаковываем обратно
-    // Цвет остаётся premultiplied, то есть полупрозрачные края после поворота ложатся на
-    // чёрный фон - у RGB нет альфы, чтобы их хранить
-    if (pixelFormat is PixelFormat.RGB) {
-        val rgba = ByteArray(width * height * 4)
-        val result = withBitmapContext(rgba, width, height, pixelFormat.coreGraphicsFormat, block)
-        packToThreeChannels(rgba, out, width, height)
+    // CoreGraphics не рисует в 3-канальный буфер и в нестандартный порядок каналов: рисуем в
+    // стандартную раскладку и переводим обратно. У RGB цвет остаётся premultiplied, то есть
+    // полупрозрачные края после поворота ложатся на чёрный фон - альфы, чтобы их хранить, нет
+    if (!pixelFormat.isCoreGraphicsLayout) {
+        val coreGraphics = ByteArray(width * height * 4)
+        val result = withBitmapContext(coreGraphics, width, height, pixelFormat.coreGraphicsFormat, block)
+        fromCoreGraphicsLayout(coreGraphics, out, pixelFormat, width, height)
         return result
     }
 

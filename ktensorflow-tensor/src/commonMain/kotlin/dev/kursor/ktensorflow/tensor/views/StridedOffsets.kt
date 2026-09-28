@@ -1,6 +1,7 @@
 package dev.kursor.ktensorflow.tensor.views
 
 import dev.kursor.ktensorflow.tensor.TensorShape
+import dev.kursor.ktensorflow.tensor.checkedOffset
 
 /**
  * Переводит индексы view в плоское смещение в исходном тензоре: у каждой оси view есть свой
@@ -18,13 +19,7 @@ internal class StridedOffsets(
     private val dimensions = shape.dimensions.copyOf()
     private val flatSize = shape.flatSize
 
-    fun of(index: IntArray): Int {
-        var offset = base
-        for (i in index.indices) {
-            offset += index[i] * strides[i]
-        }
-        return offset
-    }
+    fun of(index: IntArray): Int = index.checkedOffset(dimensions, strides, base)
 
     fun of(flatIndex: Int): Int {
         require(flatIndex in 0 until flatSize) {

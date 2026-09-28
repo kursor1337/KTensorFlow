@@ -121,3 +121,29 @@ internal fun ByteArray.writeLong(index: Int, value: Long) {
     this[8 * index + 6] = ((value shr 48) and 0xFF).toByte()
     this[8 * index + 7] = ((value shr 56) and 0xFF).toByte()
 }
+
+/**
+ * Плоское смещение элемента по индексу с проверкой ранга и границ каждой оси.
+ *
+ * Непроверенный toFlatIndex(strides) молча читал чужие элементы: на тензоре (2, 3) индекс [0, 5]
+ * давал элемент [1, 2], индекс неверного ранга - произвольный, а view за пределами среза читал
+ * и писал исходник вне среза.
+ */
+internal fun IntArray.checkedOffset(dimensions: IntArray, strides: IntArray, base: Int = 0): Int {
+    if (size != dimensions.size) {
+        throw IllegalArgumentException(
+            "Index ${contentToString()} has rank $size, the tensor has rank ${dimensions.size}"
+        )
+    }
+    var offset = base
+    for (axis in indices) {
+        val value = this[axis]
+        if (value < 0 || value >= dimensions[axis]) {
+            throw IndexOutOfBoundsException(
+                "Index ${contentToString()} is out of bounds for shape ${dimensions.contentToString()}"
+            )
+        }
+        offset += value * strides[axis]
+    }
+    return offset
+}

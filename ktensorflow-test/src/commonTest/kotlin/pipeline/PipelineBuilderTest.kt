@@ -6,6 +6,7 @@ import dev.kursor.ktensorflow.InternalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.ModelMeta
 import dev.kursor.ktensorflow.ModelTensorData
+import dev.kursor.ktensorflow.TensorFlowException
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.builder.inference
 import dev.kursor.ktensorflow.pipeline.builder.input
@@ -18,6 +19,7 @@ import dev.kursor.ktensorflow.tensor.TensorShape
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * Билдер пайплайна связывает выходы модели со стадиями постобработки. Ошибка в этой связке
@@ -130,5 +132,37 @@ class PipelineBuilderTest {
         pipeline.run(tuple(1f, 2f, 3f))
 
         assertEquals(listOf(1f, 20f, 300f), interpreter.receivedInputs)
+    }
+
+    @Test
+    fun anOutputDeclaredWithAnotherTypeThanTheModelsIsRejected() {
+        // Выход квантованной модели, объявленный как Float32, раньше молча превращал байты в
+        // мусорные числа: TensorFlow Lite тип не видит, а длинный буфер допустим
+        val pipeline = Pipeline
+            .input(preprocessing = Stage<Tensor<Float>>())
+            .inference(IndexEchoInterpreter(outputTensorCount = 1))
+            .output(
+                index = 0,
+                dataType = TensorDataType.UInt8,
+                shape = TensorShape(4),
+                postprocessing = Stage<Tensor<UByte>, UByte> { it.getFlat(0) }
+            )
+            .build()
+
+        val failure = assertFailsWith<TensorFlowException> { pipeline.run(tuple(scalar(0f))) }
+
+        assertTrue("Float32" in failure.message.orEmpty(), "message: ${failure.message}")
+    }
+
+    @Test
+    fun anInputOfAnotherTypeThanTheModelsIsRejected() {
+        // Tensor<Int> на вход Float32-модели того же размера раньше молча читался как float
+        val pipeline = Pipeline
+            .input(preprocessing = Stage<Int, Tensor<*>> { Tensor<Int>(shape = TensorShape(1)) })
+            .inference(IndexEchoInterpreter(outputTensorCount = 1))
+            .output(index = 0, dataType = TensorDataType.Float32, shape = TensorShape(1), postprocessing = readValue)
+            .build()
+
+        assertFailsWith<TensorFlowException> { pipeline.run(tuple(0)) }
     }
 }

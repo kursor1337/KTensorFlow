@@ -184,6 +184,23 @@ class NativeImageTest {
         }
     }
 
+    @Test
+    fun nonStandardChannelOrdersCanBeDrawnThroughCGImage() {
+        // CoreGraphics понимает только четыре стандартных порядка: остальные раньше молча
+        // переставляли каналы. Альфа посередине проверяет и перестановку, и снятие premultiply
+        val pixels = gradient(6, 4)
+
+        for (format in listOf(PixelFormat.RGBA(0, 2, 1, 3), PixelFormat.RGBA(1, 0, 3, 2), PixelFormat.RGB(1, 2, 0))) {
+            val source = Image(6, 4, format, pixels)
+
+            val image = source.withCGImage { Image(it, format) }
+
+            assertContentEquals(pixels, image.getPixels(), "layout $format")
+            image.close()
+            source.close()
+        }
+    }
+
     // --- CVPixelBuffer ---
 
     @Test

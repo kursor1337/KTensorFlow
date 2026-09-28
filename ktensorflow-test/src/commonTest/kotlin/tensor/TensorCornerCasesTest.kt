@@ -441,4 +441,52 @@ class TensorCornerCasesTest {
 
         assertEquals(listOf(2, 0), tensor.shape.dimensions.toList())
     }
+
+    // --- границы индексов ---
+
+    @Test
+    fun indexOutsideAnAxisIsRejected() {
+        // Раньше на (2, 3) индекс [0, 5] молча читал элемент [1, 2], а индекс неверного
+        // ранга - произвольный элемент
+        val tensor = Tensor<Float>(shape = TensorShape(2, 3))
+        repeat(6) { tensor.setFlat(it, it.toFloat()) }
+
+        assertFailsWith<IndexOutOfBoundsException> { tensor[intArrayOf(0, 5)] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor[intArrayOf(-1, 0)] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor[intArrayOf(0, 3)] = 1f }
+        assertFailsWith<IllegalArgumentException> { tensor[intArrayOf(1)] }
+        assertEquals(5f, tensor[intArrayOf(1, 2)])
+    }
+
+    @Test
+    fun aViewNeitherReadsNorWritesOutsideItself() {
+        // Срез раньше читал и писал исходник вне своих границ
+        val tensor = Tensor<Float>(shape = TensorShape(3, 3))
+        val slice = tensor.slice(arrayOf(0..1, 0..1))
+
+        assertFailsWith<IndexOutOfBoundsException> { slice[intArrayOf(0, 2)] }
+        assertFailsWith<IndexOutOfBoundsException> { slice[intArrayOf(0, 2)] = 9f }
+        assertEquals(0f, tensor[intArrayOf(0, 2)], "the source outside the slice must stay untouched")
+        assertFailsWith<IndexOutOfBoundsException> { tensor.permuted(1, 0)[intArrayOf(3, 0)] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor.reshape(TensorShape(9))[intArrayOf(9)] }
+    }
+
+    // --- toString ---
+
+    @Test
+    fun everyTensorCanBePrinted() {
+        // toString приводил содержимое к Array<*> и падал с ClassCastException на любом
+        // тензоре формы [N] и на скаляре
+        val vector = Tensor<Float>(shape = TensorShape(3)).apply { repeat(3) { setFlat(it, it.toFloat()) } }
+        val matrix = Tensor<Int>(shape = TensorShape(2, 2)).apply { repeat(4) { setFlat(it, it) } }
+        val scalar = Tensor<Long>(shape = TensorShape()).apply { setFlat(0, 7L) }
+        val bytes = Tensor<UByte>(shape = TensorShape(2)).apply { setFlat(1, 200.toUByte()) }
+        val byteMatrix = Tensor<UByte>(shape = TensorShape(2, 2)).apply { setFlat(3, 9.toUByte()) }
+
+        assertEquals("[0.0, 1.0, 2.0]", vector.toString())
+        assertEquals("[[0, 1], [2, 3]]", matrix.toString())
+        assertEquals("[7]", scalar.toString())
+        assertEquals("[0, 200]", bytes.toString())
+        assertEquals("[[0, 0], [0, 9]]", byteMatrix.toString())
+    }
 }

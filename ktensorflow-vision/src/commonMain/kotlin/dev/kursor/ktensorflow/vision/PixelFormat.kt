@@ -20,6 +20,7 @@ sealed interface PixelFormat {
      * @property rIndex The index of the red channel within the pixel data.
      * @property gIndex The index of the green channel within the pixel data.
      * @property bIndex The index of the blue channel within the pixel data.
+     * @throws IllegalArgumentException if the indices are not a permutation of 0, 1, 2.
      */
     data class RGB(
         val rIndex: Int,
@@ -27,6 +28,10 @@ sealed interface PixelFormat {
         val bIndex: Int
     ) : PixelFormat {
         override val channels = 3
+
+        init {
+            requirePermutation(rIndex, gIndex, bIndex)
+        }
     }
 
     /**
@@ -36,6 +41,7 @@ sealed interface PixelFormat {
      * @property gIndex The index of the green channel within the pixel data.
      * @property bIndex The index of the blue channel within the pixel data.
      * @property aIndex The index of the alpha channel within the pixel data.
+     * @throws IllegalArgumentException if the indices are not a permutation of 0, 1, 2, 3.
      */
     data class RGBA(
         val rIndex: Int,
@@ -44,6 +50,10 @@ sealed interface PixelFormat {
         val aIndex: Int
     ) : PixelFormat {
         override val channels = 4
+
+        init {
+            requirePermutation(rIndex, gIndex, bIndex, aIndex)
+        }
     }
 
     /**
@@ -84,5 +94,13 @@ sealed interface PixelFormat {
          * Standard 4-channel pixel format with channels in the order: Blue, Green, Red.
          */
         val BGR = RGB(2, 1, 0)
+    }
+}
+
+// Повторяющийся или лишний индекс раньше принимался молча: тензоризация писала два канала в одну
+// ячейку и оставляла другую пустой, а на iOS CoreGraphics читала память в чужой раскладке
+private fun requirePermutation(vararg indices: Int) {
+    require(indices.sorted() == indices.indices.toList()) {
+        "Channel indices ${indices.toList()} must be a permutation of ${indices.indices.toList()}"
     }
 }

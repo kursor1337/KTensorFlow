@@ -320,7 +320,10 @@ class VisionTensorizeTest {
 
     @Test
     fun toImageTensorRewrapsWhenTheLayoutDiffers() {
-        val tensor = probeImage(4, 3, tag = 1).tensorizeFloat()
+        // Квадратное 4-канальное изображение: форма (1, 4, 4, 4) даёт 4 канала при обеих
+        // раскладках. У 4x3 в NCHW вышло бы 3 канала при 4-канальном формате - такую обёртку
+        // ImageTensor теперь отклоняет, раньше она молча читала бы соседние пиксели
+        val tensor = probeImage(4, 4, tag = 1).tensorizeFloat()
 
         val rewrapped = tensor.toImageTensor(format, ImageTensorLayout.NCHW)
 

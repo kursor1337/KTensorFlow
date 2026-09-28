@@ -14,6 +14,7 @@ import platform.Accelerate.kvImageNoFlags
 import platform.Accelerate.vImageConvert_RGB888toRGBA8888
 import platform.Accelerate.vImageConvert_RGBA8888toRGB888
 import platform.Accelerate.vImageMatrixMultiply_ARGB8888ToPlanar8
+import platform.Accelerate.vImagePermuteChannels_ARGB8888
 import platform.Accelerate.vImageUnpremultiplyData_ARGB8888
 import platform.Accelerate.vImageUnpremultiplyData_RGBA8888
 import platform.Accelerate.vImage_Buffer
@@ -61,8 +62,23 @@ internal fun lumaRec601(pixels: ByteArray, format: PixelFormat.RGBA, out: ByteAr
 
 private const val LUMA_DIVISOR = 32768
 
+/**
+ * Переставляет каналы 4-канального буфера: канал i результата берётся из канала [sourceOfChannel][i]
+ * исходника.
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+internal fun permuteChannels(pixels: ByteArray, sourceOfChannel: IntArray, width: Int, height: Int): ByteArray {
+    val out = ByteArray(pixels.size)
+    val map = UByteArray(4) { sourceOfChannel[it].toUByte() }
+    vImage(pixels, 4, out, 4, width, height) { src, dst ->
+        vImagePermuteChannels_ARGB8888(src, dst, map.toCValues(), kvImageNoFlags)
+    }
+    return out
+}
+
 /** Снимает premultiply: CoreGraphics хранит цвет умноженным на альфу. */
 internal fun unpremultiply(pixels: ByteArray, format: PixelFormat.RGBA, width: Int, height: Int): ByteArray {
+    require(format.aIndex == 0 || format.aIndex == 3) { "vImage needs alpha first or last, got $format" }
     val out = ByteArray(pixels.size)
     vImage(pixels, 4, out, 4, width, height) { src, dst ->
         // Порядок цветовых каналов vImage не важен, важно только, где альфа

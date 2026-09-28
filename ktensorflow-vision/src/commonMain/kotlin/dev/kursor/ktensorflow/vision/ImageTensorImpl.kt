@@ -35,6 +35,14 @@ internal class ImageTensorImpl<T : Any>(
 
     override val channels: Int = shape.dimensions[layout.cIndex]
 
+    init {
+        // Иначе одноканальный выход модели, обёрнутый как RGB, читался бы с каналами соседних
+        // пикселей: toImage, grayscale и resize молча давали мусор и падали только в конце тензора
+        require(channels == pixelFormat.channels) {
+            "A $pixelFormat image tensor needs ${pixelFormat.channels} channels, the tensor of shape $shape has $channels"
+        }
+    }
+
     override operator fun get(
         n: Int,
         h: Int,
@@ -51,6 +59,13 @@ internal class ImageTensorImpl<T : Any>(
     ) = setFlat(offset(n, h, w, c), value)
 
     private fun offset(n: Int, h: Int, w: Int, c: Int): Int {
+        // Без проверки выход за ширину молча читал пиксель следующей строки, а за канал -
+        // соседний пиксель
+        if (n !in 0 until batch || h !in 0 until height || w !in 0 until width || c !in 0 until channels) {
+            throw IndexOutOfBoundsException(
+                "Pixel [n=$n, h=$h, w=$w, c=$c] is out of bounds for a ${batch}x${height}x${width}x$channels image tensor"
+            )
+        }
         return n * nStride + h * hStride + w * wStride + c * cStride
     }
 

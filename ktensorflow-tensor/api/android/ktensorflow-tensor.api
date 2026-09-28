@@ -211,6 +211,7 @@ public abstract interface class dev/kursor/ktensorflow/tensor/TensorDataType {
 }
 
 public final class dev/kursor/ktensorflow/tensor/TensorDataType$Companion {
+	public final fun of (Ldev/kursor/ktensorflow/DataType;)Ldev/kursor/ktensorflow/tensor/TensorDataType;
 	public final fun of (Lkotlin/reflect/KClass;)Ldev/kursor/ktensorflow/tensor/TensorDataType;
 }
 

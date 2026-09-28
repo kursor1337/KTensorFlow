@@ -1,5 +1,7 @@
 package vision
 
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.vision.Image
 import dev.kursor.ktensorflow.vision.ImageTensor
 import dev.kursor.ktensorflow.vision.ImageTensorLayout
@@ -1530,5 +1532,75 @@ class VisionModuleTests {
         val kept = detections.nms<Pair<Rect, Float>, Any?>(scoreSelector = { it.second }, boxSelector = { it.first })
 
         assertEquals(listOf(0.9f, 0.7f), kept.map { it.second })
+    }
+
+    // --- ImageTensor: границы и каналы ---
+
+    @Test
+    fun imageTensorPixelAccessOutsideTheImageIsRejected() {
+        // Выход за ширину раньше молча читал пиксель следующей строки, за канал - соседний пиксель
+        val tensor = ImageTensor<Float>(3, 2, PixelFormat.RGB)
+
+        assertFailsWith<IndexOutOfBoundsException> { tensor[0, 3, 0] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor[2, 0, 0] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor[0, 0, 3] }
+        assertFailsWith<IndexOutOfBoundsException> { tensor[1, 0, 0, 0] = 1f }
+    }
+
+    @Test
+    fun imageTensorWithAnotherChannelCountThanItsFormatIsRejected() {
+        // Одноканальный выход модели, обёрнутый как RGB, раньше читался с каналами соседних пикселей
+        val oneChannel = Tensor<Float>(shape = TensorShape(1, 4, 4, 1))
+
+        assertFailsWith<IllegalArgumentException> { ImageTensor(oneChannel, PixelFormat.RGB, ImageTensorLayout.NHWC) }
+        assertEquals(1, ImageTensor(oneChannel, PixelFormat.Grayscale, ImageTensorLayout.NHWC).channels)
+    }
+
+    // --- нестандартные раскладки каналов ---
+
+    @Test
+    fun pixelFormatsMustBePermutations() {
+        // Повторяющийся индекс раньше принимался: тензоризация писала два канала в одну ячейку
+        assertFailsWith<IllegalArgumentException> { PixelFormat.RGBA(0, 0, 1, 2) }
+        assertFailsWith<IllegalArgumentException> { PixelFormat.RGBA(0, 1, 2, 4) }
+        assertFailsWith<IllegalArgumentException> { PixelFormat.RGB(0, 1, 1) }
+        assertEquals(PixelFormat.BGR, PixelFormat.RGB(2, 1, 0))
+    }
+
+    @Test
+    fun nonStandardChannelOrdersGiveTheSameImagesAsArgbOnBothPlatforms() {
+        // CoreGraphics понимает только четыре стандартных 4-канальных порядка; раньше на iOS
+        // любая другая перестановка молча меняла каналы местами в resize, crop, rotate и полях
+        val width = 9
+        val height = 6
+        val pixels = IntArray(width * height) { i ->
+            (0xFF shl 24) or ((i * 23 % 256) shl 16) or ((i * 41 % 256) shl 8) or (i * 67 % 256)
+        }
+        val operations = listOf<Pair<String, (Image) -> Image>>(
+            "resize" to { it.resize(5, 4, closeOriginal = false) },
+            "crop" to { it.crop(Rect(1, 1, 7, 5), closeOriginal = false) },
+            "rotate" to { it.rotate(180f, closeOriginal = false) },
+            "grayscale" to { it.grayscale(closeOriginal = false) },
+            "letterbox" to { it.resizeWithPad(12, 12, padColorArgb = (0xFF shl 24) or 0x336699, closeOriginal = false) }
+        )
+        val reference = Image(width, height, PixelFormat.ARGB, pixels)
+
+        for (format in listOf(PixelFormat.RGBA(0, 2, 1, 3), PixelFormat.RGBA(1, 0, 3, 2), PixelFormat.RGB(1, 2, 0))) {
+            val image = Image(width, height, format, pixels)
+            assertContentEquals(pixels, image.getPixels(), "format $format")
+
+            for ((name, operation) in operations) {
+                val expected = operation(reference)
+                val actual = operation(image)
+                val expectedPixels = expected.getPixels()
+                actual.getPixels().forEachIndexed { i, pixel ->
+                    assertColorApprox(expectedPixels[i], pixel, tolerance = 2, message = "$name of $format, pixel $i")
+                }
+                expected.close()
+                actual.close()
+            }
+            image.close()
+        }
+        reference.close()
     }
 }

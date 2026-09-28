@@ -3,10 +3,10 @@ package dev.kursor.ktensorflow.tensor.physical
 import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
-import dev.kursor.ktensorflow.tensor.impl.toShapedAndTypedArray
+import dev.kursor.ktensorflow.tensor.checkedOffset
+import dev.kursor.ktensorflow.tensor.impl.contentToString
 import dev.kursor.ktensorflow.tensor.readLong
 import dev.kursor.ktensorflow.tensor.strides
-import dev.kursor.ktensorflow.tensor.toFlatIndex
 import dev.kursor.ktensorflow.tensor.writeLong
 
 /**
@@ -33,11 +33,11 @@ internal class LongTensor(
     }
 
     override fun get(index: IntArray): Long {
-        return data.readLong(index.toFlatIndex(strides))
+        return data.readLong(index.checkedOffset(shape.dimensions, strides))
     }
 
     override fun set(index: IntArray, value: Long) {
-        data.writeLong(index.toFlatIndex(strides), value)
+        data.writeLong(index.checkedOffset(shape.dimensions, strides), value)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -60,8 +60,5 @@ internal class LongTensor(
         return result
     }
 
-    override fun toString(): String {
-        val array = data.toShapedAndTypedArray(dataType, shape) as Array<*>
-        return array.contentDeepToString()
-    }
+    override fun toString(): String = data.contentToString(dataType, shape)
 }

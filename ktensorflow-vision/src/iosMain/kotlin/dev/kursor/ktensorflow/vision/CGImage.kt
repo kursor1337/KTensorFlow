@@ -20,12 +20,9 @@ import platform.CoreGraphics.CGImageRelease
  * is released right after the block returns, so it must not be retained or used afterwards.
  */
 fun <T> Image.withCGImage(block: (CGImageRef) -> T): T {
-    // CoreGraphics не знает 3-канальных раскладок: RGB и BGR отдаются ей развёрнутыми в 4 канала
-    val bytes = if (pixelFormat is PixelFormat.RGB) {
-        expandToFourChannels(platformImage, width, height)
-    } else {
-        platformImage
-    }
+    // CoreGraphics не знает 3-канальных раскладок и нестандартных перестановок: такие пиксели
+    // отдаются ей переведёнными в стандартный 4-канальный порядок
+    val bytes = toCoreGraphicsLayout(platformImage, pixelFormat, width, height)
     val cgFormat = pixelFormat.coreGraphicsFormat
 
     // Данные должны оставаться запиненными (pinned) до тех пор, пока CGImage реально

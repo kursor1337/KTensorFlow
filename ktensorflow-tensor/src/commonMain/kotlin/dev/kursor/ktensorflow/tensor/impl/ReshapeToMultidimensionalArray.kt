@@ -53,3 +53,21 @@ private fun readLongArray(bytes: ByteArray): LongArray {
     }
     return result
 }
+
+/**
+ * Содержимое тензора в виде вложенных списков, как у contentDeepToString.
+ *
+ * Одномерный тензор и скаляр превращаются в примитивный массив, а не в Array: раньше toString
+ * приводил результат к Array<*> и падал с ClassCastException на любом тензоре формы [N] -
+ * то есть на выходе каждого классификатора, стоило его залогировать.
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+internal fun <T : Any> ByteArray.contentToString(dataType: TensorDataType<T>, shape: TensorShape): String =
+    when (val array = toShapedAndTypedArray(dataType, shape)) {
+        is Array<*> -> array.contentDeepToString()
+        is FloatArray -> array.contentToString()
+        is IntArray -> array.contentToString()
+        is LongArray -> array.contentToString()
+        is UByteArray -> array.contentToString()
+        else -> array.toString()
+    }

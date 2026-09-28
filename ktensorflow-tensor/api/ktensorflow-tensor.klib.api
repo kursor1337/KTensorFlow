@@ -41,6 +41,7 @@ sealed interface <#A: kotlin/Any> dev.kursor.ktensorflow.tensor/TensorDataType {
 
     final object Companion { // dev.kursor.ktensorflow.tensor/TensorDataType.Companion|null[0]
         final fun <#A2: kotlin/Any> of(kotlin.reflect/KClass<#A2>): dev.kursor.ktensorflow.tensor/TensorDataType<#A2> // dev.kursor.ktensorflow.tensor/TensorDataType.Companion.of|of(kotlin.reflect.KClass<0:0>){0§<kotlin.Any>}[0]
+        final fun of(dev.kursor.ktensorflow/DataType): dev.kursor.ktensorflow.tensor/TensorDataType<*>? // dev.kursor.ktensorflow.tensor/TensorDataType.Companion.of|of(dev.kursor.ktensorflow.DataType){}[0]
         final inline fun <#A2: reified kotlin/Any> of(): dev.kursor.ktensorflow.tensor/TensorDataType<#A2> // dev.kursor.ktensorflow.tensor/TensorDataType.Companion.of|of(){0§<kotlin.Any>}[0]
     }
 

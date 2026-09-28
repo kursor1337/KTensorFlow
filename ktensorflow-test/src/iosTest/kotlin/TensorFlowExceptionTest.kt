@@ -73,4 +73,20 @@ class TensorFlowExceptionTest {
         assertTrue(output.drop(40).all { it == 7.toByte() }, "the tail past the tensor stays untouched")
         interpreter.close()
     }
+
+    @Test
+    fun runRejectsATensorOfAnotherTypeThanTheModels() {
+        // Размер тот же (4 байта на элемент), поэтому раньше биты целых молча читались как float
+        val interpreter = createInterpreter("mnist", "tflite", null)
+        val output = Tensor<Float>(shape = TensorShape(10)).toPhysical()
+
+        assertFailsWith<TensorFlowException> {
+            interpreter.run(Tensor<Int>(shape = TensorShape(28, 28)).toPhysical(), output)
+        }
+        assertFailsWith<TensorFlowException> {
+            interpreter.run(Tensor<Float>(shape = TensorShape(28, 28)).toPhysical(), Tensor<Int>(shape = TensorShape(10)).toPhysical())
+        }
+
+        interpreter.close()
+    }
 }
