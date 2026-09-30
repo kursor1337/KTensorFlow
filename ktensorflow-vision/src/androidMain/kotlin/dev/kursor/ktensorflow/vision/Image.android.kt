@@ -50,6 +50,8 @@ class AndroidImage(
     }
 
     override fun getPixels(buffer: IntArray) {
+        // Короткий буфер Bitmap отклоняет сам, но без сообщения: проверка даёт внятное, как на iOS
+        requirePixelBuffer(buffer)
         bitmap.getPixels(buffer, 0, width, 0, 0, width, height)
     }
 
@@ -66,6 +68,7 @@ actual fun Image(
     pixelFormat: PixelFormat,
     pixels: IntArray
 ): Image {
+    requirePixelCount(width, height, pixels)
     // Для Grayscale хранится один канал - младший байт пикселя, ровно как его читают
     // tensorize и iOS-реализация. Без этого приведения bitmap оставался цветным, тег
     // формата врал, а getPixels возвращал цвета там, где iOS уже отдавал серое.

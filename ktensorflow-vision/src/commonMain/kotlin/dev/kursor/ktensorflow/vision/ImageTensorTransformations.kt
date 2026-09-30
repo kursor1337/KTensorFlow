@@ -276,8 +276,16 @@ private inline fun forEachPixel(
  *
  * @param rect The rectangle to crop the image to.
  * @return A new [ImageTensor] containing the cropped region.
+ * @throws IllegalArgumentException if [rect] is empty or not inside the image, as for [Image.crop].
  */
 fun <T : Any> ImageTensor<T>.crop(rect: Rect): ImageTensor<T> {
+    // Та же проверка, что у Image.crop: пустой прямоугольник раньше давал тензор нулевой
+    // ширины, и ошибка всплывала позже - в resize про индекс, в toImage про размер
+    require(rect.right > rect.left && rect.bottom > rect.top) { "Crop rect $rect is empty" }
+    require(rect.left >= 0 && rect.top >= 0 && rect.right <= width && rect.bottom <= height) {
+        "Crop rect $rect is outside the ${width}x$height image tensor"
+    }
+
     val ranges = Array(4) { index ->
         when (index) {
             layout.nIndex -> 0..<batch

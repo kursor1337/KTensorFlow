@@ -99,13 +99,16 @@ class IosImage(
     }
 
     override fun getPixels(buffer: IntArray) {
+        requirePixelBuffer(buffer)
         // data - это геттер поверх platformImage, а индексы каналов лежат в data-классе:
         // в горячем цикле и то, и другое поднято в локальные переменные.
         val bytes = data
+        // Обходятся пиксели изображения, а не буфера: хвост большего буфера остаётся нетронутым
+        val count = width * height
 
         when (pixelFormat) {
             PixelFormat.Grayscale -> {
-                for (i in buffer.indices) {
+                for (i in 0 until count) {
                     val v = bytes[i].toInt() and 0xFF
                     buffer[i] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
                 }
@@ -114,7 +117,7 @@ class IosImage(
                 val rIndex = pixelFormat.rIndex
                 val gIndex = pixelFormat.gIndex
                 val bIndex = pixelFormat.bIndex
-                for (i in buffer.indices) {
+                for (i in 0 until count) {
                     val o = 3 * i
                     val b = bytes[o + bIndex].toInt() and 0xFF
                     val g = bytes[o + gIndex].toInt() and 0xFF
@@ -127,7 +130,7 @@ class IosImage(
                 val gIndex = pixelFormat.gIndex
                 val bIndex = pixelFormat.bIndex
                 val aIndex = pixelFormat.aIndex
-                for (i in buffer.indices) {
+                for (i in 0 until count) {
                     val o = 4 * i
                     val a = bytes[o + aIndex].toInt() and 0xFF
                     if (a == 0xFF) {
@@ -173,6 +176,7 @@ actual fun Image(
     pixelFormat: PixelFormat,
     pixels: IntArray
 ): Image {
+    requirePixelCount(width, height, pixels)
     val bytes = ByteArray(width * height * pixelFormat.channels)
 
     when (pixelFormat) {

@@ -178,8 +178,29 @@ Running inference on the UI thread causes ANRs. The `ktensorflow-coroutines` mod
 
 #### Async Inference
 ```kotlin
-// Runs off the calling thread; concurrent calls queue instead of blocking threads
-val result = pipeline.runSuspend(image) 
+// Creates the interpreter on the module's inference thread. Needed for the GPU delegate on Android
+// devices without OpenCL: its OpenGL backend must run inference on the thread that created it
+val interpreter = SuspendInterpreter(
+  modelDesc,
+  InterpreterOptions(numThreads = 4, useXNNPACK = true, delegates = listOf(gpu))
+)
+
+// Runs off the calling thread, on that same inference thread; concurrent calls queue instead of
+// blocking threads
+val result = pipeline.runSuspend(image)
+```
+
+By default every function of the module shares one `InferenceDispatcher`, so inference runs one call at a time across the whole app. To run several models in parallel, give each interpreter its own `InferenceDispatcher` and pass it both when creating the interpreter and when running it. On Android it runs on a single thread of its own, which is also what the GPU delegate needs on devices without OpenCL:
+```kotlin
+val detectorDispatcher = InferenceDispatcher()
+val detector = SuspendInterpreter(detectorModel, detectorOptions, detectorDispatcher)
+
+// Runs in parallel with inference on other dispatchers
+val boxes = detectionPipeline.runSuspend(tuple(frame), detectorDispatcher)
+
+// When the interpreter is no longer needed: on Android the dispatcher owns a thread
+detector.close()
+detectorDispatcher.close()
 ```
 
 #### Real-time Video Stream Processing (Backpressure / Frame Dropping)

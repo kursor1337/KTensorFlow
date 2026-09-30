@@ -1,6 +1,7 @@
 package coroutines
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
+import dev.kursor.ktensorflow.coroutines.InferenceDispatcher
 import dev.kursor.ktensorflow.coroutines.mapAndClose
 import dev.kursor.ktensorflow.coroutines.processFlow
 import dev.kursor.ktensorflow.coroutines.processFlowDropping
@@ -9,7 +10,9 @@ import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.tuple
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
@@ -25,6 +28,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -231,9 +235,9 @@ class CoroutinesModuleTests {
 
     @Test
     fun concurrentRunSuspendCallsNeverOverlap() = runTest {
-        // Interpreter.run не потокобезопасен, поэтому два инференса не должны выполняться
-        // одновременно, даже если пользователь запустил их параллельно. Пересечение ловится
-        // мьютексом: если tryLock не удался, значит внутрь уже кто-то вошёл.
+        // По умолчанию все функции модуля делят один диспетчер, и инференсы идут по одному,
+        // даже если пользователь запустил их параллельно. Пересечение ловится мьютексом: если
+        // tryLock не удался, значит внутрь уже кто-то вошёл.
         val insideInference = Mutex()
         var overlapped = false
 
@@ -253,5 +257,87 @@ class CoroutinesModuleTests {
 
         assertFalse(overlapped, "inference through the coroutine API must queue on the shared dispatcher")
         assertEquals(listOf(2, 4, 6, 8, 10, 12, 14, 16), results)
+    }
+
+    // --- собственный диспетчер ---
+
+    /** Диспетчер, который считает переданные ему задачи и выполняет их на [delegate]. */
+    private class CountingDispatcher(private val delegate: CoroutineDispatcher) : CoroutineDispatcher() {
+        var dispatches = 0
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatches++
+            delegate.dispatch(context, block)
+        }
+    }
+
+    @Test
+    fun pipelinesOnTheirOwnDispatchersRunInParallel() = runBlocking {
+        // Общий диспетчер сериализует инференс всего процесса; свой диспетчер у каждого пайплайна
+        // позволяет двум моделям работать одновременно
+        val inside = Mutex()
+        var overlapped = false
+        val stage = Stage<Int, Int> { value ->
+            if (!inside.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { delay(200) }
+                inside.unlock()
+            }
+            value
+        }
+        val first = Pipeline(stage)
+        val second = Pipeline(stage)
+
+        val firstDispatcher = InferenceDispatcher()
+        val secondDispatcher = InferenceDispatcher()
+        coroutineScope {
+            val a = async { first.runSuspend(1, firstDispatcher) }
+            val b = async { second.runSuspend(2, secondDispatcher) }
+            assertEquals(listOf(1, 2), listOf(a.await(), b.await()))
+        }
+        firstDispatcher.close()
+        secondDispatcher.close()
+
+        assertTrue(overlapped, "pipelines on their own dispatchers must be able to run at the same time")
+    }
+
+    @Test
+    fun oneInferenceDispatcherRunsOneCallAtATime() = runBlocking {
+        // Собственный диспетчер выполняет вызовы по одному, как и общий по умолчанию
+        val inside = Mutex()
+        var overlapped = false
+        val pipeline = Pipeline(Stage<Int, Int> { value ->
+            if (!inside.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { delay(20) }
+                inside.unlock()
+            }
+            value
+        })
+        val dispatcher = InferenceDispatcher()
+
+        coroutineScope {
+            (1..8).map { value -> async(Dispatchers.Default) { pipeline.runSuspend(value, dispatcher) } }.awaitAll()
+        }
+        dispatcher.close()
+
+        assertFalse(overlapped, "calls on one inference dispatcher must not overlap")
+    }
+
+    @Test
+    fun theGivenDispatcherIsTheOneThatRunsThePipeline() = runBlocking {
+        val dispatcher = CountingDispatcher(Dispatchers.Default)
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+        val item = TrackedItem(7)
+
+        assertEquals(7, pipeline.runSuspend(item, dispatcher))
+        val runSuspendDispatches = dispatcher.dispatches
+        assertEquals(listOf(7), pipeline.processFlowDropping(flowOf(TrackedItem(7)), dispatcher).toList())
+
+        assertTrue(runSuspendDispatches > 0, "runSuspend must run on the given dispatcher")
+        assertTrue(dispatcher.dispatches > runSuspendDispatches, "processFlowDropping must run on the given dispatcher")
     }
 }

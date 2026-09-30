@@ -39,7 +39,9 @@ interface Image : AutoCloseable {
 
     /**
      * Copies the image pixels into the provided [buffer] as packed ARGB values.
-     * @param buffer The destination array, must have a size of at least [width] * [height].
+     * @param buffer The destination array, must have a size of at least [width] * [height];
+     * elements past the image are left untouched.
+     * @throws IllegalArgumentException if [buffer] is smaller than the image.
      */
     fun getPixels(buffer: IntArray)
 
@@ -66,6 +68,8 @@ interface Image : AutoCloseable {
  * value, so passing colored pixels keeps their blue channel. Use [grayscale] to convert colors
  * to luminance properly.
  * @return A platform-specific implementation of [Image].
+ * @throws IllegalArgumentException if [pixels] does not hold exactly [width] * [height] values or
+ * the size is not positive.
  */
 expect fun Image(
     width: Int,

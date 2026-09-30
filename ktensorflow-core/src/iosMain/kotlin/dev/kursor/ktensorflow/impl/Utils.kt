@@ -61,13 +61,26 @@ private fun <T : Any> callWithError(
     result to errorPtr.value
 }
 
+/**
+ * Вызывает [block] с NSData, которая смотрит прямо в закреплённый массив, без копии. Годится
+ * только на время вызова: после него массив открепляется. Раньше NSData.create копировала
+ * весь вход, а copyData копировал его ещё раз.
+ */
 @OptIn(BetaInteropApi::class)
-internal fun ByteArray.toNSData(): NSData = usePinned {
-    NSData.create(bytes = it.addressOf(0), length = this@toNSData.size.convert())
-}
+internal inline fun <T> ByteArray.withNSDataView(block: (NSData) -> T): T =
+    if (isEmpty()) {
+        // У пустого массива нет адреса для закрепления
+        block(NSData())
+    } else {
+        usePinned { pinned ->
+            block(NSData.create(bytesNoCopy = pinned.addressOf(0), length = size.convert(), freeWhenDone = false))
+        }
+    }
 
-internal fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.toInt()).apply {
-    usePinned {
-        memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
+/** Копирует содержимое NSData в начало [destination] одним memcpy, без промежуточного массива. */
+internal fun NSData.copyInto(destination: ByteArray) {
+    if (length == 0uL) return
+    destination.usePinned { pinned ->
+        memcpy(pinned.addressOf(0), bytes, length)
     }
 }

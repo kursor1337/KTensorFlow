@@ -2,6 +2,17 @@ package dev.kursor.ktensorflow
 
 /**
  * Metadata for a machine learning model, describing its inputs and outputs.
+ *
+ * If the model has signatures, the tensors are those of its first signature, listed in the
+ * signature's order and named by it; tensors of other signatures are not described. Otherwise
+ * every tensor is listed in index order under its own name.
+ *
+ * The order of [inputData] is therefore not necessarily the order [Interpreter.run] expects its
+ * inputs in: `run` takes inputs by index. Use [ModelTensorData.index] to place each input, for
+ * example `inputData.sortedBy { it.index }`.
+ *
+ * @property inputData Input tensors of the model.
+ * @property outputData Output tensors of the model.
  */
 data class ModelMeta(
     val inputData: List<ModelTensorData>,
@@ -20,6 +31,12 @@ data class ModelMeta(
 
 /**
  * Information about a single input or output tensor of a model.
+ *
+ * @property index Index of the tensor, as [Interpreter.run] addresses inputs and outputs.
+ * @property name Name of the tensor in the model signature, or its own name without signatures.
+ * @property internalName Name of the tensor in the model graph.
+ * @property dataType Data type of the tensor elements.
+ * @property shape Current shape of the tensor; it changes after [Interpreter.resizeInput].
  */
 data class ModelTensorData(
     val index: Int,

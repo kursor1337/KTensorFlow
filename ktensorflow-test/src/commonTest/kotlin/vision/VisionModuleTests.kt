@@ -1603,4 +1603,65 @@ class VisionModuleTests {
         }
         reference.close()
     }
+
+    // --- размеры пиксельных массивов ---
+
+    @Test
+    fun imageFactoryRejectsAPixelArrayOfTheWrongSize() {
+        // Платформы расходились зеркально: iOS молча дополнял короткий массив прозрачными
+        // пикселями, Android молча отбрасывал хвост длинного
+        assertFailsWith<IllegalArgumentException> { Image(4, 4, PixelFormat.ARGB, IntArray(10)) }
+        assertFailsWith<IllegalArgumentException> { Image(4, 4, PixelFormat.ARGB, IntArray(20)) }
+        assertFailsWith<IllegalArgumentException> { Image(4, 4, PixelFormat.Grayscale, IntArray(15)) }
+    }
+
+    @Test
+    fun getPixelsFillsALargerBufferAndRejectsASmallerOne() {
+        // На iOS больший буфер раньше падал, а меньший молча заполнялся частично
+        for (format in listOf(PixelFormat.ARGB, PixelFormat.RGB, PixelFormat.Grayscale)) {
+            val white = (0xFF shl 24) or 0xFFFFFF
+            val image = Image(4, 4, format, IntArray(16) { white })
+            val larger = IntArray(32) { 7 }
+
+            image.getPixels(larger)
+
+            assertTrue(larger.take(16).all { it == white }, "format $format: the image must be copied")
+            assertTrue(larger.drop(16).all { it == 7 }, "format $format: the tail must stay untouched")
+            assertFailsWith<IllegalArgumentException>("format $format") { image.getPixels(IntArray(8)) }
+            image.close()
+        }
+    }
+
+    // --- кроп тензора, поворот, нормализация ---
+
+    @Test
+    fun imageTensorCropRejectsAnEmptyOrOutsideRect() {
+        // Пустой прямоугольник раньше давал тензор нулевой ширины, и ошибка всплывала позже
+        val tensor = ImageTensor<Float>(4, 4, PixelFormat.RGB)
+
+        assertFailsWith<IllegalArgumentException> { tensor.crop(Rect(1, 1, 1, 3)) }
+        assertFailsWith<IllegalArgumentException> { tensor.crop(Rect(0, 0, 5, 2)) }
+        assertEquals(2, tensor.crop(Rect(1, 1, 3, 3)).width)
+    }
+
+    @Test
+    fun rotationByAnArbitraryAngleGivesTheSameSizeOnBothPlatforms() {
+        // 100x50 на 30 градусов: 111.6 x 93.3. Android округляет, iOS раньше отбрасывал дробь
+        val image = createSolidImage(100, 50, (0xFF shl 24) or 0x336699)
+
+        val rotated = image.rotate(30f)
+
+        assertEquals(112, rotated.width)
+        assertEquals(93, rotated.height)
+        rotated.close()
+    }
+
+    @Test
+    fun normalizationRejectsAZeroOrNonFiniteDeviation() {
+        // Нулевое std молча превращало весь тензор в Infinity и NaN
+        assertFailsWith<IllegalArgumentException> { Normalization(stdR = 0f) }
+        assertFailsWith<IllegalArgumentException> { Normalization(stdA = Float.POSITIVE_INFINITY) }
+        assertFailsWith<IllegalArgumentException> { Normalization(meanG = Float.NaN) }
+        assertEquals(1f, Normalization().stdA)
+    }
 }

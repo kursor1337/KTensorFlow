@@ -188,11 +188,12 @@ internal class IosInterpreter(
 
         inputs.forEachIndexed { index, input ->
             val inputTensor = getInputTensor(index)
-            val data = input.toNSData()
-            checkError { errPtr ->
-                inputTensor.copyData(data, errPtr)
+            // copyData сам копирует байты в тензор, поэтому NSData лишь смотрит в массив
+            input.withNSDataView { data ->
+                checkError<Boolean> { errPtr ->
+                    inputTensor.copyData(data, errPtr)
+                }
             }
-            Unit
         }
         checkError { errPtr ->
             tflInterpreter.invokeWithError(errPtr)
@@ -202,19 +203,20 @@ internal class IosInterpreter(
             val (i, byteArray) = entry
             val outputTensor = getOutputTensor(i)
 
-            val array = checkError { errPtr ->
+            // dataWithError уже отдаёт копию данных тензора: из неё сразу в буфер вызывающего,
+            // без промежуточного ByteArray, который раньше добавлял ещё две копии
+            val data = checkError { errPtr ->
                 outputTensor.dataWithError(errPtr)
             }
-                .toByteArray()
 
             // Короткий буфер раньше молча обрезал результат; Android в этом случае падает.
             // Буфер длиннее тензора допустим на обеих платформах: хвост остаётся нетронутым
-            if (byteArray.size < array.size) {
+            if (byteArray.size.toULong() < data.length) {
                 throw TensorFlowException(
-                    "Output $i holds ${array.size} bytes, the buffer has only ${byteArray.size}"
+                    "Output $i holds ${data.length} bytes, the buffer has only ${byteArray.size}"
                 )
             }
-            array.copyInto(destination = byteArray)
+            data.copyInto(byteArray)
         }
     }
 

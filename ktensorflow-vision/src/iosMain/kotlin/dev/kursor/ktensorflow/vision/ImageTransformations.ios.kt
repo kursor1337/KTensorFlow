@@ -20,6 +20,7 @@ import platform.CoreGraphics.CGImageCreateWithImageInRect
 import platform.CoreGraphics.CGImageRelease
 import platform.CoreGraphics.CGRectMake
 import kotlin.math.PI
+import kotlin.math.roundToInt
 
 actual fun Image.resize(
     newWidth: Int,
@@ -106,8 +107,11 @@ actual fun Image.rotate(
     val radians = degrees * PI / 180.0
     val sin = kotlin.math.abs(kotlin.math.sin(radians))
     val cos = kotlin.math.abs(kotlin.math.cos(radians))
-    val newWidth = (width * cos + height * sin).toInt()
-    val newHeight = (width * sin + height * cos).toInt()
+    // Округление, как у Bitmap.createBitmap с матрицей на Android (Math.round по повёрнутому
+    // прямоугольнику). Раньше дробь отбрасывалась, и на произвольном угле размер расходился с
+    // Android на пиксель: 100x50 на 30 градусов давал 111x93 против 112x93
+    val newWidth = (width * cos + height * sin).roundToInt()
+    val newHeight = (width * sin + height * cos).roundToInt()
 
     val out = ByteArray(newWidth * newHeight * pixelFormat.channels)
     withBitmapContext(out, newWidth, newHeight, pixelFormat) { ctx ->

@@ -19,16 +19,21 @@ import kotlinx.coroutines.withContext
 import kotlin.jvm.JvmName
 
 /**
- * Runs the pipeline with the given input.
- * This function runs the pipeline asynchronously on the default dispatcher.
+ * Runs the pipeline with the given input off the calling thread.
+ *
  * @param input The input to the pipeline.
+ * @param dispatcher Dispatcher inference runs on. By default it is one shared
+ *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
+ *   [InferenceDispatcher] per interpreter to run several models in parallel.
  * @return The output of the pipeline.
  */
 @ExperimentalKTensorFlowApi
-suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
-    withContext(InferenceDispatcher) {
-        run(input)
-    }
+suspend fun <I, O> Pipeline<I, O>.runSuspend(
+    input: I,
+    dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
+): O = withContext(dispatcher) {
+    run(input)
+}
 
 /**
  * Runs the pipeline with the given input flow.
@@ -38,13 +43,15 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(input: I): O =
  * other dispatcher is also safe, because the interpreter serializes its own calls.
  *
  * @param inputFlow The input flow to the pipeline.
- * @param dispatcher The dispatcher to run the pipeline on.
+ * @param dispatcher Dispatcher inference runs on. By default it is one shared
+ *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
+ *   [InferenceDispatcher] per interpreter to run several models in parallel.
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
 fun <I, O> Pipeline<I, O>.processFlow(
     inputFlow: Flow<I>,
-    dispatcher: CoroutineDispatcher = InferenceDispatcher
+    dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = inputFlow
     .map { item -> run(item) }
     .flowOn(dispatcher)
@@ -60,14 +67,16 @@ fun <I, O> Pipeline<I, O>.processFlow(
  * other dispatcher is also safe, because the interpreter serializes its own calls.
  *
  * @param inputFlow The input flow to the pipeline.
- * @param dispatcher The dispatcher to run the pipeline on.
+ * @param dispatcher Dispatcher inference runs on. By default it is one shared
+ *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
+ *   [InferenceDispatcher] per interpreter to run several models in parallel.
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
 @JvmName("processTupleFlow")
 fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
     inputFlow: Flow<I>,
-    dispatcher: CoroutineDispatcher = InferenceDispatcher
+    dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = inputFlow
     .map { item -> run(tuple(item)) }
     .flowOn(dispatcher)
@@ -75,7 +84,7 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
  * This function runs the pipeline for every item in the input flow that arrives while it is idle.
- * The pipeline is run asynchronously on the shared inference dispatcher, one item at a time.
+ * The pipeline is run asynchronously on [dispatcher], one item at a time.
  *
  * The flow takes ownership of every item it receives and closes each one exactly once (using
  * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
@@ -89,12 +98,16 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
  * consumed through `receiveAsFlow()`.
  *
  * @param inputFlow The input flow to the pipeline.
+ * @param dispatcher Dispatcher inference runs on. By default it is one shared
+ *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
+ *   [InferenceDispatcher] per interpreter to run several models in parallel.
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
 fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
     inputFlow: Flow<I>,
-): Flow<O> = processDropping(inputFlow) { item -> item.close() }
+    dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
+): Flow<O> = processDropping(inputFlow, dispatcher) { item -> item.close() }
 
 /**
  * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
@@ -102,7 +115,7 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
  * collected directly from a camera or any other source without manual wrapping.
- * The pipeline is run asynchronously on the shared inference dispatcher, one item at a time.
+ * The pipeline is run asynchronously on [dispatcher], one item at a time.
  *
  * The flow takes ownership of every item it receives and closes each one exactly once (using
  * [AutoCloseable.close]): an item that arrives while the pipeline is busy is closed right away,
@@ -116,17 +129,22 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  * consumed through `receiveAsFlow()`.
  *
  * @param inputFlow The input flow to the pipeline.
+ * @param dispatcher Dispatcher inference runs on. By default it is one shared
+ *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
+ *   [InferenceDispatcher] per interpreter to run several models in parallel.
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
 @JvmName("processTupleFlowDropping")
 fun <I : AutoCloseable, O> Pipeline<Tuple.One<I>, O>.processFlowDropping(
     inputFlow: Flow<I>,
-): Flow<O> = processDropping(inputFlow.map { item -> tuple(item) }) { input -> input.first.close() }
+    dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
+): Flow<O> = processDropping(inputFlow.map { item -> tuple(item) }, dispatcher) { input -> input.first.close() }
 
 @ExperimentalKTensorFlowApi
 private fun <I, O> Pipeline<I, O>.processDropping(
     inputFlow: Flow<I>,
+    dispatcher: CoroutineDispatcher,
     release: (I) -> Unit
 ): Flow<O> = channelFlow {
     val mutex = Mutex()
@@ -140,7 +158,7 @@ private fun <I, O> Pipeline<I, O>.processDropping(
         // ATOMIC: тело стартует, даже если сбор отменили раньше, чем диспетчер взял задачу.
         // С обычным запуском отменённая до старта корутина не выполняет ни строчки, и принятый
         // кадр не попадал ни в пайплайн, ни в release - он просто утекал.
-        launch(InferenceDispatcher, start = CoroutineStart.ATOMIC) {
+        launch(dispatcher, start = CoroutineStart.ATOMIC) {
             try {
                 if (isActive) send(run(item))
             } finally {

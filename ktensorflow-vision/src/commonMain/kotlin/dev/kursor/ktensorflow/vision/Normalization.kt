@@ -14,6 +14,9 @@ package dev.kursor.ktensorflow.vision
  * @property stdG Standard deviation for the Green channel.
  * @property stdB Standard deviation for the Blue channel.
  * @property stdA Standard deviation for the Alpha channel.
+ *
+ * @throws IllegalArgumentException if a standard deviation is zero or not finite, or a mean is
+ * not finite.
  */
 data class Normalization(
     val meanR: Float = 0f,
@@ -25,6 +28,16 @@ data class Normalization(
     val stdB: Float = 1f,
     val stdA: Float = 1f
 ) {
+
+    init {
+        // Нулевое или бесконечное std молча превращало весь тензор в Infinity и NaN, которые
+        // дальше расходились по инференсу без единой ошибки
+        val stds = listOf(stdR, stdG, stdB, stdA)
+        require(stds.all { it.isFinite() && it != 0f }) { "Standard deviations must be finite and non-zero, got $stds" }
+        val means = listOf(meanR, meanG, meanB, meanA)
+        require(means.all { it.isFinite() }) { "Means must be finite, got $means" }
+    }
+
     companion object {
         /**
          * Represents a normalization configuration that performs no transformation,
