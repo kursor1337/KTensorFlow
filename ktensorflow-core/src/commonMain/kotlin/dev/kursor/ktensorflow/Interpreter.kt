@@ -23,9 +23,15 @@ interface Interpreter : AutoCloseable {
     fun getModelMeta(): ModelMeta
 
     /**
-     * Resizes the input tensor at the given index.
+     * Resizes the input tensor at the given index and reallocates the tensors of the model.
+     *
+     * The new shape must have at least one dimension, and every dimension must be positive. If the
+     * model cannot take the shape, the input keeps its previous shape and the interpreter stays
+     * usable.
+     *
      * @param index Index of the input tensor.
      * @param dims Array of dimensions for the new shape.
+     * @throws TensorFlowException if the shape is invalid or the model cannot take it.
      */
     fun resizeInput(index: Int, dims: IntArray)
 

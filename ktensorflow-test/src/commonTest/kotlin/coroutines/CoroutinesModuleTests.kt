@@ -340,4 +340,37 @@ class CoroutinesModuleTests {
         assertTrue(runSuspendDispatches > 0, "runSuspend must run on the given dispatcher")
         assertTrue(dispatcher.dispatches > runSuspendDispatches, "processFlowDropping must run on the given dispatcher")
     }
+
+    @Test
+    fun functionsOfTheModuleFailLoudlyOnAClosedDispatcher() = runBlocking {
+        // Раньше на Android вызов лишь отменял корутину, и внутри launch работа молча не
+        // выполнялась, а на iOS закрытый диспетчер продолжал работать
+        val dispatcher = InferenceDispatcher().apply { close() }
+        val pipeline = Pipeline(Stage<Int, Int> { it })
+
+        assertClosedDispatcherError { pipeline.runSuspend(1, dispatcher) }
+        assertClosedDispatcherError { pipeline.processFlow(flowOf(1), dispatcher).toList() }
+        assertClosedDispatcherError {
+            Pipeline(Stage<TrackedItem, Int> { it.id }).processFlowDropping(flowOf(TrackedItem(1)), dispatcher).toList()
+        }
+    }
+
+    @Test
+    fun aCoroutineDispatchedToAClosedDispatcherIsCancelledOnEveryPlatform() = runBlocking {
+        val dispatcher = InferenceDispatcher().apply { close() }
+        var ran = false
+
+        val job = launch(dispatcher) { ran = true }
+        job.join()
+
+        assertTrue(job.isCancelled, "a closed dispatcher must cancel what is dispatched to it")
+        assertFalse(ran)
+    }
+
+    // На JVM CancellationException - подкласс IllegalStateException, поэтому одного типа мало:
+    // старая тихая отмена ("The task was rejected") тоже прошла бы такую проверку
+    private suspend fun assertClosedDispatcherError(block: suspend () -> Unit) {
+        val error = runCatching { block() }.exceptionOrNull()
+        assertEquals("InferenceDispatcher has already been closed", error?.message, "$error")
+    }
 }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -31,7 +32,7 @@ import kotlin.jvm.JvmName
 suspend fun <I, O> Pipeline<I, O>.runSuspend(
     input: I,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-): O = withContext(dispatcher) {
+): O = withContext(dispatcher.checkNotClosed()) {
     run(input)
 }
 
@@ -55,6 +56,7 @@ fun <I, O> Pipeline<I, O>.processFlow(
 ): Flow<O> = inputFlow
     .map { item -> run(item) }
     .flowOn(dispatcher)
+    .onStart { dispatcher.checkNotClosed() }
 
 /**
  * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
@@ -80,6 +82,7 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
 ): Flow<O> = inputFlow
     .map { item -> run(tuple(item)) }
     .flowOn(dispatcher)
+    .onStart { dispatcher.checkNotClosed() }
 
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
@@ -147,6 +150,7 @@ private fun <I, O> Pipeline<I, O>.processDropping(
     dispatcher: CoroutineDispatcher,
     release: (I) -> Unit
 ): Flow<O> = channelFlow {
+    dispatcher.checkNotClosed()
     val mutex = Mutex()
 
     inputFlow.collect { item ->

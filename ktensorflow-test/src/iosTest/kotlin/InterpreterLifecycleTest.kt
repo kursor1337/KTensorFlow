@@ -74,4 +74,31 @@ class InterpreterLifecycleTest {
         assertEquals(resized, interpreter.getModelMeta().inputData[0].shape)
         interpreter.close()
     }
+
+    @Test
+    fun aRejectedResizeLeavesTheInterpreterWorking() {
+        // Раньше iOS молча принимал форму, с которой выход модели получал нулевую размерность,
+        // и падал уже на следующем run или getModelMeta
+        val interpreter = createInterpreter("mnist", "tflite", null)
+        val original = interpreter.getModelMeta().inputData[0].shape
+
+        for (dims in rejectedShapes) {
+            assertFailsWith<TensorFlowException>(dims.contentToString()) { interpreter.resizeInput(0, dims) }
+            assertEquals(original, interpreter.getModelMeta().inputData[0].shape, dims.contentToString())
+            interpreter.run(input(), output())
+        }
+
+        val resized = original.toMutableList().also { it[0] = 2 }
+        interpreter.resizeInput(0, resized.toIntArray())
+        assertEquals(resized, interpreter.getModelMeta().inputData[0].shape)
+        interpreter.close()
+    }
+
+    private val rejectedShapes = listOf(
+        intArrayOf(),
+        intArrayOf(0, 28, 28),
+        intArrayOf(-1, 28, 28),
+        intArrayOf(28),
+        intArrayOf(1, 5, 5)
+    )
 }

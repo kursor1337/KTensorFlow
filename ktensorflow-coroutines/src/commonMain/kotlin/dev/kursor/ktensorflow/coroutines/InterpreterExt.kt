@@ -21,6 +21,11 @@ import kotlin.jvm.JvmName
  * pipeline's `runSuspend` keeps both on one thread. An interpreter without such a delegate, or
  * one used on iOS, can be created anywhere.
  *
+ * Loading the model, and compiling the GPU delegate if there is one, occupies [dispatcher] until it
+ * is done, which can take seconds. On the shared dispatcher every other inference through this
+ * module waits meanwhile, so a camera pipeline freezes while another model loads. Give a model
+ * loaded next to running ones its own [InferenceDispatcher].
+ *
  * The returned object is a plain [Interpreter]; the name describes how it was created, like
  * `SupervisorJob()` in kotlinx.coroutines returns a plain `Job`.
  *
@@ -40,7 +45,7 @@ suspend fun SuspendInterpreter(
     modelDesc: ModelDesc,
     options: InterpreterOptions,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-): Interpreter = withContext(dispatcher) {
+): Interpreter = withContext(dispatcher.checkNotClosed()) {
     Interpreter(modelDesc, options)
 }
 
@@ -67,7 +72,7 @@ suspend fun Interpreter.runSuspend(
     inputs: List<ByteArray>,
     outputs: Map<Int, ByteArray>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(inputs, outputs)
 }
 
@@ -94,7 +99,7 @@ suspend fun Interpreter.runSuspend(
     inputs: List<ByteArray>,
     outputs: Map<String, ByteArray>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(inputs, outputs)
 }
 
@@ -120,7 +125,7 @@ suspend fun Interpreter.runSuspend(
     input: ByteArray,
     output: ByteArray,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(input, output)
 }
 
@@ -147,7 +152,7 @@ suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<Int, PhysicalTensor<*>>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(inputs, outputs)
 }
 
@@ -174,7 +179,7 @@ suspend fun Interpreter.runSuspend(
     inputs: List<PhysicalTensor<*>>,
     outputs: Map<String, PhysicalTensor<*>>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(inputs, outputs)
 }
 
@@ -200,6 +205,6 @@ suspend fun Interpreter.runSuspend(
     input: PhysicalTensor<*>,
     output: PhysicalTensor<*>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
-) = withContext(dispatcher) {
+) = withContext(dispatcher.checkNotClosed()) {
     run(input, output)
 }

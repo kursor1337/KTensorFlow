@@ -198,10 +198,13 @@ val detector = SuspendInterpreter(detectorModel, detectorOptions, detectorDispat
 // Runs in parallel with inference on other dispatchers
 val boxes = detectionPipeline.runSuspend(tuple(frame), detectorDispatcher)
 
-// When the interpreter is no longer needed: on Android the dispatcher owns a thread
+// When the interpreter is no longer needed: on Android the dispatcher owns a thread. Calls with a
+// closed dispatcher throw IllegalStateException
 detector.close()
 detectorDispatcher.close()
 ```
+
+A dispatcher of its own also matters while a model loads. `SuspendInterpreter` loads the model, and compiles the GPU delegate, on the dispatcher it is given, which can take seconds; on the shared dispatcher all other inference waits meanwhile, so a camera pipeline freezes while another screen loads its model. Load a model that starts next to running ones on its own `InferenceDispatcher`.
 
 #### Real-time Video Stream Processing (Backpressure / Frame Dropping)
 If your camera produces 60 FPS, but your ML model can only process 15 FPS, your app will run out of memory (OOM) because unprocessed frames accumulate.

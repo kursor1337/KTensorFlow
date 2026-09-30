@@ -162,16 +162,34 @@ internal class IosInterpreter(
 
     override fun resizeInput(index: Int, dims: IntArray): Unit = locked {
         cachedMeta = null
-        checkError { errPtr ->
-            tflInterpreter.resizeInputTensorAtIndex(
-                index.toULong(),
-                dims.toList(),
-                errPtr
-            )
-        }
-        checkError<Boolean> { errPtr ->
-            tflInterpreter.allocateTensorsWithError(errPtr)
-        }
+        resizeInputSafely(
+            index = index,
+            dims = dims,
+            // shapeWithError сам отвергает скаляр и неположительные размерности: такую форму
+            // нельзя вернуть через resizeInputTensorAtIndex, поэтому откатывать некуда
+            currentShape = {
+                getInputTensor(index).shapeWithError(null)
+                    ?.map { (it as Number).toInt() }
+                    ?.toIntArray()
+            },
+            // Здесь TensorFlowLiteObjC молча принимал форму, с которой выход получал нулевую
+            // размерность, и отказ всплывал только на следующем run или getModelMeta
+            outputShapesValid = {
+                (0 until outputTensorCount).all { i -> getOutputTensor(i).shapeWithError(null) != null }
+            },
+            resizeAndAllocate = { shape ->
+                checkError { errPtr ->
+                    tflInterpreter.resizeInputTensorAtIndex(
+                        index.toULong(),
+                        shape.toList(),
+                        errPtr
+                    )
+                }
+                checkError<Boolean> { errPtr ->
+                    tflInterpreter.allocateTensorsWithError(errPtr)
+                }
+            }
+        )
     }
 
     override fun run(

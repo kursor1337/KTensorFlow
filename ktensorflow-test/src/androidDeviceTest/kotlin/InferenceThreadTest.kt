@@ -99,4 +99,27 @@ class InferenceThreadTest {
         own.join(5_000)
         assertFalse(own.isAlive, "closing the dispatcher must stop its thread")
     }
+
+    @Test
+    fun aClosedInferenceDispatcherFailsLoudlyInsteadOfCancelling() = runBlocking {
+        // Раньше вызов на закрытом диспетчере бросал CancellationException("The task was
+        // rejected"): внутри launch корутина молча завершалась, и работа не выполнялась
+        val dispatcher = InferenceDispatcher().apply { close() }
+        val interpreter = SuspendInterpreter(loadModel(context, "mnist.tflite"), InterpreterOptions())
+        val input = Tensor<Float>(shape = TensorShape(28, 28)).toPhysical()
+        val output = Tensor<Float>(shape = TensorShape(10)).toPhysical()
+
+        assertClosedDispatcherError {
+            SuspendInterpreter(loadModel(context, "mnist.tflite"), InterpreterOptions(), dispatcher)
+        }
+        assertClosedDispatcherError { interpreter.runSuspend(input, output, dispatcher) }
+        interpreter.close()
+    }
+
+    // На JVM CancellationException - подкласс IllegalStateException, поэтому одного типа мало:
+    // старая тихая отмена ("The task was rejected") тоже прошла бы такую проверку
+    private suspend fun assertClosedDispatcherError(block: suspend () -> Unit) {
+        val error = runCatching { block() }.exceptionOrNull()
+        assertEquals("InferenceDispatcher has already been closed", error?.message, "$error")
+    }
 }

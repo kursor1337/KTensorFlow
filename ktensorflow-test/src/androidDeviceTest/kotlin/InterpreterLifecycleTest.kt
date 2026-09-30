@@ -81,4 +81,31 @@ class InterpreterLifecycleTest {
         assertEquals(resized, interpreter.getModelMeta().inputData[0].shape)
         interpreter.close()
     }
+
+    @Test
+    fun aRejectedResizeLeavesTheInterpreterWorking() {
+        // Раньше Android бросал исключение, но оставлял вход в новой форме, а после отрицательной
+        // размерности интерпретатор не восстанавливался даже возвратом к исходной форме
+        val interpreter = createInterpreter(context, "mnist.tflite", null)
+        val original = interpreter.getModelMeta().inputData[0].shape
+
+        for (dims in rejectedShapes) {
+            assertFailsWith<TensorFlowException>(dims.contentToString()) { interpreter.resizeInput(0, dims) }
+            assertEquals(original, interpreter.getModelMeta().inputData[0].shape, dims.contentToString())
+            interpreter.run(input(), output())
+        }
+
+        val resized = original.toMutableList().also { it[0] = 2 }
+        interpreter.resizeInput(0, resized.toIntArray())
+        assertEquals(resized, interpreter.getModelMeta().inputData[0].shape)
+        interpreter.close()
+    }
+
+    private val rejectedShapes = listOf(
+        intArrayOf(),
+        intArrayOf(0, 28, 28),
+        intArrayOf(-1, 28, 28),
+        intArrayOf(28),
+        intArrayOf(1, 5, 5)
+    )
 }

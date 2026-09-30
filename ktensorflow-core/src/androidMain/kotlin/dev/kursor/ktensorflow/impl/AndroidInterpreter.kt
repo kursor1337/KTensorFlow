@@ -133,11 +133,27 @@ internal class AndroidInterpreter(
     }
 
     override fun resizeInput(index: Int, dims: IntArray) = locked {
-        tensorFlowCall("resize input $index") {
-            tensorFlowInterpreter.resizeInput(index, dims)
-            tensorFlowInterpreter.allocateTensors()
-        }
         cachedMeta = null
+        resizeInputSafely(
+            index = index,
+            dims = dims,
+            currentShape = {
+                tensorFlowCall("read input $index") { tensorFlowInterpreter.getInputTensor(index).shape() }
+            },
+            outputShapesValid = {
+                tensorFlowCall("read the model outputs") {
+                    (0 until tensorFlowInterpreter.outputTensorCount).all { i ->
+                        tensorFlowInterpreter.getOutputTensor(i).shape().isValidShape()
+                    }
+                }
+            },
+            resizeAndAllocate = { shape ->
+                tensorFlowCall("resize input $index") {
+                    tensorFlowInterpreter.resizeInput(index, shape)
+                    tensorFlowInterpreter.allocateTensors()
+                }
+            }
+        )
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)
