@@ -191,6 +191,10 @@ public final class dev/kursor/ktensorflow/tensor/PhysicalTensor$DefaultImpls {
 }
 
 public final class dev/kursor/ktensorflow/tensor/PhysicalTensorKt {
+	public static final fun setFlatUnboxed (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;IF)V
+	public static final fun setFlatUnboxed (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;II)V
+	public static final fun setFlatUnboxed (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;IJ)V
+	public static final fun setFlatUnboxed-sEu17AQ (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;IB)V
 	public static final fun toArray (Ldev/kursor/ktensorflow/tensor/PhysicalTensor;)Ljava/lang/Object;
 }
 
@@ -334,9 +338,17 @@ public final class dev/kursor/ktensorflow/tensor/TransformationsKt {
 
 public final class dev/kursor/ktensorflow/tensor/UtilsKt {
 	public static final fun incrementIndex ([ILdev/kursor/ktensorflow/tensor/TensorShape;)V
+	public static final fun readFloat ([BI)F
+	public static final fun readInt ([BI)I
+	public static final fun readLong ([BI)J
+	public static final fun readUByte ([BI)B
 	public static final fun strides (Ldev/kursor/ktensorflow/tensor/TensorShape;)[I
 	public static final fun toFlatIndex ([ILdev/kursor/ktensorflow/tensor/TensorShape;)I
 	public static final fun toFlatIndex ([I[I)I
 	public static final fun toNestedIndex (ILdev/kursor/ktensorflow/tensor/TensorShape;)[I
+	public static final fun writeFloat ([BIF)V
+	public static final fun writeInt ([BII)V
+	public static final fun writeLong ([BIJ)V
+	public static final fun writeUByte-sEu17AQ ([BIB)V
 }
 

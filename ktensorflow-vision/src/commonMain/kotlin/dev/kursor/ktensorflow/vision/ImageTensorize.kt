@@ -1,6 +1,11 @@
 package dev.kursor.ktensorflow.vision
 
+import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.readFloat
+import dev.kursor.ktensorflow.tensor.writeFloat
+import dev.kursor.ktensorflow.tensor.writeInt
+import dev.kursor.ktensorflow.tensor.writeLong
 
 /**
  * Converts this [Image] into an [ImageTensor] with the specified type [T].
@@ -44,21 +49,19 @@ fun <T : Any> Image.tensorize(
     layout: ImageTensorLayout = ImageTensorLayout.NHWC,
     pixelFormat: PixelFormat = this.pixelFormat
 ): ImageTensor<T> {
-    val tensor = ImageTensor(
-        width = width,
-        height = height,
-        dataType = dataType,
-        pixelFormat = pixelFormat,
-        layout = layout
+    val physical = Tensor(
+        dataType,
+        TensorShape(n = 1, h = height, w = width, c = pixelFormat.channels, layout = layout)
     )
+    val tensor = ImageTensor(physical, pixelFormat, layout)
 
     writeImage(
-        tensor = tensor,
+        data = physical.data,
+        dataType = dataType,
         pixels = getPixels(),
         offsets = ImageOffsets(tensor),
         batchIndex = 0,
-        pixelFormat = pixelFormat,
-        convert = dataType.converter
+        pixelFormat = pixelFormat
     )
 
     return tensor
@@ -112,17 +115,14 @@ fun <T : Any> List<Image>.tensorizeBatch(
 
     val first = first()
 
-    val tensor = ImageTensor(
-        width = first.width,
-        height = first.height,
-        dataType = dataType,
-        pixelFormat = pixelFormat,
-        layout = layout,
-        batchSize = size
+    val physical = Tensor(
+        dataType,
+        TensorShape(n = size, h = first.height, w = first.width, c = pixelFormat.channels, layout = layout)
     )
+    val tensor = ImageTensor(physical, pixelFormat, layout)
 
     val offsets = ImageOffsets(tensor)
-    val convert = dataType.converter
+    val data = physical.data
     // Один буфер пикселей на весь батч: размеры у изображений одинаковые
     val pixels = IntArray(first.width * first.height)
 
@@ -133,12 +133,12 @@ fun <T : Any> List<Image>.tensorizeBatch(
         image.getPixels(pixels)
 
         writeImage(
-            tensor = tensor,
+            data = data,
+            dataType = dataType,
             pixels = pixels,
             offsets = offsets,
             batchIndex = batchIndex,
-            pixelFormat = pixelFormat,
-            convert = convert
+            pixelFormat = pixelFormat
         )
     }
 
@@ -165,16 +165,14 @@ fun Image.tensorizeFloat(
     pixelFormat: PixelFormat = this.pixelFormat,
     normalization: Normalization = Normalization.None
 ): ImageTensor<Float> {
-    val tensor = ImageTensor(
-        width = width,
-        height = height,
-        dataType = TensorDataType.Float32,
-        pixelFormat = pixelFormat,
-        layout = layout
+    val physical = Tensor(
+        TensorDataType.Float32,
+        TensorShape(n = 1, h = height, w = width, c = pixelFormat.channels, layout = layout)
     )
+    val tensor = ImageTensor(physical, pixelFormat, layout)
 
     writeImageFloat(
-        tensor = tensor,
+        data = physical.data,
         pixels = getPixels(),
         offsets = ImageOffsets(tensor),
         batchIndex = 0,
@@ -208,16 +206,14 @@ fun List<Image>.tensorizeBatchFloat(
 
     val first = first()
 
-    val tensor = ImageTensor(
-        width = first.width,
-        height = first.height,
-        dataType = TensorDataType.Float32,
-        pixelFormat = pixelFormat,
-        layout = layout,
-        batchSize = size
+    val physical = Tensor(
+        TensorDataType.Float32,
+        TensorShape(n = size, h = first.height, w = first.width, c = pixelFormat.channels, layout = layout)
     )
+    val tensor = ImageTensor(physical, pixelFormat, layout)
 
     val offsets = ImageOffsets(tensor)
+    val data = physical.data
     // Один буфер пикселей на весь батч: размеры у изображений одинаковые
     val pixels = IntArray(first.width * first.height)
 
@@ -228,7 +224,7 @@ fun List<Image>.tensorizeBatchFloat(
         image.getPixels(pixels)
 
         writeImageFloat(
-            tensor = tensor,
+            data = data,
             pixels = pixels,
             offsets = offsets,
             batchIndex = batchIndex,
@@ -264,128 +260,202 @@ fun ImageTensor<Float>.toImage(
 
     val pixels = IntArray(width * height)
     val offsets = ImageOffsets(this)
+    val data = toPhysical().data
 
     when (val format = pixelFormat) {
-        PixelFormat.Grayscale -> readGrayscale(this, pixels, offsets, batchIndex, normalization)
-        is PixelFormat.RGB -> readRgb(this, pixels, offsets, batchIndex, format, normalization)
-        is PixelFormat.RGBA -> readRgba(this, pixels, offsets, batchIndex, format, normalization)
+        PixelFormat.Grayscale -> readGrayscale(data, pixels, offsets, batchIndex, normalization)
+        is PixelFormat.RGB -> readRgb(data, pixels, offsets, batchIndex, format, normalization)
+        is PixelFormat.RGBA -> readRgba(data, pixels, offsets, batchIndex, format, normalization)
     }
 
     return Image(width, height, pixelFormat, pixels)
 }
 
-// Каждый формат пикселей вынесен в отдельную небольшую функцию намеренно: ART не оптимизирует
-// крупные методы, а один when со всеми вариантами внутри делал тензоризацию именно таким методом.
+// Циклы пишут и читают байты тензора напрямую, а не через обобщённые setFlat и getFlat: те
+// упаковывают каждое значение в объект и вызываются через интерфейс, и на кадре 640x640 это
+// давало 7-17 мс вместо 2 мс (замер release-сборок на обеих платформах).
+//
+// Правило для всех таких циклов: результат создаётся физическим тензором явно, и запись идёт в
+// его data; источник читается через toPhysical().data - у физического тензора это его же байты,
+// а view копируется один раз. data берётся до цикла: setFlatUnboxed на каждом элементе на iOS
+// в 1,6 раза медленнее, потому что геттер data вызывается через интерфейс.
+//
+// Каждое сочетание формата и типа данных вынесено в отдельную небольшую функцию намеренно: ART
+// не оптимизирует крупные методы, а один when со всеми вариантами внутри делал тензоризацию
+// именно таким методом. Сам обход пикселей встраивается в каждую из них.
 
-private fun <T : Any> writeImage(
-    tensor: ImageTensor<T>,
-    pixels: IntArray,
+/**
+ * Обходит пиксели одного изображения батча: передаёт номер пикселя в массиве ARGB и плоское
+ * смещение его первого канала в тензоре. Смещения только наращиваются.
+ */
+private inline fun forEachImagePixel(
     offsets: ImageOffsets,
     batchIndex: Int,
-    pixelFormat: PixelFormat,
-    convert: (Int) -> T
-) {
-    when (pixelFormat) {
-        PixelFormat.Grayscale -> writeGrayscale(tensor, pixels, offsets, batchIndex, convert)
-        is PixelFormat.RGB -> writeRgb(tensor, pixels, offsets, batchIndex, pixelFormat, convert)
-        is PixelFormat.RGBA -> writeRgba(tensor, pixels, offsets, batchIndex, pixelFormat, convert)
-    }
-}
-
-private fun <T : Any> writeGrayscale(
-    tensor: ImageTensor<T>,
-    pixels: IntArray,
-    offsets: ImageOffsets,
-    batchIndex: Int,
-    convert: (Int) -> T
+    action: (pixel: Int, base: Int) -> Unit
 ) {
     val width = offsets.width
     val height = offsets.height
     val rowStride = offsets.row
     val columnStride = offsets.column
 
-    var idx = 0
+    var pixel = 0
     var rowBase = offsets.batch * batchIndex
     for (h in 0 until height) {
         var base = rowBase
         for (w in 0 until width) {
-            tensor.setFlat(base, convert(luma(pixels[idx++])))
+            action(pixel++, base)
             base += columnStride
         }
         rowBase += rowStride
     }
 }
 
-private fun <T : Any> writeRgb(
-    tensor: ImageTensor<T>,
+private fun writeImage(
+    data: ByteArray,
+    dataType: TensorDataType<*>,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat
+) {
+    when (dataType) {
+        // Без нормализации (v - 0) / 1 даёт ровно v, поэтому Float идёт путём tensorizeFloat
+        TensorDataType.Float32 ->
+            writeImageFloat(data, pixels, offsets, batchIndex, pixelFormat, Normalization.None)
+
+        TensorDataType.Int32 -> when (pixelFormat) {
+            PixelFormat.Grayscale -> writeGrayscaleInt32(data, pixels, offsets, batchIndex)
+            is PixelFormat.RGB -> writeRgbInt32(data, pixels, offsets, batchIndex, pixelFormat)
+            is PixelFormat.RGBA -> writeRgbaInt32(data, pixels, offsets, batchIndex, pixelFormat)
+        }
+
+        TensorDataType.Int64 -> when (pixelFormat) {
+            PixelFormat.Grayscale -> writeGrayscaleInt64(data, pixels, offsets, batchIndex)
+            is PixelFormat.RGB -> writeRgbInt64(data, pixels, offsets, batchIndex, pixelFormat)
+            is PixelFormat.RGBA -> writeRgbaInt64(data, pixels, offsets, batchIndex, pixelFormat)
+        }
+
+        TensorDataType.UInt8 -> when (pixelFormat) {
+            PixelFormat.Grayscale -> writeGrayscaleUInt8(data, pixels, offsets, batchIndex)
+            is PixelFormat.RGB -> writeRgbUInt8(data, pixels, offsets, batchIndex, pixelFormat)
+            is PixelFormat.RGBA -> writeRgbaUInt8(data, pixels, offsets, batchIndex, pixelFormat)
+        }
+    }
+}
+
+/** Пишет яркость каждого пикселя через [put]: тип данных задаёт вызывающая функция. */
+private inline fun writeGrayscale(
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    put: (index: Int, value: Int) -> Unit
+) = forEachImagePixel(offsets, batchIndex) { pixel, base ->
+    put(base, luma(pixels[pixel]))
+}
+
+/** Пишет каналы RGB каждого пикселя через [put]: тип данных задаёт вызывающая функция. */
+private inline fun writeRgb(
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGB,
-    convert: (Int) -> T
+    put: (index: Int, value: Int) -> Unit
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val r = pixelFormat.rIndex * offsets.channel
     val g = pixelFormat.gIndex * offsets.channel
     val b = pixelFormat.bIndex * offsets.channel
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val p = pixels[idx++]
-            tensor.setFlat(base + r, convert((p shr 16) and 0xFF))
-            tensor.setFlat(base + g, convert((p shr 8) and 0xFF))
-            tensor.setFlat(base + b, convert(p and 0xFF))
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val p = pixels[pixel]
+        put(base + r, (p shr 16) and 0xFF)
+        put(base + g, (p shr 8) and 0xFF)
+        put(base + b, p and 0xFF)
     }
 }
 
-private fun <T : Any> writeRgba(
-    tensor: ImageTensor<T>,
+/** Пишет каналы RGBA каждого пикселя через [put]: тип данных задаёт вызывающая функция. */
+private inline fun writeRgba(
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGBA,
-    convert: (Int) -> T
+    put: (index: Int, value: Int) -> Unit
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val r = pixelFormat.rIndex * offsets.channel
     val g = pixelFormat.gIndex * offsets.channel
     val b = pixelFormat.bIndex * offsets.channel
     val a = pixelFormat.aIndex * offsets.channel
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val p = pixels[idx++]
-            tensor.setFlat(base + r, convert((p shr 16) and 0xFF))
-            tensor.setFlat(base + g, convert((p shr 8) and 0xFF))
-            tensor.setFlat(base + b, convert(p and 0xFF))
-            tensor.setFlat(base + a, convert((p shr 24) and 0xFF))
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val p = pixels[pixel]
+        put(base + r, (p shr 16) and 0xFF)
+        put(base + g, (p shr 8) and 0xFF)
+        put(base + b, p and 0xFF)
+        put(base + a, (p shr 24) and 0xFF)
     }
 }
 
-// Float-вариант повторяет структуру обобщённого, но применяет нормализацию арифметикой
-// на месте: это самый горячий путь библиотеки, и вызов конвертера на каждый канал здесь
-// стоил бы дороже самой нормализации.
+private fun writeGrayscaleInt32(data: ByteArray, pixels: IntArray, offsets: ImageOffsets, batchIndex: Int) =
+    writeGrayscale(pixels, offsets, batchIndex) { index, value -> data.writeInt(index, value) }
+
+private fun writeRgbInt32(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGB
+) = writeRgb(pixels, offsets, batchIndex, pixelFormat) { index, value -> data.writeInt(index, value) }
+
+private fun writeRgbaInt32(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGBA
+) = writeRgba(pixels, offsets, batchIndex, pixelFormat) { index, value -> data.writeInt(index, value) }
+
+private fun writeGrayscaleInt64(data: ByteArray, pixels: IntArray, offsets: ImageOffsets, batchIndex: Int) =
+    writeGrayscale(pixels, offsets, batchIndex) { index, value -> data.writeLong(index, value.toLong()) }
+
+private fun writeRgbInt64(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGB
+) = writeRgb(pixels, offsets, batchIndex, pixelFormat) { index, value -> data.writeLong(index, value.toLong()) }
+
+private fun writeRgbaInt64(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGBA
+) = writeRgba(pixels, offsets, batchIndex, pixelFormat) { index, value -> data.writeLong(index, value.toLong()) }
+
+private fun writeGrayscaleUInt8(data: ByteArray, pixels: IntArray, offsets: ImageOffsets, batchIndex: Int) =
+    writeGrayscale(pixels, offsets, batchIndex) { index, value -> data[index] = value.toByte() }
+
+private fun writeRgbUInt8(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGB
+) = writeRgb(pixels, offsets, batchIndex, pixelFormat) { index, value -> data[index] = value.toByte() }
+
+private fun writeRgbaUInt8(
+    data: ByteArray,
+    pixels: IntArray,
+    offsets: ImageOffsets,
+    batchIndex: Int,
+    pixelFormat: PixelFormat.RGBA
+) = writeRgba(pixels, offsets, batchIndex, pixelFormat) { index, value -> data[index] = value.toByte() }
+
+// Float-вариант применяет нормализацию арифметикой на месте: это самый горячий путь библиотеки.
 
 private fun writeImageFloat(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
@@ -394,54 +464,39 @@ private fun writeImageFloat(
 ) {
     when (pixelFormat) {
         PixelFormat.Grayscale ->
-            writeGrayscaleFloat(tensor, pixels, offsets, batchIndex, normalization)
+            writeGrayscaleFloat(data, pixels, offsets, batchIndex, normalization)
 
         is PixelFormat.RGB ->
-            writeRgbFloat(tensor, pixels, offsets, batchIndex, pixelFormat, normalization)
+            writeRgbFloat(data, pixels, offsets, batchIndex, pixelFormat, normalization)
 
         is PixelFormat.RGBA ->
-            writeRgbaFloat(tensor, pixels, offsets, batchIndex, pixelFormat, normalization)
+            writeRgbaFloat(data, pixels, offsets, batchIndex, pixelFormat, normalization)
     }
 }
 
 private fun writeGrayscaleFloat(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val mean = normalization.meanR
     val std = normalization.stdR
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            tensor.setFlat(base, (luma(pixels[idx++]).toFloat() - mean) / std)
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        data.writeFloat(base, (luma(pixels[pixel]).toFloat() - mean) / std)
     }
 }
 
 private fun writeRgbFloat(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGB,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val r = pixelFormat.rIndex * offsets.channel
     val g = pixelFormat.gIndex * offsets.channel
     val b = pixelFormat.bIndex * offsets.channel
@@ -452,33 +507,22 @@ private fun writeRgbFloat(
     val stdG = normalization.stdG
     val stdB = normalization.stdB
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val p = pixels[idx++]
-            tensor.setFlat(base + r, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
-            tensor.setFlat(base + g, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
-            tensor.setFlat(base + b, ((p and 0xFF).toFloat() - meanB) / stdB)
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val p = pixels[pixel]
+        data.writeFloat(base + r, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
+        data.writeFloat(base + g, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
+        data.writeFloat(base + b, ((p and 0xFF).toFloat() - meanB) / stdB)
     }
 }
 
 private fun writeRgbaFloat(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGBA,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val r = pixelFormat.rIndex * offsets.channel
     val g = pixelFormat.gIndex * offsets.channel
     val b = pixelFormat.bIndex * offsets.channel
@@ -492,19 +536,12 @@ private fun writeRgbaFloat(
     val stdB = normalization.stdB
     val stdA = normalization.stdA
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val p = pixels[idx++]
-            tensor.setFlat(base + r, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
-            tensor.setFlat(base + g, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
-            tensor.setFlat(base + b, ((p and 0xFF).toFloat() - meanB) / stdB)
-            tensor.setFlat(base + a, (((p shr 24) and 0xFF).toFloat() - meanA) / stdA)
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val p = pixels[pixel]
+        data.writeFloat(base + r, (((p shr 16) and 0xFF).toFloat() - meanR) / stdR)
+        data.writeFloat(base + g, (((p shr 8) and 0xFF).toFloat() - meanG) / stdG)
+        data.writeFloat(base + b, ((p and 0xFF).toFloat() - meanB) / stdB)
+        data.writeFloat(base + a, (((p shr 24) and 0xFF).toFloat() - meanA) / stdA)
     }
 }
 
@@ -519,44 +556,29 @@ private fun writeRgbaFloat(
 private inline fun toChannel(value: Float): Int = (value + 0.5f).toInt().coerceIn(0, 255)
 
 private fun readGrayscale(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val mean = normalization.meanR
     val std = normalization.stdR
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val v = toChannel(tensor.getFlat(base) * std + mean)
-            pixels[idx++] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val v = toChannel(data.readFloat(base) * std + mean)
+        pixels[pixel] = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
     }
 }
 
 private fun readRgb(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGB,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val rOffset = pixelFormat.rIndex * offsets.channel
     val gOffset = pixelFormat.gIndex * offsets.channel
     val bOffset = pixelFormat.bIndex * offsets.channel
@@ -567,33 +589,22 @@ private fun readRgb(
     val stdG = normalization.stdG
     val stdB = normalization.stdB
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val r = toChannel(tensor.getFlat(base + rOffset) * stdR + meanR)
-            val g = toChannel(tensor.getFlat(base + gOffset) * stdG + meanG)
-            val b = toChannel(tensor.getFlat(base + bOffset) * stdB + meanB)
-            pixels[idx++] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val r = toChannel(data.readFloat(base + rOffset) * stdR + meanR)
+        val g = toChannel(data.readFloat(base + gOffset) * stdG + meanG)
+        val b = toChannel(data.readFloat(base + bOffset) * stdB + meanB)
+        pixels[pixel] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
     }
 }
 
 private fun readRgba(
-    tensor: ImageTensor<Float>,
+    data: ByteArray,
     pixels: IntArray,
     offsets: ImageOffsets,
     batchIndex: Int,
     pixelFormat: PixelFormat.RGBA,
     normalization: Normalization
 ) {
-    val width = offsets.width
-    val height = offsets.height
-    val rowStride = offsets.row
-    val columnStride = offsets.column
     val rOffset = pixelFormat.rIndex * offsets.channel
     val gOffset = pixelFormat.gIndex * offsets.channel
     val bOffset = pixelFormat.bIndex * offsets.channel
@@ -607,19 +618,12 @@ private fun readRgba(
     val stdB = normalization.stdB
     val stdA = normalization.stdA
 
-    var idx = 0
-    var rowBase = offsets.batch * batchIndex
-    for (h in 0 until height) {
-        var base = rowBase
-        for (w in 0 until width) {
-            val r = toChannel(tensor.getFlat(base + rOffset) * stdR + meanR)
-            val g = toChannel(tensor.getFlat(base + gOffset) * stdG + meanG)
-            val b = toChannel(tensor.getFlat(base + bOffset) * stdB + meanB)
-            val a = toChannel(tensor.getFlat(base + aOffset) * stdA + meanA)
-            pixels[idx++] = (a shl 24) or (r shl 16) or (g shl 8) or b
-            base += columnStride
-        }
-        rowBase += rowStride
+    forEachImagePixel(offsets, batchIndex) { pixel, base ->
+        val r = toChannel(data.readFloat(base + rOffset) * stdR + meanR)
+        val g = toChannel(data.readFloat(base + gOffset) * stdG + meanG)
+        val b = toChannel(data.readFloat(base + bOffset) * stdB + meanB)
+        val a = toChannel(data.readFloat(base + aOffset) * stdA + meanA)
+        pixels[pixel] = (a shl 24) or (r shl 16) or (g shl 8) or b
     }
 }
 
@@ -632,12 +636,3 @@ private fun readRgba(
 @Suppress("NOTHING_TO_INLINE")
 private inline fun luma(p: Int): Int =
     (((p shr 16) and 0xFF) * 77 + ((p shr 8) and 0xFF) * 150 + (p and 0xFF) * 29) shr 8
-
-@Suppress("UNCHECKED_CAST")
-private val <T : Any> TensorDataType<T>.converter: (Int) -> T
-    get() = when (this) {
-        TensorDataType.Float32 -> { v: Int -> v.toFloat() as T }
-        TensorDataType.Int32 -> { v: Int -> v as T }
-        TensorDataType.Int64 -> { v: Int -> v.toLong() as T }
-        TensorDataType.UInt8 -> { v: Int -> v.toUByte() as T }
-    }

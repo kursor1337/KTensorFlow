@@ -34,3 +34,64 @@ interface PhysicalTensor<T : Any> : Tensor<T> {
 fun <R : Any> PhysicalTensor<*>.toArray(): R =
     (data.toShapedAndTypedArray(dataType, shape) as? R)
         ?: throw IllegalArgumentException("Unsupported data type: $dataType")
+
+/**
+ * Sets an element by its flat index, like [Tensor.setFlat], but without boxing the value.
+ *
+ * [Tensor.setFlat] is generic, so every call through [Tensor] or [PhysicalTensor] wraps the
+ * value into an object. In a loop over every element, such as filling an input tensor from
+ * camera pixels, that allocation is most of the cost: this function writes straight into
+ * [PhysicalTensor.data] and is several times faster. A view has no data of its own; call
+ * [Tensor.toPhysical] first.
+ *
+ * @param index The flat index of the element.
+ * @param value The value to set.
+ * @throws IndexOutOfBoundsException if [index] is outside the tensor.
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun PhysicalTensor<Float>.setFlatUnboxed(index: Int, value: Float) = data.writeFloat(index, value)
+
+/**
+ * Sets an element by its flat index, like [Tensor.setFlat], but without boxing the value.
+ *
+ * [Tensor.setFlat] is generic, so every call through [Tensor] or [PhysicalTensor] wraps the
+ * value into an object. In a loop over every element that allocation is most of the cost: this
+ * function writes straight into [PhysicalTensor.data] and is several times faster. A view has no
+ * data of its own; call [Tensor.toPhysical] first.
+ *
+ * @param index The flat index of the element.
+ * @param value The value to set.
+ * @throws IndexOutOfBoundsException if [index] is outside the tensor.
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun PhysicalTensor<Int>.setFlatUnboxed(index: Int, value: Int) = data.writeInt(index, value)
+
+/**
+ * Sets an element by its flat index, like [Tensor.setFlat], but without boxing the value.
+ *
+ * [Tensor.setFlat] is generic, so every call through [Tensor] or [PhysicalTensor] wraps the
+ * value into an object. In a loop over every element that allocation is most of the cost: this
+ * function writes straight into [PhysicalTensor.data] and is several times faster. A view has no
+ * data of its own; call [Tensor.toPhysical] first.
+ *
+ * @param index The flat index of the element.
+ * @param value The value to set.
+ * @throws IndexOutOfBoundsException if [index] is outside the tensor.
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun PhysicalTensor<Long>.setFlatUnboxed(index: Int, value: Long) = data.writeLong(index, value)
+
+/**
+ * Sets an element by its flat index, like [Tensor.setFlat], but without boxing the value.
+ *
+ * [Tensor.setFlat] is generic, so every call through [Tensor] or [PhysicalTensor] wraps the
+ * value into an object. In a loop over every element that allocation is most of the cost: this
+ * function writes straight into [PhysicalTensor.data] and is several times faster. A view has no
+ * data of its own; call [Tensor.toPhysical] first.
+ *
+ * @param index The flat index of the element.
+ * @param value The value to set.
+ * @throws IndexOutOfBoundsException if [index] is outside the tensor.
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun PhysicalTensor<UByte>.setFlatUnboxed(index: Int, value: UByte) = data.writeUByte(index, value)

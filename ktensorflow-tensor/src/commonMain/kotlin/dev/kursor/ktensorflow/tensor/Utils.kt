@@ -65,22 +65,33 @@ fun TensorShape.strides(): IntArray {
     return strides
 }
 
-internal fun ByteArray.readFloat(index: Int): Float {
+// Чтение и запись элементов в байты тензора (little-endian).
+// Общие для модулей и inline: горячие циклы vision пишут прямо в data, а setFlatUnboxed
+// встраивается в код пользователя - вызов функции на каждый элемент съедал бы выигрыш.
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.readFloat(index: Int): Float {
     return Float.fromBits(readInt(index))
 }
 
-internal fun ByteArray.readInt(index: Int): Int {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.readInt(index: Int): Int {
     return (this[4 * index].toInt() and 0xFF) or
             ((this[4 * index + 1].toInt() and 0xFF) shl 8) or
             ((this[4 * index + 2].toInt() and 0xFF) shl 16) or
             ((this[4 * index + 3].toInt() and 0xFF) shl 24)
 }
 
-internal fun ByteArray.readUByte(index: Int): UByte {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.readUByte(index: Int): UByte {
     return this[index].toUByte()
 }
 
-internal fun ByteArray.readLong(index: Int): Long {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.readLong(index: Int): Long {
     return ((this[8 * index].toLong() and 0xFF) or
             ((this[8 * index + 1].toLong() and 0xFF) shl 8) or
             ((this[8 * index + 2].toLong() and 0xFF) shl 16) or
@@ -91,7 +102,9 @@ internal fun ByteArray.readLong(index: Int): Long {
             ((this[8 * index + 7].toLong() and 0xFF) shl 56))
 }
 
-internal fun ByteArray.writeFloat(index: Int, value: Float) {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.writeFloat(index: Int, value: Float) {
     val bits = value.toBits()
     this[4 * index] = (bits and 0xFF).toByte()
     this[4 * index + 1] = ((bits shr 8) and 0xFF).toByte()
@@ -99,7 +112,9 @@ internal fun ByteArray.writeFloat(index: Int, value: Float) {
     this[4 * index + 3] = ((bits shr 24) and 0xFF).toByte()
 }
 
-internal fun ByteArray.writeInt(index: Int, value: Int) {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.writeInt(index: Int, value: Int) {
     val bits = value
     this[4 * index] = (bits and 0xFF).toByte()
     this[4 * index + 1] = ((bits shr 8) and 0xFF).toByte()
@@ -107,11 +122,15 @@ internal fun ByteArray.writeInt(index: Int, value: Int) {
     this[4 * index + 3] = ((bits shr 24) and 0xFF).toByte()
 }
 
-internal fun ByteArray.writeUByte(index: Int, value: UByte) {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.writeUByte(index: Int, value: UByte) {
     this[index] = value.toByte()
 }
 
-internal fun ByteArray.writeLong(index: Int, value: Long) {
+@InternalKTensorFlowApi
+@Suppress("NOTHING_TO_INLINE")
+inline fun ByteArray.writeLong(index: Int, value: Long) {
     this[8 * index] = (value and 0xFF).toByte()
     this[8 * index + 1] = ((value shr 8) and 0xFF).toByte()
     this[8 * index + 2] = ((value shr 16) and 0xFF).toByte()

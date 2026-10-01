@@ -1,6 +1,11 @@
 package dev.kursor.ktensorflow.vision
 
+import dev.kursor.ktensorflow.tensor.Tensor
+import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.readFloat
+import dev.kursor.ktensorflow.tensor.readUByte
 import dev.kursor.ktensorflow.tensor.slice
+import dev.kursor.ktensorflow.tensor.writeFloat
 import kotlin.jvm.JvmName
 
 /**
@@ -33,22 +38,25 @@ fun ImageTensor<Float>.grayscale(
     // тензора без нормализации (альфа = 255) яркость получалась в 255 раз больше
     val channels = pixelFormat.rgbIndices() ?: return this
 
-    val result = ImageTensor(
-        width = width,
-        height = height,
-        dataType = dataType,
-        pixelFormat = PixelFormat.Grayscale,
-        layout = layout,
-        batchSize = batch
+    val output = Tensor(
+        dataType,
+        TensorShape(n = batch, h = height, w = width, c = PixelFormat.Grayscale.channels, layout = layout)
     )
+    val result = ImageTensor(output, PixelFormat.Grayscale, layout)
 
     val src = ImageOffsets(this)
     val r = channels.r * src.channel
     val g = channels.g * src.channel
     val b = channels.b * src.channel
 
+    // Напрямую в байтах: getFlat и setFlat упаковывают каждое значение
+    val source = toPhysical().data
+    val target = output.data
     forEachPixel(src, ImageOffsets(result), batch) { from, to ->
-        result.setFlat(to, rWeight * getFlat(from + r) + gWeight * getFlat(from + g) + bWeight * getFlat(from + b))
+        target.writeFloat(
+            to,
+            rWeight * source.readFloat(from + r) + gWeight * source.readFloat(from + g) + bWeight * source.readFloat(from + b)
+        )
     }
 
     return result
@@ -74,22 +82,24 @@ fun ImageTensor<Float>.grayscale(
 fun ImageTensor<UByte>.grayscale(): ImageTensor<UByte> {
     val channels = pixelFormat.rgbIndices() ?: return this
 
-    val result = ImageTensor<UByte>(
-        width = width,
-        height = height,
-        pixelFormat = PixelFormat.Grayscale,
-        layout = layout,
-        batchSize = batch
+    val output = Tensor(
+        TensorDataType.UInt8,
+        TensorShape(n = batch, h = height, w = width, c = PixelFormat.Grayscale.channels, layout = layout)
     )
+    val result = ImageTensor(output, PixelFormat.Grayscale, layout)
 
     val src = ImageOffsets(this)
     val r = channels.r * src.channel
     val g = channels.g * src.channel
     val b = channels.b * src.channel
 
+    val source = toPhysical().data
+    val target = output.data
     forEachPixel(src, ImageOffsets(result), batch) { from, to ->
-        val gray = (getFlat(from + r).toInt() * 77 + getFlat(from + g).toInt() * 150 + getFlat(from + b).toInt() * 29) shr 8
-        result.setFlat(to, gray.toUByte())
+        val red = source.readUByte(from + r).toInt()
+        val green = source.readUByte(from + g).toInt()
+        val blue = source.readUByte(from + b).toInt()
+        target[to] = ((red * 77 + green * 150 + blue * 29) shr 8).toByte()
     }
 
     return result
@@ -119,14 +129,11 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
         return this // No resize needed
     }
 
-    val result = ImageTensor(
-        width = newWidth,
-        height = newHeight,
-        dataType = dataType,
-        pixelFormat = pixelFormat,
-        layout = layout,
-        batchSize = batch
+    val output = Tensor(
+        dataType,
+        TensorShape(n = batch, h = newHeight, w = newWidth, c = pixelFormat.channels, layout = layout)
     )
+    val result = ImageTensor(output, pixelFormat, layout)
 
     val src = ImageOffsets(this)
     val dst = ImageOffsets(result)
@@ -150,6 +157,9 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
     }
     val srcChannel = IntArray(channels) { it * src.channel }
     val dstChannel = IntArray(channels) { it * dst.channel }
+    // Напрямую в байтах: getFlat и setFlat упаковывают каждое значение
+    val source = toPhysical().data
+    val target = output.data
 
     for (n in 0 until batch) {
         var dstRow = dst.batch * n
@@ -165,10 +175,12 @@ fun ImageTensor<Float>.resize(newWidth: Int, newHeight: Int): ImageTensor<Float>
                 val fx = dx[nx]
                 for (c in 0 until channels) {
                     val co = srcChannel[c]
-                    val upper = getFlat(top + left[nx] + co) * (1f - fx) + getFlat(top + right[nx] + co) * fx
-                    val lower = getFlat(bottom + left[nx] + co) * (1f - fx) + getFlat(bottom + right[nx] + co) * fx
+                    val upper = source.readFloat(top + left[nx] + co) * (1f - fx) +
+                        source.readFloat(top + right[nx] + co) * fx
+                    val lower = source.readFloat(bottom + left[nx] + co) * (1f - fx) +
+                        source.readFloat(bottom + right[nx] + co) * fx
                     // Без обрезки диапазона: интерполяция не вправе менять шкалу тензора
-                    result.setFlat(to + dstChannel[c], upper * (1f - dy) + lower * dy)
+                    target.writeFloat(to + dstChannel[c], upper * (1f - dy) + lower * dy)
                 }
                 to += dst.column
             }
@@ -198,13 +210,11 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
 
     if (newWidth == width && newHeight == height) return this
 
-    val result = ImageTensor<UByte>(
-        width = newWidth,
-        height = newHeight,
-        pixelFormat = pixelFormat,
-        layout = layout,
-        batchSize = batch
+    val output = Tensor(
+        TensorDataType.UInt8,
+        TensorShape(n = batch, h = newHeight, w = newWidth, c = pixelFormat.channels, layout = layout)
     )
+    val result = ImageTensor(output, pixelFormat, layout)
 
     val src = ImageOffsets(this)
     val dst = ImageOffsets(result)
@@ -216,6 +226,9 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
     val column = IntArray(newWidth) { (it * xRatio).toInt() * src.column }
     val srcChannel = IntArray(channels) { it * src.channel }
     val dstChannel = IntArray(channels) { it * dst.channel }
+    // Байт UInt8 копируется как есть, без упаковки в getFlat и setFlat
+    val source = toPhysical().data
+    val target = output.data
 
     for (n in 0 until batch) {
         var dstRow = dst.batch * n
@@ -225,7 +238,7 @@ fun ImageTensor<UByte>.resize(newWidth: Int, newHeight: Int): ImageTensor<UByte>
             for (w in 0 until newWidth) {
                 val from = srcRow + column[w]
                 for (c in 0 until channels) {
-                    result.setFlat(to + dstChannel[c], getFlat(from + srcChannel[c]))
+                    target[to + dstChannel[c]] = source[from + srcChannel[c]]
                 }
                 to += dst.column
             }

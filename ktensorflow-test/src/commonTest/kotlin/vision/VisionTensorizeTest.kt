@@ -1,11 +1,17 @@
 package vision
 
+import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
+import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.vision.Image
 import dev.kursor.ktensorflow.vision.ImageTensor
 import dev.kursor.ktensorflow.vision.ImageTensorLayout
 import dev.kursor.ktensorflow.vision.Normalization
 import dev.kursor.ktensorflow.vision.PixelFormat
+import dev.kursor.ktensorflow.vision.Rect
+import dev.kursor.ktensorflow.vision.crop
+import dev.kursor.ktensorflow.vision.grayscale
+import dev.kursor.ktensorflow.vision.resize
 import dev.kursor.ktensorflow.vision.tensorize
 import dev.kursor.ktensorflow.vision.tensorizeBatch
 import dev.kursor.ktensorflow.vision.tensorizeBatchFloat
@@ -14,6 +20,7 @@ import dev.kursor.ktensorflow.vision.toImage
 import dev.kursor.ktensorflow.vision.toImageTensor
 import kotlin.math.abs
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
@@ -409,6 +416,9 @@ class VisionTensorizeTest {
                     val pixels = image.getPixels()
 
                     val asBytes = image.tensorize(TensorDataType.UInt8, layout, pixelFormat)
+                    val asInts = image.tensorize(TensorDataType.Int32, layout, pixelFormat)
+                    val asLongs = image.tensorize(TensorDataType.Int64, layout, pixelFormat)
+                    val asGenericFloats = image.tensorize(TensorDataType.Float32, layout, pixelFormat)
                     val asFloats = image.tensorizeFloat(layout, pixelFormat)
                     val batchedBytes = listOf(image).tensorizeBatch(TensorDataType.UInt8, layout, pixelFormat)
                     val batchedFloats = listOf(image).tensorizeBatchFloat(layout, pixelFormat)
@@ -421,6 +431,9 @@ class VisionTensorizeTest {
                                 val where = "$pixelFormat $layout ${width}x$height at ($x,$y) c=$c"
 
                                 assertEquals(expected.toUByte(), asBytes[0, y, x, c], "tensorize $where")
+                                assertEquals(expected, asInts[0, y, x, c], "tensorize Int32 $where")
+                                assertEquals(expected.toLong(), asLongs[0, y, x, c], "tensorize Int64 $where")
+                                assertEquals(expected.toFloat(), asGenericFloats[0, y, x, c], "tensorize Float32 $where")
                                 assertEquals(expected.toFloat(), asFloats[0, y, x, c], "tensorizeFloat $where")
                                 assertEquals(
                                     expected.toUByte(),
@@ -456,6 +469,7 @@ class VisionTensorizeTest {
                     val pixelsPerImage = images.map { it.getPixels() }
 
                     val bytes = images.tensorizeBatch(TensorDataType.UInt8, layout, pixelFormat)
+                    val longs = images.tensorizeBatch(TensorDataType.Int64, layout, pixelFormat)
                     val floats = images.tensorizeBatchFloat(layout, pixelFormat)
 
                     assertEquals(batchSize, bytes.batch)
@@ -470,6 +484,7 @@ class VisionTensorizeTest {
                                     val where = "$pixelFormat $layout n=$n ($x,$y) c=$c"
 
                                     assertEquals(expected.toUByte(), bytes[n, y, x, c], "tensorizeBatch $where")
+                                    assertEquals(expected.toLong(), longs[n, y, x, c], "tensorizeBatch Int64 $where")
                                     assertEquals(
                                         expected.toFloat(),
                                         floats[n, y, x, c],
@@ -500,5 +515,55 @@ class VisionTensorizeTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun operationsOnACroppedViewMatchTheSameOperationsOnAPhysicalTensor() {
+        // Циклы vision читают байты тензора напрямую, а у view (результата crop) своих байтов нет.
+        // Эталон строится независимо: изображения обрезаются до тензоризации
+        val rect = Rect(1, 1, 5, 4)
+        allFormats.forEach { pixelFormat ->
+            allLayouts.forEach { layout ->
+                val images = listOf(colorfulImage(6, 5, pixelFormat, seed = 1), colorfulImage(6, 5, pixelFormat, seed = 2))
+                val cropped = images.map { it.crop(rect, closeOriginal = false) }
+                val where = "$pixelFormat $layout"
+
+                val floatView = images.tensorizeBatchFloat(layout, pixelFormat).crop(rect)
+                val floatCopy = cropped.tensorizeBatchFloat(layout, pixelFormat)
+                val byteView = images.tensorizeBatch(TensorDataType.UInt8, layout, pixelFormat).crop(rect)
+                val byteCopy = cropped.tensorizeBatch(TensorDataType.UInt8, layout, pixelFormat)
+
+                assertSameTensor(floatCopy.resize(7, 3), floatView.resize(7, 3), "resize Float $where")
+                assertSameTensor(byteCopy.resize(7, 3), byteView.resize(7, 3), "resize UByte $where")
+                assertSameTensor(floatCopy.grayscale(), floatView.grayscale(), "grayscale Float $where")
+                assertSameTensor(byteCopy.grayscale(), byteView.grayscale(), "grayscale UByte $where")
+                assertContentEquals(
+                    floatCopy.toImage(batchIndex = 1).getPixels(),
+                    floatView.toImage(batchIndex = 1).getPixels(),
+                    "toImage $where"
+                )
+            }
+        }
+    }
+
+    private fun assertSameTensor(expected: ImageTensor<*>, actual: ImageTensor<*>, message: String) {
+        assertEquals(expected.shape, actual.shape, message)
+        assertContentEquals(expected.toPhysical().data, actual.toPhysical().data, message)
+    }
+
+    @Test
+    fun anImageTensorOverAThreeDimensionalPhysicalTensorUsesItsBytesWithoutCopying() {
+        // Циклы vision читают источник через toPhysical().data. Трёхмерный тензор (например, выход
+        // модели [H, W, C]) получает измерение батча; будь это view, toPhysical копировал бы его
+        // на каждом вызове
+        val image = colorfulImage(4, 3, PixelFormat.RGB, seed = 3)
+        val fourDimensional = image.tensorizeFloat()
+        val threeDimensional = Tensor(TensorDataType.Float32, TensorShape(3, 4, 3), fourDimensional.toPhysical().data)
+        val wrapped = ImageTensor(threeDimensional, PixelFormat.RGB, ImageTensorLayout.NHWC)
+
+        assertSame(threeDimensional.data, wrapped.toPhysical().data, "the bytes must be shared, not copied")
+        assertSameTensor(fourDimensional.resize(5, 2), wrapped.resize(5, 2), "resize")
+        assertSameTensor(fourDimensional.grayscale(), wrapped.grayscale(), "grayscale")
+        assertContentEquals(fourDimensional.toImage().getPixels(), wrapped.toImage().getPixels(), "toImage")
     }
 }

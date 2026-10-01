@@ -1,5 +1,6 @@
 package dev.kursor.ktensorflow.vision
 
+import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.reshape
@@ -79,7 +80,14 @@ internal class ImageTensorImpl<T : Any>(
                     }
                         .toIntArray()
                         .let(::TensorShape)
-                    tensor.reshape(expanded)
+                    // Физический тензор остаётся физическим, с теми же байтами: у view toPhysical
+                    // копирует, а циклы vision берут toPhysical().data на каждом вызове. Порядок
+                    // элементов не меняется - добавляется лишь измерение батча размером 1
+                    if (tensor is PhysicalTensor<T>) {
+                        Tensor(tensor.dataType, expanded, tensor.data)
+                    } else {
+                        tensor.reshape(expanded)
+                    }
                 }
                 else -> throw IllegalArgumentException(
                     "ImageTensor must have 3 or 4 dimensions: batch, width, height, channels"
