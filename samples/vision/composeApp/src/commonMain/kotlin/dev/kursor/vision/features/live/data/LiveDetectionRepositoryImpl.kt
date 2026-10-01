@@ -32,8 +32,6 @@ import dev.kursor.vision.features.live.domain.DetectionResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ktensorflow.samples.vision.composeapp.generated.resources.Res
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 private const val MAX_DETECTIONS = 100
 
@@ -88,41 +86,19 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
 
     val dispatcher = Dispatchers.Default.limitedParallelism(1)
 
-    @OptIn(ExperimentalTime::class)
     override suspend fun detectObjects(image: Image): DetectionResult =
         withContext(dispatcher) {
-            val detectionResult: DetectionResult
-            val time = measureTime {
-                val paddedImage: PaddedImage
-                val paddedTime = measureTime {
-                    paddedImage = image.resizeWithPad(300, 300)
-                }
-                val inferenceResult: Tuple.Four<Int, Array<FloatArray>, IntArray, FloatArray>
-                val inferenceTime = measureTime {
-                    inferenceResult = pipeline.run(Tuple.One(paddedImage))
-                }
+            val paddedImage = image.resizeWithPad(300, 300)
+            val result = pipeline.run(Tuple.One(paddedImage))
 
-                val count = inferenceResult.first
-                val boxes = inferenceResult.second
-                val classIds = inferenceResult.third
-                val scores = inferenceResult.fourth
-
-                val mapTime = measureTime {
-                    detectionResult = mapToDetectionResult(
-                        count = count,
-                        boxes = boxes,
-                        classes = classIds,
-                        scores = scores,
-                        padInfo = paddedImage.info,
-                        labels = Labels
-                    )
-                }
-                println("paddedTime: $paddedTime")
-                println("inferenceTime: $inferenceTime")
-                println("mapTime: $mapTime")
-            }
-            println("time: $time")
-            detectionResult
+            mapToDetectionResult(
+                count = result.first,
+                boxes = result.second,
+                classes = result.third,
+                scores = result.fourth,
+                padInfo = paddedImage.info,
+                labels = Labels
+            )
         }
 }
 
@@ -176,7 +152,8 @@ fun mapToDetectionResult(
     padInfo: PadInfo,
     labels: List<String>,
 ): DetectionResult {
-    val detectedObjects = (0 until count).map { i ->
+    // Число детекций приходит от модели: не больше, чем вмещают выходные буферы
+    val detectedObjects = (0 until count.coerceIn(0, boxes.size)).map { i ->
         val score = scores[i]
 
         val classId = classes[i]
@@ -196,7 +173,7 @@ fun mapToDetectionResult(
             confidence = score,
             boundingBox = rect,
             imageHeight = padInfo.originalHeight,
-            imageWidth = padInfo.originalHeight
+            imageWidth = padInfo.originalWidth
         )
     }
 

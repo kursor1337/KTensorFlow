@@ -489,4 +489,30 @@ class TensorCornerCasesTest {
         assertEquals("[0, 200]", bytes.toString())
         assertEquals("[[0, 0], [0, 9]]", byteMatrix.toString())
     }
+
+    @Test
+    fun aLargeTensorIsPrintedAsASummary() {
+        // Кадр 640x640x3 печатался целиком: строка на 7 млн символов и 0,75 с на iOS
+        val frame = Tensor(TensorDataType.Float32, TensorShape(1, 640, 640, 3))
+        frame.setFlat(0, 1f)
+        frame.setFlat(frame.shape.flatSize - 1, 2f)
+
+        assertEquals(
+            "Tensor(shape=(1, 640, 640, 3), dataType=Float32, data=[1.0, 0.0, 0.0, ..., 0.0, 0.0, 2.0])",
+            frame.toString()
+        )
+    }
+
+    @Test
+    fun aViewIsPrintedByItsContentLikeAPhysicalTensor() {
+        // View печатал только имя класса, например ReshapedTensorView@66bb0d8
+        val matrix = Tensor<Int>(shape = TensorShape(2, 3)).apply { repeat(6) { setFlat(it, it) } }
+
+        assertEquals("[[0, 3], [1, 4], [2, 5]]", matrix.transpose().toString())
+        assertEquals("[0, 1, 2, 3, 4, 5]", matrix.flatten().toString())
+        assertEquals("[[1, 2]]", matrix.slice(0..0, 1..2).toString())
+
+        val large = Tensor(TensorDataType.Int32, TensorShape(40, 40)).apply { setFlat(1, 7) }
+        assertEquals("Tensor(shape=(1600), dataType=Int32, data=[0, 7, 0, ..., 0, 0, 0])", large.flatten().toString())
+    }
 }

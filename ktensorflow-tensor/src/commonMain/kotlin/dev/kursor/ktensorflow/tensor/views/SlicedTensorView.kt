@@ -5,6 +5,7 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.tensorToString
 
 internal class SlicedTensorView<T : Any>(
     override val delegate: Tensor<T>,
@@ -48,4 +49,6 @@ internal class SlicedTensorView<T : Any>(
     override fun getFlat(index: Int): T = delegate.getFlat(offsets.of(index))
 
     override fun setFlat(index: Int, value: T) = delegate.setFlat(offsets.of(index), value)
+
+    override fun toString(): String = tensorToString()
 }

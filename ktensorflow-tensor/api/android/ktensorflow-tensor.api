@@ -277,6 +277,10 @@ public final class dev/kursor/ktensorflow/tensor/TensorShapeKt {
 	public static final fun TensorShape ([I)Ldev/kursor/ktensorflow/tensor/TensorShape;
 }
 
+public final class dev/kursor/ktensorflow/tensor/TensorToStringKt {
+	public static final fun tensorToString (Ldev/kursor/ktensorflow/tensor/Tensor;)Ljava/lang/String;
+}
+
 public abstract interface class dev/kursor/ktensorflow/tensor/TensorView : dev/kursor/ktensorflow/tensor/Tensor {
 	public abstract fun getDelegate ()Ldev/kursor/ktensorflow/tensor/Tensor;
 	public fun toPhysical ()Ldev/kursor/ktensorflow/tensor/PhysicalTensor;

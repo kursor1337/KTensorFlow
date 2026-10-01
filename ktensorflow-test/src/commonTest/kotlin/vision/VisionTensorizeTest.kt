@@ -566,4 +566,12 @@ class VisionTensorizeTest {
         assertSameTensor(fourDimensional.grayscale(), wrapped.grayscale(), "grayscale")
         assertContentEquals(fourDimensional.toImage().getPixels(), wrapped.toImage().getPixels(), "toImage")
     }
+
+    @Test
+    fun anImageTensorIsPrintedByItsContent() {
+        // Делегирование через by не переносит toString, и печаталось только имя класса
+        val image = Image(2, 1, PixelFormat.RGB, intArrayOf(0xFF010203.toInt(), 0xFF040506.toInt()))
+
+        assertEquals("[[[[1, 2, 3], [4, 5, 6]]]]", image.tensorize<UByte>().toString())
+    }
 }

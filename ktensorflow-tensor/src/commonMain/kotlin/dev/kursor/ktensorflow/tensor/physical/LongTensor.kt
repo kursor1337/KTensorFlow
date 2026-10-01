@@ -4,9 +4,9 @@ import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.checkedOffset
-import dev.kursor.ktensorflow.tensor.impl.contentToString
 import dev.kursor.ktensorflow.tensor.readLong
 import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.tensorToString
 import dev.kursor.ktensorflow.tensor.writeLong
 
 /**
@@ -60,5 +60,5 @@ internal class LongTensor(
         return result
     }
 
-    override fun toString(): String = data.contentToString(dataType, shape)
+    override fun toString(): String = tensorToString()
 }

@@ -7,6 +7,10 @@ import dev.kursor.ktensorflow.tensor.TensorDataType
 
 /**
  * Represents a [Tensor] specialized for image data, providing structured access to dimensions
+ *
+ * An image tensor created from another tensor wraps it without copying: writes through either one
+ * are visible in both, and when the wrapped tensor is a [dev.kursor.ktensorflow.tensor.PhysicalTensor],
+ * [toPhysical] returns a tensor over the same bytes instead of a copy.
  */
 @SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface ImageTensor<T : Any> : Tensor<T> {
@@ -93,6 +97,9 @@ interface ImageTensor<T : Any> : Tensor<T> {
 
 /**
  * Creates an [ImageTensor] from a [Tensor] with specified [pixelFormat] and [layout].
+ *
+ * The data is not copied: the image tensor reads and writes the elements of [tensor]. A tensor
+ * with 3 dimensions gets a batch dimension of size 1.
  *
  * @param tensor the [Tensor] to create the [ImageTensor] from
  * @param pixelFormat the [PixelFormat] of the image data

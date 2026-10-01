@@ -5,6 +5,7 @@ import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.reshape
 import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.tensorToString
 
 internal class ImageTensorImpl<T : Any>(
     tensor: Tensor<T>,
@@ -69,6 +70,9 @@ internal class ImageTensorImpl<T : Any>(
         }
         return n * nStride + h * hStride + w * wStride + c * cStride
     }
+
+    // Делегирование через by не переносит toString, и печаталось только имя класса
+    override fun toString(): String = tensorToString()
 
     companion object {
         private fun <T : Any> normalize(tensor: Tensor<T>, layout: ImageTensorLayout): Tensor<T> {

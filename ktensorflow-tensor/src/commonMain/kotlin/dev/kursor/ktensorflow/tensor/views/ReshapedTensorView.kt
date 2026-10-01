@@ -6,6 +6,7 @@ import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.TensorView
 import dev.kursor.ktensorflow.tensor.checkedOffset
 import dev.kursor.ktensorflow.tensor.strides
+import dev.kursor.ktensorflow.tensor.tensorToString
 
 internal class ReshapedTensorView<T : Any>(
     override val delegate: Tensor<T>,
@@ -32,4 +33,6 @@ internal class ReshapedTensorView<T : Any>(
     override fun set(index: IntArray, value: T) {
         delegate.setFlat(index.checkedOffset(shape.dimensions, viewStrides), value)
     }
+
+    override fun toString(): String = tensorToString()
 }

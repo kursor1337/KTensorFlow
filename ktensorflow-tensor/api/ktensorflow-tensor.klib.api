@@ -105,6 +105,7 @@ final class dev.kursor.ktensorflow.tensor/TensorShape { // dev.kursor.ktensorflo
     final fun toString(): kotlin/String // dev.kursor.ktensorflow.tensor/TensorShape.toString|toString(){}[0]
 }
 
+final fun (dev.kursor.ktensorflow.tensor/Tensor<*>).dev.kursor.ktensorflow.tensor/tensorToString(): kotlin/String // dev.kursor.ktensorflow.tensor/tensorToString|tensorToString@dev.kursor.ktensorflow.tensor.Tensor<*>(){}[0]
 final fun (dev.kursor.ktensorflow.tensor/Tensor<kotlin/Float>).dev.kursor.ktensorflow.tensor/argmax(): kotlin/IntArray // dev.kursor.ktensorflow.tensor/argmax|argmax@dev.kursor.ktensorflow.tensor.Tensor<kotlin.Float>(){}[0]
 final fun (dev.kursor.ktensorflow.tensor/Tensor<kotlin/Float>).dev.kursor.ktensorflow.tensor/argmin(): kotlin/IntArray // dev.kursor.ktensorflow.tensor/argmin|argmin@dev.kursor.ktensorflow.tensor.Tensor<kotlin.Float>(){}[0]
 final fun (dev.kursor.ktensorflow.tensor/Tensor<kotlin/Float>).dev.kursor.ktensorflow.tensor/avg(): kotlin/Float // dev.kursor.ktensorflow.tensor/avg|avg@dev.kursor.ktensorflow.tensor.Tensor<kotlin.Float>(){}[0]

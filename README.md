@@ -103,6 +103,14 @@ interpreter.run(input, output) // Single input/output syntax sugar
 val result = output.argmax()[0]
 ```
 
+`setFlat` and `getFlat` are generic, so every value passes through them as an object. That is fine for a few values, but to fill a tensor element by element, for example from your own preprocessing, use `setFlatUnboxed` on a `PhysicalTensor`: it writes straight into the tensor's bytes and is several times faster.
+```kotlin
+val input = Tensor(TensorDataType.Float32, TensorShape(1, 28, 28))
+for (i in 0 until input.shape.flatSize) {
+  input.setFlatUnboxed(i, pixels[i] / 255f)
+}
+```
+
 #### Zero-Copy Tensor Views
 In version 2.0, shape manipulation functions do **not** copy memory. `reshape()`, `flatten()`, `transpose()`, `permuted()`, `squeeze()`, and `slice()` return a `TensorView`, which mathematically maps coordinates to the original memory block (`PhysicalTensor`) with zero overhead.
 
