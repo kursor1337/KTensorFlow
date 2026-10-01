@@ -1,6 +1,7 @@
 package dev.kursor.ktensorflow.impl
 
 import cocoapods.TensorFlowLiteObjC.TFLInterpreter
+import cocoapods.TensorFlowLiteObjC.TFLInterpreterErrorCode
 import cocoapods.TensorFlowLiteObjC.TFLTensor
 import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
@@ -35,7 +36,15 @@ internal class IosInterpreter(
     // null после close(): ссылка на TFLInterpreter отпускается, и нативный объект вместе с
     // моделью и тензорной ареной освобождается при ближайшей сборке мусора Kotlin/Native.
     // Раньше close() ничего не делал, а run после него продолжал работать, в отличие от Android.
-    private var interpreterOrNull: TFLInterpreter? = checkError { errPtr ->
+    private var interpreterOrNull: TFLInterpreter? = checkError(
+        // TensorFlowLiteObjC не говорит, почему интерпретатор не создан: тот же код ошибки
+        // бывает и при операции, которой TensorFlow Lite не знает. С делегатами вероятнее всего
+        // отказал один из них
+        explain = { error ->
+            val failedToCreate = error.code == TFLInterpreterErrorCode.TFLInterpreterErrorCodeFailedToCreateInterpreter.value.toLong()
+            if (failedToCreate && options.tflDelegates.isNotEmpty()) DELEGATE_OR_OPERATION_FAILED_MESSAGE else null
+        }
+    ) { errPtr ->
         when (modelDesc) {
             is ModelDesc.PathInBundle -> {
                 TFLInterpreter(
@@ -250,3 +259,9 @@ internal fun TFLTensor.shape(): List<Int> {
         this.shapeWithError(errPtr)
     }.map { (it as Number).toInt() }
 }
+
+/** Отказ создания на iOS: здесь нельзя отличить отказ делегата от неизвестной операции модели. */
+private const val DELEGATE_OR_OPERATION_FAILED_MESSAGE =
+    "Failed to create the interpreter: a delegate could not be applied to the model, " +
+        "or the model uses an operation TensorFlow Lite does not support. " +
+        "Create the interpreter without delegates to run the model on the CPU"

@@ -16,18 +16,26 @@ internal class AndroidInterpreter(
     options: InterpreterOptions
 ) : Interpreter {
 
-    private val tensorFlowInterpreter = tensorFlowCall("load the model") {
-        when (modelDesc) {
-            is ModelDesc.ByteBuffer -> TFLInterpreter(
-                modelDesc.buffer.asDirect(),
-                options.tflOptions,
-            )
+    private val tensorFlowInterpreter = try {
+        tensorFlowCall("load the model") {
+            when (modelDesc) {
+                is ModelDesc.ByteBuffer -> TFLInterpreter(
+                    modelDesc.buffer.asDirect(),
+                    options.tflOptions,
+                )
 
-            is ModelDesc.File -> TFLInterpreter(
-                modelDesc.file,
-                options.tflOptions,
-            )
+                is ModelDesc.File -> TFLInterpreter(
+                    modelDesc.file,
+                    options.tflOptions,
+                )
+            }
         }
+    } catch (e: TensorFlowException) {
+        // Java-обёртка сообщает об отказе делегата как "Error applying delegate"
+        if (e.cause?.message?.contains("delegate", ignoreCase = true) == true) {
+            throw TensorFlowException(DELEGATE_NOT_APPLIED_MESSAGE, e.cause)
+        }
+        throw e
     }
 
     private val lock = Any()
@@ -202,3 +210,13 @@ private fun ByteBuffer.asDirect(): ByteBuffer =
             .put(duplicate())
             .apply { rewind() }
     }
+
+/**
+ * Делегат, доступный на устройстве, может всё равно не примениться к конкретной модели: драйвер
+ * NNAPI не компилирует часть графа, GPU не создаёт контекст. Ядро TensorFlow Lite в этом случае
+ * возвращает граф к CPU, но Java-обёртка считает это отказом создания, и раньше наружу он уходил
+ * как "Failed to load the model", хотя модель загрузилась.
+ */
+private const val DELEGATE_NOT_APPLIED_MESSAGE =
+    "Failed to create the interpreter: a delegate could not be applied to the model. " +
+        "Create the interpreter without that delegate to run the model on the CPU"

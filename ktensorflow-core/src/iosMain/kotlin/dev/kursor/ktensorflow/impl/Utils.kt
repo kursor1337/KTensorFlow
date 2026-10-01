@@ -16,12 +16,22 @@ import platform.Foundation.NSError
 import platform.Foundation.create
 import platform.posix.memcpy
 
+/**
+ * Вызывает [block] и приводит NSError к [TensorFlowException].
+ *
+ * @param explain понятное сообщение для известного отказа или null; исходная ошибка платформы
+ * тогда остаётся в cause, как на Android.
+ */
 @OptIn(BetaInteropApi::class)
-internal fun <T : Any> checkError(block: (CPointer<ObjCObjectVar<NSError?>>) -> T?): T {
+internal fun <T : Any> checkError(
+    explain: (NSError) -> String? = { null },
+    block: (CPointer<ObjCObjectVar<NSError?>>) -> T?
+): T {
     val (result, error) = callWithError(block)
 
     if (error != null) {
-        throw TensorFlowException(error.description, error.code.toInt(), null)
+        val platformError = TensorFlowException(error.description, error.code.toInt(), null)
+        throw explain(error)?.let { TensorFlowException(it, platformError) } ?: platformError
     }
     if (result == null) {
         throw TensorFlowException("Result is null")

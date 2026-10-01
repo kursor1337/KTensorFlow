@@ -174,6 +174,11 @@ class DelegatesTest {
             failure.cause?.message.orEmpty().contains("Failed to apply delegate"),
             "the platform failure must be kept as the cause, was: ${failure.cause}"
         )
+        // Раньше сообщение было "Failed to load the model", хотя модель загрузилась
+        assertTrue(
+            failure.message.orEmpty().startsWith("Failed to create the interpreter: a delegate could not be applied"),
+            "the message must name the delegate, was: ${failure.message}"
+        )
     }
 
     // --- как список делегатов попадает в интерпретатор ---

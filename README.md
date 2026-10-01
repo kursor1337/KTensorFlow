@@ -281,6 +281,16 @@ npu.close()
 
 Every available delegate is applied, in list order: each one takes the operations it supports from what the previous ones left, and the rest runs on the CPU. Unavailable delegates are skipped.
 
+A delegate that is available on the device can still fail to apply to a particular model, for example when an NNAPI driver cannot compile part of the graph or the GPU cannot create its context. TensorFlow Lite does not fall back to the CPU in this case: creating the interpreter fails with `TensorFlowException`. Whether a delegate applies is known only on the device, so when you use delegates, keep a CPU fallback:
+```kotlin
+val interpreter = try {
+  Interpreter(modelDesc, InterpreterOptions(numThreads = 4, useXNNPACK = true, delegates = listOf(gpu)))
+} catch (e: TensorFlowException) {
+  // The model runs on the CPU instead
+  Interpreter(modelDesc, InterpreterOptions(numThreads = 4, useXNNPACK = true, delegates = emptyList()))
+}
+```
+
 ### Providing platform-specific options
 If you need to provide platform specific option to the `Interpreter` or `GpuDelegate` you can use platform-specific builder functions:
 
