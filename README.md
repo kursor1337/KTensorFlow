@@ -9,6 +9,7 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 
 ## Table of Contents
 
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Model loading](#load-the-model)
@@ -22,6 +23,16 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
   - [Hardware acceleration](#hardware-acceleration)
   - [Providing platform-specific options](#providing-platform-specific-options)
   - [Writing custom delegates](#writing-custom-delegates)
+
+## Requirements
+
+| | Minimum |
+|---|---|
+| Kotlin | 2.4.20 |
+| Android | API 24, apps compiled with `compileSdk` 34 or newer |
+| iOS | 15.0 |
+
+iOS projects are linked through CocoaPods (see [Installation](#installation)). The iOS minimum comes from Kotlin/Native, which builds the library for iOS 15: an app with a lower deployment target gets linker warnings and may crash on older iOS.
 
 ## Installation
 First add dependencies:

@@ -67,7 +67,7 @@ kotlin {
         xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
         xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
 
-        ios.deploymentTarget = "13.0"
+        ios.deploymentTarget = "15.0"
 
         podfile = project.file("../iosApp/Podfile")
     }
