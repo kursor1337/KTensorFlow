@@ -17,6 +17,9 @@ kotlin {
         namespace = "dev.kursor.ktensorflow.tensor"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        aarMetadata {
+            minCompileSdk = libs.versions.android.minCompileSdk.get().toInt()
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
