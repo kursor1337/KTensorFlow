@@ -27,8 +27,7 @@ kotlin {
             api(projects.ktensorflowCore)
             api(projects.ktensorflowTensor)
             api(projects.ktensorflowPipeline)
-
-            implementation(libs.coroutines.core)
+            api(libs.coroutines.core)
         }
     }
 }
