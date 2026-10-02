@@ -7,13 +7,15 @@ import dev.kursor.ktensorflow.Interpreter
 import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.compose.ComposeUri
+import dev.kursor.ktensorflow.coroutines.processFlowDropping
 import dev.kursor.ktensorflow.pipeline.Pipeline
-import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.builder.inference
 import dev.kursor.ktensorflow.pipeline.builder.input
 import dev.kursor.ktensorflow.pipeline.builder.output
+import dev.kursor.ktensorflow.pipeline.linear
 import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.stage.then
+import dev.kursor.ktensorflow.pipeline.tuple
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
@@ -29,8 +31,7 @@ import dev.kursor.ktensorflow.vision.resizeWithPad
 import dev.kursor.ktensorflow.vision.tensorize
 import dev.kursor.vision.features.live.domain.DetectedObject
 import dev.kursor.vision.features.live.domain.DetectionResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 import ktensorflow.samples.vision.composeapp.generated.resources.Res
 
 private const val MAX_DETECTIONS = 100
@@ -48,7 +49,7 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
             resizeInput(0, intArrayOf(1, 300, 300, 3))
         }
 
-    private val pipeline = Pipeline
+    private val modelPipeline = Pipeline
         .input(
             preprocessing = Stage<PaddedImage>()
                 .tensorize()
@@ -84,22 +85,23 @@ class LiveDetectionRepositoryImpl : LiveDetectionRepository {
         )
         .build()
 
-    val dispatcher = Dispatchers.Default.limitedParallelism(1)
-
-    override suspend fun detectObjects(image: Image): DetectionResult =
-        withContext(dispatcher) {
-            val paddedImage = image.resizeWithPad(300, 300)
-            val result = pipeline.run(Tuple.One(paddedImage))
-
+    private val detection = Pipeline.linear<Image>()
+        .then { frame -> frame.resizeWithPad(300, 300, closeOriginal = false) }
+        .then { paddedImage -> paddedImage.info to modelPipeline.run(tuple(paddedImage)) }
+        .then { (padInfo, result) ->
+            val (count, boxes, classes, scores) = result
             mapToDetectionResult(
-                count = result.first,
-                boxes = result.second,
-                classes = result.third,
-                scores = result.fourth,
-                padInfo = paddedImage.info,
+                count = count,
+                boxes = boxes,
+                classes = classes,
+                scores = scores,
+                padInfo = padInfo,
                 labels = Labels
             )
         }
+
+    override fun detectObjects(frames: Flow<Image>): Flow<DetectionResult> =
+        detection.processFlowDropping(frames)
 }
 
 private fun <I> Stage<I, PaddedImage>.tensorize(): Stage<I, Tensor<UByte>> =
@@ -150,14 +152,14 @@ fun mapToDetectionResult(
     classes: IntArray,
     scores: FloatArray,
     padInfo: PadInfo,
-    labels: List<String>,
+    labels: List<String?>,
 ): DetectionResult {
     // Число детекций приходит от модели: не больше, чем вмещают выходные буферы
     val detectedObjects = (0 until count.coerceIn(0, boxes.size)).map { i ->
         val score = scores[i]
 
         val classId = classes[i]
-        val label = labels.getOrElse(classId) { "Unknown ($classId)" }
+        val label = labels.getOrNull(classId) ?: "Unknown ($classId)"
 
         val box = boxes[i]
         val rect = Rect.fromNormalized(
@@ -188,6 +190,9 @@ fun mapToDetectionResult(
     return DetectionResult(objects = result)
 }
 
+// Метки COCO в той нумерации, в которой их отдаёт модель: номер класса COCO минус один.
+// В COCO номера идут с пропусками, и список из 80 меток подряд сдвигал все классы после
+// fire hydrant - книга (83) получалась "Unknown". Пропуски здесь null
 private val Labels = listOf(
     "person",
     "bicycle",
@@ -200,6 +205,7 @@ private val Labels = listOf(
     "boat",
     "traffic light",
     "fire hydrant",
+    null,
     "stop sign",
     "parking meter",
     "bench",
@@ -213,8 +219,11 @@ private val Labels = listOf(
     "bear",
     "zebra",
     "giraffe",
+    null,
     "backpack",
     "umbrella",
+    null,
+    null,
     "handbag",
     "tie",
     "suitcase",
@@ -229,6 +238,7 @@ private val Labels = listOf(
     "surfboard",
     "tennis racket",
     "bottle",
+    null,
     "wine glass",
     "cup",
     "fork",
@@ -249,8 +259,12 @@ private val Labels = listOf(
     "couch",
     "potted plant",
     "bed",
+    null,
     "dining table",
+    null,
+    null,
     "toilet",
+    null,
     "tv",
     "laptop",
     "mouse",
@@ -262,6 +276,7 @@ private val Labels = listOf(
     "toaster",
     "sink",
     "refrigerator",
+    null,
     "book",
     "clock",
     "vase",

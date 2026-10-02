@@ -225,15 +225,17 @@ Use **`processFlowDropping`** to automatically discard camera frames when the ML
 // Your camera frames flow
 val frameFlow: Flow<Image> = // ...
 
-val detectionResultsFlow = pipeline
-    // Automatic Frame Dropping! Zero latency, zero OOMs.
-    .processFlowDropping(
-        // Use mapAndClose to avoid leaking the original frame after resizing
-        inputFlow = frameFlow.mapAndClose { it.resizeWithPad(300, 300) }
-    )
-    .map { tupleOutput ->
-        mapToDomainModel(tupleOutput)
+// Preprocess inside the pipeline: a frame dropped while the model is busy is never resized
+val detection = Pipeline(Stage<Image, List<DetectedObject>> { frame ->
+    // The flow closes the frame itself; the resized copy is closed here
+    frame.resizeWithPad(300, 300, closeOriginal = false).use { paddedImage ->
+        mapToDomainModel(detectionPipeline.run(tuple(paddedImage)), paddedImage.info)
     }
+})
+
+val detectionResultsFlow = detection
+    // Automatic Frame Dropping! Zero latency, zero OOMs.
+    .processFlowDropping(frameFlow)
 ```
 
 ### Pipelines

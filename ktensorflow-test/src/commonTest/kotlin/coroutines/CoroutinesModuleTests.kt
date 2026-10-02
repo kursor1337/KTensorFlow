@@ -8,7 +8,9 @@ import dev.kursor.ktensorflow.coroutines.processFlowDropping
 import dev.kursor.ktensorflow.coroutines.runSuspend
 import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
+import dev.kursor.ktensorflow.pipeline.linear
 import dev.kursor.ktensorflow.pipeline.stage.Stage
+import dev.kursor.ktensorflow.pipeline.stage.then
 import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -372,5 +374,17 @@ class CoroutinesModuleTests {
     private suspend fun assertClosedDispatcherError(block: suspend () -> Unit) {
         val error = runCatching { block() }.exceptionOrNull()
         assertEquals("InferenceDispatcher has already been closed", error?.message, "$error")
+    }
+
+    @Test
+    fun aChainOfStagesRunsWithoutAPipelineWrapper() = runTest {
+        // Функции модуля принимали только Pipeline, и цепочку из then приходилось оборачивать
+        val chain = Pipeline.linear<TrackedItem>().then { it.id }.then { it * 2 }
+        val item = TrackedItem(3)
+
+        assertEquals(14, chain.runSuspend(TrackedItem(7)))
+        assertEquals(listOf(6), chain.processFlowDropping(flowOf(item)).toList())
+        assertTrue(item.closed, "processFlowDropping must still close the item it processed")
+        assertEquals(listOf(2, 4), Pipeline.linear<Int>().then { it * 2 }.processFlow(flowOf(1, 2)).toList())
     }
 }

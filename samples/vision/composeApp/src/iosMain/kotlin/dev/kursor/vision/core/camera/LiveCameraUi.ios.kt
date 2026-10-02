@@ -41,7 +41,7 @@ actual fun LiveCameraUi(
             }
 
             val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
-            val input = AVCaptureDeviceInput.deviceInputWithDevice(device!!, error = null)
+            val input = device?.let { AVCaptureDeviceInput.deviceInputWithDevice(it, error = null) }
             if (input != null && session.canAddInput(input)) session.addInput(input)
 
             val output = AVCaptureVideoDataOutput().apply {

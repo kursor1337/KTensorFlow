@@ -2,7 +2,6 @@ package readme
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
 import dev.kursor.ktensorflow.Interpreter
-import dev.kursor.ktensorflow.coroutines.mapAndClose
 import dev.kursor.ktensorflow.coroutines.processFlowDropping
 import dev.kursor.ktensorflow.coroutines.runSuspend
 import dev.kursor.ktensorflow.pipeline.Pipeline
@@ -31,7 +30,6 @@ import dev.kursor.ktensorflow.vision.resizeWithPad
 import dev.kursor.ktensorflow.vision.scaleForContainer
 import dev.kursor.ktensorflow.vision.tensorizeFloat
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlin.random.Random
 import kotlin.test.Test
 
@@ -154,10 +152,17 @@ class ReadmeExamplesTest {
     private fun videoStream(
         interpreter: Interpreter,
         frameFlow: Flow<Image>
-    ): Flow<Int> = detectionPipeline(interpreter)
-        // pipeline из билдера принимает Tuple.One<PaddedImage>, но Flow<PaddedImage> передаётся как есть
-        .processFlowDropping(
-            inputFlow = frameFlow.mapAndClose { it.resizeWithPad(300, 300) }
+    ): Flow<Int> {
+        val detectionPipeline = detectionPipeline(interpreter)
+        // Масштабирование внутри пайплайна: отброшенный кадр не масштабируется вовсе
+        val detection = Pipeline(
+            Stage<Image, Int> { frame ->
+                frame.resizeWithPad(300, 300, closeOriginal = false).use { paddedImage ->
+                    val (boxes, classes) = detectionPipeline.run(tuple(paddedImage))
+                    boxes.size + classes.size
+                }
+            }
         )
-        .map { tupleOutput -> tupleOutput.first.size + tupleOutput.second.size }
+        return detection.processFlowDropping(frameFlow)
+    }
 }

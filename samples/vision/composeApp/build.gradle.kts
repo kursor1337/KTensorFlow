@@ -40,6 +40,7 @@ kotlin {
             implementation(projects.ktensorflowNpu)
             implementation(projects.ktensorflowGpu)
             implementation(projects.ktensorflowCompose)
+            implementation(projects.ktensorflowCoroutines)
             implementation(projects.ktensorflowVision)
             implementation(projects.ktensorflowPipeline)
 

@@ -1,8 +1,8 @@
 package dev.kursor.ktensorflow.coroutines
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
-import dev.kursor.ktensorflow.pipeline.Pipeline
 import dev.kursor.ktensorflow.pipeline.Tuple
+import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.tuple
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
@@ -22,6 +22,8 @@ import kotlin.jvm.JvmName
 /**
  * Runs the pipeline with the given input off the calling thread.
  *
+ * Works with any [Stage], so a chain of stages built with `then` can be run as is.
+ *
  * @param input The input to the pipeline.
  * @param dispatcher Dispatcher inference runs on. By default it is one shared
  *   [InferenceDispatcher], which runs one inference at a time for the whole process. Pass an
@@ -29,7 +31,7 @@ import kotlin.jvm.JvmName
  * @return The output of the pipeline.
  */
 @ExperimentalKTensorFlowApi
-suspend fun <I, O> Pipeline<I, O>.runSuspend(
+suspend fun <I, O> Stage<I, O>.runSuspend(
     input: I,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): O = withContext(dispatcher.checkNotClosed()) {
@@ -38,6 +40,8 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(
 
 /**
  * Runs the pipeline with the given input flow.
+ *
+ * Works with any [Stage], so a chain of stages built with `then` can be run as is.
  * This function runs the pipeline for every item in the input flow.
  * The pipeline is run asynchronously on the specified [dispatcher]. By default it is the shared
  * inference dispatcher, where concurrent inference queues instead of blocking threads; any
@@ -50,7 +54,7 @@ suspend fun <I, O> Pipeline<I, O>.runSuspend(
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
-fun <I, O> Pipeline<I, O>.processFlow(
+fun <I, O> Stage<I, O>.processFlow(
     inputFlow: Flow<I>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = inputFlow
@@ -60,6 +64,8 @@ fun <I, O> Pipeline<I, O>.processFlow(
 
 /**
  * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
+ *
+ * Works with any [Stage], so a chain of stages built with `then` can be run as is.
  * over the given input flow.
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
@@ -76,7 +82,7 @@ fun <I, O> Pipeline<I, O>.processFlow(
  */
 @ExperimentalKTensorFlowApi
 @JvmName("processTupleFlow")
-fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
+fun <I, O> Stage<Tuple.One<I>, O>.processFlow(
     inputFlow: Flow<I>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = inputFlow
@@ -86,6 +92,8 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
 
 /**
  * Runs the pipeline with the given input flow, dropping items if the pipeline is already running.
+ *
+ * Works with any [Stage], so a chain of stages built with `then` can be run as is.
  * This function runs the pipeline for every item in the input flow that arrives while it is idle.
  * The pipeline is run asynchronously on [dispatcher], one item at a time.
  *
@@ -107,13 +115,15 @@ fun <I, O> Pipeline<Tuple.One<I>, O>.processFlow(
  * @return The output flow of the pipeline.
  */
 @ExperimentalKTensorFlowApi
-fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
+fun <I : AutoCloseable, O> Stage<I, O>.processFlowDropping(
     inputFlow: Flow<I>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = processDropping(inputFlow, dispatcher) { item -> item.close() }
 
 /**
  * Runs a pipeline built with the pipeline builder (which accepts a single-element [Tuple.One])
+ *
+ * Works with any [Stage], so a chain of stages built with `then` can be run as is.
  * over the given input flow, dropping items if the pipeline is already running.
  *
  * Each item is wrapped into [Tuple.One] before being passed to the pipeline, so the flow can be
@@ -139,13 +149,13 @@ fun <I : AutoCloseable, O> Pipeline<I, O>.processFlowDropping(
  */
 @ExperimentalKTensorFlowApi
 @JvmName("processTupleFlowDropping")
-fun <I : AutoCloseable, O> Pipeline<Tuple.One<I>, O>.processFlowDropping(
+fun <I : AutoCloseable, O> Stage<Tuple.One<I>, O>.processFlowDropping(
     inputFlow: Flow<I>,
     dispatcher: CoroutineDispatcher = SharedInferenceDispatcher
 ): Flow<O> = processDropping(inputFlow.map { item -> tuple(item) }, dispatcher) { input -> input.first.close() }
 
 @ExperimentalKTensorFlowApi
-private fun <I, O> Pipeline<I, O>.processDropping(
+private fun <I, O> Stage<I, O>.processDropping(
     inputFlow: Flow<I>,
     dispatcher: CoroutineDispatcher,
     release: (I) -> Unit
