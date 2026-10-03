@@ -7,6 +7,8 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 
 **Version 2.0** brings massive architectural improvements, including a dedicated **Computer Vision** module, **Coroutines & Flow** support with built-in Backpressure, and **Zero-Copy Tensor Views**.
 
+Upgrading from 1.x? See the [migration guide from 1.x to 2.x](MIGRATION-1.x-to-2.x.md).
+
 ## Table of Contents
 
 - [Requirements](#requirements)
