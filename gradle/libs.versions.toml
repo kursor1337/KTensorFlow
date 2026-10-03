@@ -45,7 +45,7 @@ serialization = "1.11.0"
 essenty = "2.5.0"
 
 # KTensorFlow
-ktensorflow = "1.2"
+ktensorflow = "2.0"
 
 # API Compatibility
 
