@@ -1,5 +1,7 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.InternalKTensorFlowApi
+
 import dev.kursor.ktensorflow.tensor.impl.inferTensorShape
 import dev.kursor.ktensorflow.tensor.impl.toByteArray
 import dev.kursor.ktensorflow.tensor.physical.FloatTensor
@@ -9,9 +11,10 @@ import dev.kursor.ktensorflow.tensor.physical.UByteTensor
 
 /**
  * Represents a [Tensor] - multidimensional array of data
- * 
+ *
  * @param T The type of the data.
  */
+@SubclassOptInRequired(InternalKTensorFlowApi::class)
 interface Tensor<T : Any> {
 
     /**
@@ -27,22 +30,42 @@ interface Tensor<T : Any> {
 
     /**
      * Gets a typed element from this [Tensor]
-     * 
+     *
      * @param index - coordinates of the element
      */
     operator fun get(index: IntArray): T
 
     /**
      * Sets a typed element to this [Tensor]
-     * 
+     *
      * @param index - coordinates of the element
      * @param value - value to set
      */
     operator fun set(index: IntArray, value: T)
 
+    /**
+     * Gets a typed element from this [Tensor] using its flat index.
+     *
+     * @param index the linear index of the element
+     */
     fun getFlat(index: Int): T
+
+    /**
+     * Sets a typed element in this [Tensor] using its flattened index.
+     *
+     * @param index - the 1D index of the element
+     * @param value - value to set
+     */
     fun setFlat(index: Int, value: T)
 
+    /**
+     * Converts this [Tensor] to a [PhysicalTensor].
+     *
+     * If this tensor is already a [PhysicalTensor], it may return itself.
+     * Otherwise, it creates a new [PhysicalTensor] containing the same data.
+     *
+     * @return A [PhysicalTensor] representation of this tensor.
+     */
     fun toPhysical(): PhysicalTensor<T>
 }
 
@@ -67,23 +90,32 @@ operator fun <T : Any> Tensor<T>.set(vararg index: Int, value: T) {
 
 /**
  * Creates a [Tensor] with the specified data type, shape and data.
- * 
+ *
  *
  * @param dataType - data type of the [Tensor]
  * @param shape - shape of the [Tensor]
  * @param data - raw data of the [Tensor]. Initialized to ByteArray of zeros by default.
+ * @throws IllegalArgumentException if [data] does not hold exactly one value per element.
  */
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(
     dataType: TensorDataType<T>,
     shape: TensorShape,
     data: ByteArray = ByteArray(shape.flatSize * dataType.byteSize)
-): PhysicalTensor<T> = when (dataType) {
-    TensorDataType.Float32 -> FloatTensor(shape, data)
-    TensorDataType.Int32 -> IntTensor(shape, data)
-    TensorDataType.UInt8 -> UByteTensor(shape, data)
-    TensorDataType.Int64 -> LongTensor(shape, data)
-} as PhysicalTensor<T>
+): PhysicalTensor<T> {
+    // Короткий массив раньше падал только при чтении последних элементов, а длинный
+    // принимался молча - обычно это ошибка в форме, а не лишние байты
+    require(data.size == shape.flatSize * dataType.byteSize) {
+        "Data of a $dataType tensor of shape $shape must hold " +
+            "${shape.flatSize * dataType.byteSize} bytes, got ${data.size}"
+    }
+    return when (dataType) {
+        TensorDataType.Float32 -> FloatTensor(shape, data)
+        TensorDataType.Int32 -> IntTensor(shape, data)
+        TensorDataType.UInt8 -> UByteTensor(shape, data)
+        TensorDataType.Int64 -> LongTensor(shape, data)
+    } as PhysicalTensor<T>
+}
 
 /**
  * Creates a [Tensor] with the specified shape and data.
@@ -103,9 +135,10 @@ inline fun <reified T : Any> Tensor(
  * For example: Array<Array<Array<FloatArray>>>
  * Boxed arrays (for example Array<Float>) are not supported,
  * use primitive arrays (like FloatArray) instead.
- * 
+ *
  * @param dataType - data type of the [Tensor]
  * @param data - raw data of the [Tensor]
+ * @throws IllegalArgumentException if the nested arrays are ragged or hold another element type.
  */
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Tensor(

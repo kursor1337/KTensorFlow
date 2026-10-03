@@ -4,12 +4,14 @@ import kotlin.jvm.JvmName
 
 /**
  * Adds two [Tensor]s element-wise.
- * 
+ *
  * @param other - [Tensor] to add
  */
 @JvmName("floatTensorPlusFloatTensor")
-operator fun Tensor<Float>.plus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Float>.plus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -17,8 +19,10 @@ operator fun Tensor<Float>.plus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("floatTensorPlusIntTensor")
-operator fun Tensor<Float>.plus(other: Tensor<Int>): Tensor<Float> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Float>.plus(other: Tensor<Int>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -26,8 +30,10 @@ operator fun Tensor<Float>.plus(other: Tensor<Int>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("floatTensorPlusUByteTensor")
-operator fun Tensor<Float>.plus(other: Tensor<UByte>): Tensor<Float> =
-    mapIndexed { index, it -> it + other[index].toFloat() }
+operator fun Tensor<Float>.plus(other: Tensor<UByte>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b.toFloat() }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -35,8 +41,10 @@ operator fun Tensor<Float>.plus(other: Tensor<UByte>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("floatTensorPlusLongTensor")
-operator fun Tensor<Float>.plus(other: Tensor<Long>): Tensor<Float> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Float>.plus(other: Tensor<Long>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -44,8 +52,10 @@ operator fun Tensor<Float>.plus(other: Tensor<Long>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("intTensorPlusFloatTensor")
-operator fun Tensor<Int>.plus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Int>.plus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -53,8 +63,10 @@ operator fun Tensor<Int>.plus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("intTensorPlusIntTensor")
-operator fun Tensor<Int>.plus(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Int>.plus(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -62,8 +74,10 @@ operator fun Tensor<Int>.plus(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to add
  */
 @JvmName("intTensorPlusUByteTensor")
-operator fun Tensor<Int>.plus(other: Tensor<UByte>): Tensor<Int> =
-    mapIndexed { index, it -> it + other[index].toInt() }
+operator fun Tensor<Int>.plus(other: Tensor<UByte>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b.toInt() }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -71,8 +85,10 @@ operator fun Tensor<Int>.plus(other: Tensor<UByte>): Tensor<Int> =
  * @param other - [Tensor] to add
  */
 @JvmName("intTensorPlusLongTensor")
-operator fun Tensor<Int>.plus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Int>.plus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -80,8 +96,10 @@ operator fun Tensor<Int>.plus(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to add
  */
 @JvmName("uByteTensorPlusFloatTensor")
-operator fun Tensor<UByte>.plus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() + other[index] }
+operator fun Tensor<UByte>.plus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -89,17 +107,24 @@ operator fun Tensor<UByte>.plus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to add
  */
 @JvmName("uByteTensorPlusIntTensor")
-operator fun Tensor<UByte>.plus(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it.toInt() + other[index] }
+operator fun Tensor<UByte>.plus(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toInt() + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `200 + 100` gives `44`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - [Tensor] to add
  */
 @JvmName("uByteTensorPlusUByteTensor")
-operator fun Tensor<UByte>.plus(other: Tensor<UByte>): Tensor<UByte> =
-    mapIndexed { index, it -> (it + other[index]).toUByte() }
+operator fun Tensor<UByte>.plus(other: Tensor<UByte>): Tensor<UByte> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> (a + b).toUByte() }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -107,8 +132,10 @@ operator fun Tensor<UByte>.plus(other: Tensor<UByte>): Tensor<UByte> =
  * @param other - [Tensor] to add
  */
 @JvmName("uByteTensorPlusLongTensor")
-operator fun Tensor<UByte>.plus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it.toLong() + other[index] }
+operator fun Tensor<UByte>.plus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toLong() + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -116,7 +143,10 @@ operator fun Tensor<UByte>.plus(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to add
  */
 @JvmName("longTensorPlusFloatTensor")
-operator fun Tensor<Long>.plus(other: Tensor<Float>): Tensor<Float> = mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Long>.plus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -124,8 +154,10 @@ operator fun Tensor<Long>.plus(other: Tensor<Float>): Tensor<Float> = mapIndexed
  * @param other - [Tensor] to add
  */
 @JvmName("longTensorPlusIntTensor")
-operator fun Tensor<Long>.plus(other: Tensor<Int>): Tensor<Long> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Long>.plus(other: Tensor<Int>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -133,8 +165,10 @@ operator fun Tensor<Long>.plus(other: Tensor<Int>): Tensor<Long> =
  * @param other - [Tensor] to add
  */
 @JvmName("longTensorPlusUByteTensor")
-operator fun Tensor<Long>.plus(other: Tensor<UByte>): Tensor<Long> =
-    mapIndexed { index, it -> it + other[index].toLong() }
+operator fun Tensor<Long>.plus(other: Tensor<UByte>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b.toLong() }
+}
 
 /**
  * Adds two [Tensor]s element-wise.
@@ -142,8 +176,10 @@ operator fun Tensor<Long>.plus(other: Tensor<UByte>): Tensor<Long> =
  * @param other - [Tensor] to add
  */
 @JvmName("longTensorPlusLongTensor")
-operator fun Tensor<Long>.plus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it + other[index] }
+operator fun Tensor<Long>.plus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a + b }
+}
 
 /**
  * Adds a number to all elements of this tensor
@@ -228,6 +264,9 @@ operator fun Tensor<UByte>.plus(other: Int): Tensor<Int> = map { it.toInt() + ot
 /**
  * Adds a number to all elements of this tensor
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `200 + 100` gives `44`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - number to add
  */
 @JvmName("uByteTensorPlusUByte")
@@ -279,8 +318,10 @@ operator fun Tensor<Long>.plus(other: Long): Tensor<Long> = map { it + other }
  * @param other - [Tensor] to subtract
  */
 @JvmName("floatTensorMinusFloatTensor")
-operator fun Tensor<Float>.minus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Float>.minus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -288,8 +329,10 @@ operator fun Tensor<Float>.minus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("floatTensorMinusIntTensor")
-operator fun Tensor<Float>.minus(other: Tensor<Int>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Float>.minus(other: Tensor<Int>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -297,8 +340,10 @@ operator fun Tensor<Float>.minus(other: Tensor<Int>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("floatTensorMinusUByteTensor")
-operator fun Tensor<Float>.minus(other: Tensor<UByte>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index].toFloat() }
+operator fun Tensor<Float>.minus(other: Tensor<UByte>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b.toFloat() }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -306,8 +351,10 @@ operator fun Tensor<Float>.minus(other: Tensor<UByte>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("floatTensorMinusLongTensor")
-operator fun Tensor<Float>.minus(other: Tensor<Long>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Float>.minus(other: Tensor<Long>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -315,8 +362,10 @@ operator fun Tensor<Float>.minus(other: Tensor<Long>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("intTensorMinusFloatTensor")
-operator fun Tensor<Int>.minus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Int>.minus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -324,8 +373,10 @@ operator fun Tensor<Int>.minus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("intTensorMinusIntTensor")
-operator fun Tensor<Int>.minus(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Int>.minus(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -333,8 +384,10 @@ operator fun Tensor<Int>.minus(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("intTensorMinusUByteTensor")
-operator fun Tensor<Int>.minus(other: Tensor<UByte>): Tensor<Int> =
-    mapIndexed { index, it -> it - other[index].toInt() }
+operator fun Tensor<Int>.minus(other: Tensor<UByte>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b.toInt() }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -342,8 +395,10 @@ operator fun Tensor<Int>.minus(other: Tensor<UByte>): Tensor<Int> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("intTensorMinusLongTensor")
-operator fun Tensor<Int>.minus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Int>.minus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -351,8 +406,10 @@ operator fun Tensor<Int>.minus(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("uByteTensorMinusFloatTensor")
-operator fun Tensor<UByte>.minus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() - other[index] }
+operator fun Tensor<UByte>.minus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -360,17 +417,24 @@ operator fun Tensor<UByte>.minus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("uByteTensorMinusIntTensor")
-operator fun Tensor<UByte>.minus(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it.toInt() - other[index] }
+operator fun Tensor<UByte>.minus(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toInt() - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `10 - 20` gives `246`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - [Tensor] to subtract
  */
 @JvmName("uByteTensorMinusUByteTensor")
-operator fun Tensor<UByte>.minus(other: Tensor<UByte>): Tensor<UByte> =
-    mapIndexed { index, it -> (it - other[index]).toUByte() }
+operator fun Tensor<UByte>.minus(other: Tensor<UByte>): Tensor<UByte> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> (a - b).toUByte() }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -378,8 +442,10 @@ operator fun Tensor<UByte>.minus(other: Tensor<UByte>): Tensor<UByte> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("uByteTensorMinusLongTensor")
-operator fun Tensor<UByte>.minus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it.toLong() - other[index] }
+operator fun Tensor<UByte>.minus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toLong() - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -387,8 +453,10 @@ operator fun Tensor<UByte>.minus(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("longTensorMinusFloatTensor")
-operator fun Tensor<Long>.minus(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Long>.minus(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -396,8 +464,10 @@ operator fun Tensor<Long>.minus(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("longTensorMinusIntTensor")
-operator fun Tensor<Long>.minus(other: Tensor<Int>): Tensor<Long> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Long>.minus(other: Tensor<Int>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -405,8 +475,10 @@ operator fun Tensor<Long>.minus(other: Tensor<Int>): Tensor<Long> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("longTensorMinusUByteTensor")
-operator fun Tensor<Long>.minus(other: Tensor<UByte>): Tensor<Long> =
-    mapIndexed { index, it -> it - other[index].toLong() }
+operator fun Tensor<Long>.minus(other: Tensor<UByte>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b.toLong() }
+}
 
 /**
  * Subtracts one [Tensor] from another element-wise.
@@ -414,12 +486,14 @@ operator fun Tensor<Long>.minus(other: Tensor<UByte>): Tensor<Long> =
  * @param other - [Tensor] to subtract
  */
 @JvmName("longTensorMinusLongTensor")
-operator fun Tensor<Long>.minus(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it - other[index] }
+operator fun Tensor<Long>.minus(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a - b }
+}
 
 /**
  * Subtracts a number from all elements of this tensor
- * 
+ *
  * @param other - number to subtract
  */
 @JvmName("floatTensorMinusFloat")
@@ -500,6 +574,9 @@ operator fun Tensor<UByte>.minus(other: Int): Tensor<Int> = map { it.toInt() - o
 /**
  * Subtracts a number from all elements of this tensor
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `10 - 20` gives `246`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - number to subtract
  */
 @JvmName("uByteTensorMinusUByte")
@@ -551,8 +628,10 @@ operator fun Tensor<Long>.minus(other: Long): Tensor<Long> = map { it - other }
  * @param other - [Tensor] to multiply with
  */
 @JvmName("floatTensorTimesFloatTensor")
-operator fun Tensor<Float>.times(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Float>.times(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -560,8 +639,10 @@ operator fun Tensor<Float>.times(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("floatTensorTimesIntTensor")
-operator fun Tensor<Float>.times(other: Tensor<Int>): Tensor<Float> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Float>.times(other: Tensor<Int>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -569,8 +650,10 @@ operator fun Tensor<Float>.times(other: Tensor<Int>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("floatTensorTimesUByteTensor")
-operator fun Tensor<Float>.times(other: Tensor<UByte>): Tensor<Float> =
-    mapIndexed { index, it -> it * other[index].toFloat() }
+operator fun Tensor<Float>.times(other: Tensor<UByte>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b.toFloat() }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -578,8 +661,10 @@ operator fun Tensor<Float>.times(other: Tensor<UByte>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("floatTensorTimesLongTensor")
-operator fun Tensor<Float>.times(other: Tensor<Long>): Tensor<Float> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Float>.times(other: Tensor<Long>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -587,8 +672,10 @@ operator fun Tensor<Float>.times(other: Tensor<Long>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("intTensorTimesFloatTensor")
-operator fun Tensor<Int>.times(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Int>.times(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -596,8 +683,10 @@ operator fun Tensor<Int>.times(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("intTensorTimesIntTensor")
-operator fun Tensor<Int>.times(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Int>.times(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -605,8 +694,10 @@ operator fun Tensor<Int>.times(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("intTensorTimesUByteTensor")
-operator fun Tensor<Int>.times(other: Tensor<UByte>): Tensor<Int> =
-    mapIndexed { index, it -> it * other[index].toInt() }
+operator fun Tensor<Int>.times(other: Tensor<UByte>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b.toInt() }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -614,8 +705,10 @@ operator fun Tensor<Int>.times(other: Tensor<UByte>): Tensor<Int> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("intTensorTimesLongTensor")
-operator fun Tensor<Int>.times(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Int>.times(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -623,8 +716,10 @@ operator fun Tensor<Int>.times(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("uByteTensorTimesFloatTensor")
-operator fun Tensor<UByte>.times(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() * other[index] }
+operator fun Tensor<UByte>.times(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -632,17 +727,24 @@ operator fun Tensor<UByte>.times(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("uByteTensorTimesIntTensor")
-operator fun Tensor<UByte>.times(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it.toInt() * other[index] }
+operator fun Tensor<UByte>.times(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toInt() * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `16 * 20` gives `64`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - [Tensor] to multiply with
  */
 @JvmName("uByteTensorTimesUByteTensor")
-operator fun Tensor<UByte>.times(other: Tensor<UByte>): Tensor<UByte> =
-    mapIndexed { index, it -> (it * other[index]).toUByte() }
+operator fun Tensor<UByte>.times(other: Tensor<UByte>): Tensor<UByte> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> (a * b).toUByte() }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -650,8 +752,10 @@ operator fun Tensor<UByte>.times(other: Tensor<UByte>): Tensor<UByte> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("uByteTensorTimesLongTensor")
-operator fun Tensor<UByte>.times(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it.toLong() * other[index] }
+operator fun Tensor<UByte>.times(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toLong() * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -659,8 +763,10 @@ operator fun Tensor<UByte>.times(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("longTensorTimesFloatTensor")
-operator fun Tensor<Long>.times(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() * other[index] }
+operator fun Tensor<Long>.times(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -668,8 +774,10 @@ operator fun Tensor<Long>.times(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("longTensorTimesIntTensor")
-operator fun Tensor<Long>.times(other: Tensor<Int>): Tensor<Long> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Long>.times(other: Tensor<Int>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -677,8 +785,10 @@ operator fun Tensor<Long>.times(other: Tensor<Int>): Tensor<Long> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("longTensorTimesUByteTensor")
-operator fun Tensor<Long>.times(other: Tensor<UByte>): Tensor<Long> =
-    mapIndexed { index, it -> it * other[index].toLong() }
+operator fun Tensor<Long>.times(other: Tensor<UByte>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b.toLong() }
+}
 
 /**
  * Multiplies one [Tensor] with another element-wise.
@@ -686,8 +796,10 @@ operator fun Tensor<Long>.times(other: Tensor<UByte>): Tensor<Long> =
  * @param other - [Tensor] to multiply with
  */
 @JvmName("longTensorTimesLongTensor")
-operator fun Tensor<Long>.times(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it * other[index] }
+operator fun Tensor<Long>.times(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a * b }
+}
 
 /**
  * Multiplies all elements of the [Tensor] with a number.
@@ -772,6 +884,9 @@ operator fun Tensor<UByte>.times(other: Int): Tensor<Int> = map { it.toInt() * o
 /**
  * Multiplies all elements of the [Tensor] with a number.
  *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin:
+ * `16 * 20` gives `64`. Convert with [toFloatTensor] first to keep the full range.
+ *
  * @param other - number to multiply with
  */
 @JvmName("uByteTensorTimesUByte")
@@ -823,8 +938,10 @@ operator fun Tensor<Long>.times(other: Long): Tensor<Long> = map { it * other }
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorDivFloatTensor")
-operator fun Tensor<Float>.div(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Float>.div(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -832,8 +949,10 @@ operator fun Tensor<Float>.div(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorDivIntTensor")
-operator fun Tensor<Float>.div(other: Tensor<Int>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Float>.div(other: Tensor<Int>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -841,8 +960,10 @@ operator fun Tensor<Float>.div(other: Tensor<Int>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorDivUByteTensor")
-operator fun Tensor<Float>.div(other: Tensor<UByte>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index].toFloat() }
+operator fun Tensor<Float>.div(other: Tensor<UByte>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b.toFloat() }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -850,8 +971,10 @@ operator fun Tensor<Float>.div(other: Tensor<UByte>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorDivLongTensor")
-operator fun Tensor<Float>.div(other: Tensor<Long>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Float>.div(other: Tensor<Long>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -859,8 +982,10 @@ operator fun Tensor<Float>.div(other: Tensor<Long>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorDivFloatTensor")
-operator fun Tensor<Int>.div(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Int>.div(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -868,8 +993,10 @@ operator fun Tensor<Int>.div(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorDivIntTensor")
-operator fun Tensor<Int>.div(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Int>.div(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -877,8 +1004,10 @@ operator fun Tensor<Int>.div(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorDivUByteTensor")
-operator fun Tensor<Int>.div(other: Tensor<UByte>): Tensor<Int> =
-    mapIndexed { index, it -> it / other[index].toInt() }
+operator fun Tensor<Int>.div(other: Tensor<UByte>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b.toInt() }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -886,8 +1015,10 @@ operator fun Tensor<Int>.div(other: Tensor<UByte>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorDivLongTensor")
-operator fun Tensor<Int>.div(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Int>.div(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -895,8 +1026,10 @@ operator fun Tensor<Int>.div(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorDivFloatTensor")
-operator fun Tensor<UByte>.div(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() / other[index] }
+operator fun Tensor<UByte>.div(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -904,8 +1037,10 @@ operator fun Tensor<UByte>.div(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorDivIntTensor")
-operator fun Tensor<UByte>.div(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it.toInt() / other[index] }
+operator fun Tensor<UByte>.div(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toInt() / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -913,8 +1048,10 @@ operator fun Tensor<UByte>.div(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorDivUByteTensor")
-operator fun Tensor<UByte>.div(other: Tensor<UByte>): Tensor<UByte> =
-    mapIndexed { index, it -> (it / other[index]).toUByte() }
+operator fun Tensor<UByte>.div(other: Tensor<UByte>): Tensor<UByte> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> (a / b).toUByte() }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -922,8 +1059,10 @@ operator fun Tensor<UByte>.div(other: Tensor<UByte>): Tensor<UByte> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorDivLongTensor")
-operator fun Tensor<UByte>.div(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it.toLong() / other[index] }
+operator fun Tensor<UByte>.div(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toLong() / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -931,8 +1070,10 @@ operator fun Tensor<UByte>.div(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorDivFloatTensor")
-operator fun Tensor<Long>.div(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Long>.div(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -940,8 +1081,10 @@ operator fun Tensor<Long>.div(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorDivIntTensor")
-operator fun Tensor<Long>.div(other: Tensor<Int>): Tensor<Long> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Long>.div(other: Tensor<Int>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -949,8 +1092,10 @@ operator fun Tensor<Long>.div(other: Tensor<Int>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorDivUByteTensor")
-operator fun Tensor<Long>.div(other: Tensor<UByte>): Tensor<Long> =
-    mapIndexed { index, it -> it / other[index].toLong() }
+operator fun Tensor<Long>.div(other: Tensor<UByte>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b.toLong() }
+}
 
 /**
  * Divides one [Tensor] with another element-wise.
@@ -958,8 +1103,10 @@ operator fun Tensor<Long>.div(other: Tensor<UByte>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorDivLongTensor")
-operator fun Tensor<Long>.div(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it / other[index] }
+operator fun Tensor<Long>.div(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a / b }
+}
 
 /**
  * Divides all elements of one [Tensor] with a number.
@@ -1095,8 +1242,10 @@ operator fun Tensor<Long>.div(other: Long): Tensor<Long> = map { it / other }
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorRemFloatTensor")
-operator fun Tensor<Float>.rem(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Float>.rem(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1104,8 +1253,10 @@ operator fun Tensor<Float>.rem(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorRemIntTensor")
-operator fun Tensor<Float>.rem(other: Tensor<Int>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Float>.rem(other: Tensor<Int>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1113,8 +1264,10 @@ operator fun Tensor<Float>.rem(other: Tensor<Int>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorRemUByteTensor")
-operator fun Tensor<Float>.rem(other: Tensor<UByte>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index].toFloat() }
+operator fun Tensor<Float>.rem(other: Tensor<UByte>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b.toFloat() }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1122,8 +1275,10 @@ operator fun Tensor<Float>.rem(other: Tensor<UByte>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("floatTensorRemLongTensor")
-operator fun Tensor<Float>.rem(other: Tensor<Long>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Float>.rem(other: Tensor<Long>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1131,8 +1286,10 @@ operator fun Tensor<Float>.rem(other: Tensor<Long>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorRemFloatTensor")
-operator fun Tensor<Int>.rem(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Int>.rem(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1140,8 +1297,10 @@ operator fun Tensor<Int>.rem(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorRemIntTensor")
-operator fun Tensor<Int>.rem(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Int>.rem(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1149,8 +1308,10 @@ operator fun Tensor<Int>.rem(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorRemUByteTensor")
-operator fun Tensor<Int>.rem(other: Tensor<UByte>): Tensor<Int> =
-    mapIndexed { index, it -> it % other[index].toInt() }
+operator fun Tensor<Int>.rem(other: Tensor<UByte>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b.toInt() }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1158,8 +1319,10 @@ operator fun Tensor<Int>.rem(other: Tensor<UByte>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("intTensorRemLongTensor")
-operator fun Tensor<Int>.rem(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Int>.rem(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1167,8 +1330,10 @@ operator fun Tensor<Int>.rem(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorRemFloatTensor")
-operator fun Tensor<UByte>.rem(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it.toFloat() % other[index] }
+operator fun Tensor<UByte>.rem(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toFloat() % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1176,8 +1341,10 @@ operator fun Tensor<UByte>.rem(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorRemIntTensor")
-operator fun Tensor<UByte>.rem(other: Tensor<Int>): Tensor<Int> =
-    mapIndexed { index, it -> it.toInt() % other[index] }
+operator fun Tensor<UByte>.rem(other: Tensor<Int>): Tensor<Int> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toInt() % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1185,8 +1352,10 @@ operator fun Tensor<UByte>.rem(other: Tensor<Int>): Tensor<Int> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorRemUByteTensor")
-operator fun Tensor<UByte>.rem(other: Tensor<UByte>): Tensor<UByte> =
-    mapIndexed { index, it -> (it % other[index]).toUByte() }
+operator fun Tensor<UByte>.rem(other: Tensor<UByte>): Tensor<UByte> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> (a % b).toUByte() }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1194,8 +1363,10 @@ operator fun Tensor<UByte>.rem(other: Tensor<UByte>): Tensor<UByte> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("uByteTensorRemLongTensor")
-operator fun Tensor<UByte>.rem(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it.toLong() % other[index] }
+operator fun Tensor<UByte>.rem(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a.toLong() % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1203,8 +1374,10 @@ operator fun Tensor<UByte>.rem(other: Tensor<Long>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorRemFloatTensor")
-operator fun Tensor<Long>.rem(other: Tensor<Float>): Tensor<Float> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Long>.rem(other: Tensor<Float>): Tensor<Float> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1212,8 +1385,10 @@ operator fun Tensor<Long>.rem(other: Tensor<Float>): Tensor<Float> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorRemIntTensor")
-operator fun Tensor<Long>.rem(other: Tensor<Int>): Tensor<Long> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Long>.rem(other: Tensor<Int>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1221,8 +1396,10 @@ operator fun Tensor<Long>.rem(other: Tensor<Int>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorRemUByteTensor")
-operator fun Tensor<Long>.rem(other: Tensor<UByte>): Tensor<Long> =
-    mapIndexed { index, it -> it % other[index].toLong() }
+operator fun Tensor<Long>.rem(other: Tensor<UByte>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b.toLong() }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by another element-wise.
@@ -1230,8 +1407,10 @@ operator fun Tensor<Long>.rem(other: Tensor<UByte>): Tensor<Long> =
  * @param other - [Tensor] to divide with
  */
 @JvmName("longTensorRemLongTensor")
-operator fun Tensor<Long>.rem(other: Tensor<Long>): Tensor<Long> =
-    mapIndexed { index, it -> it % other[index] }
+operator fun Tensor<Long>.rem(other: Tensor<Long>): Tensor<Long> {
+    requireSameShape(other)
+    return zipFlat(other) { a, b -> a % b }
+}
 
 /**
  * Returns the remainder of one [Tensor] divided by a number.
@@ -1444,3 +1623,32 @@ operator fun Tensor<Int>.unaryMinus(): Tensor<Int> = map { -it }
  */
 @JvmName("longTensorUnaryMinus")
 operator fun Tensor<Long>.unaryMinus(): Tensor<Long> = map { -it }
+
+/**
+ * Проверяет, что формы совпадают.
+ *
+ * Поэлементные операции обходят индексы левого тензора и читают правый по тем же координатам.
+ * При разных формах координата чаще всего остаётся в пределах плоского размера, поэтому
+ * результат получался не ошибкой, а молча неверными числами.
+ */
+private fun Tensor<*>.requireSameShape(other: Tensor<*>) {
+    require(shape == other.shape) {
+        "Element-wise operations require tensors of the same shape, got $shape and ${other.shape}"
+    }
+}
+
+/**
+ * Поэлементно объединяет два тензора одной формы. Оба обходятся по плоскому индексу: у views
+ * getFlat логический, так что порядок элементов совпадает с вложенным. Вложенный индекс с
+ * пересчётом через страйды на каждый элемент был медленнее на 12-30%.
+ */
+private inline fun <A : Any, B : Any, reified R : Any> Tensor<A>.zipFlat(
+    other: Tensor<B>,
+    transform: (A, B) -> R
+): Tensor<R> {
+    val result = Tensor(TensorDataType.of<R>(), shape)
+    for (i in 0 until shape.flatSize) {
+        result.setFlat(i, transform(getFlat(i), other.getFlat(i)))
+    }
+    return result
+}

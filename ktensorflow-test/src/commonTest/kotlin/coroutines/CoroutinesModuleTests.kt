@@ -1,0 +1,390 @@
+package coroutines
+
+import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
+import dev.kursor.ktensorflow.coroutines.InferenceDispatcher
+import dev.kursor.ktensorflow.coroutines.mapAndClose
+import dev.kursor.ktensorflow.coroutines.processFlow
+import dev.kursor.ktensorflow.coroutines.processFlowDropping
+import dev.kursor.ktensorflow.coroutines.runSuspend
+import dev.kursor.ktensorflow.pipeline.Pipeline
+import dev.kursor.ktensorflow.pipeline.Tuple
+import dev.kursor.ktensorflow.pipeline.linear
+import dev.kursor.ktensorflow.pipeline.stage.Stage
+import dev.kursor.ktensorflow.pipeline.stage.then
+import dev.kursor.ktensorflow.pipeline.tuple
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+
+/**
+ * These tests exercise the real [Pipeline]/[Flow] machinery (kotlinx.coroutines is a real,
+ * production dependency, not mocked) with lightweight pure-Kotlin stages. No platform/model
+ * dependency is needed here since none of this module's logic touches Interpreter internals -
+ * see [InterpreterTest] (android/iOS) for coroutine behavior against a real interpreter.
+ */
+@OptIn(ExperimentalKTensorFlowApi::class)
+class CoroutinesModuleTests {
+
+    private class TrackedItem(val id: Int) : AutoCloseable {
+        var closed = false
+            private set
+
+        override fun close() {
+            closed = true
+        }
+    }
+
+    @Test
+    fun pipelineRunSuspendProducesTheSameResultAsTheSynchronousRun() = runTest {
+        val pipeline = Pipeline(Stage<Int, Int> { it + 1 })
+
+        assertEquals(pipeline.run(41), pipeline.runSuspend(41))
+    }
+
+    @Test
+    fun processFlowMapsEveryItemPreservingOrder() = runTest {
+        val pipeline = Pipeline(Stage<Int, Int> { it * 2 })
+
+        val result = pipeline.processFlow(flowOf(1, 2, 3, 4, 5)).toList()
+
+        assertEquals(listOf(2, 4, 6, 8, 10), result)
+    }
+
+    @Test
+    fun processFlowWorksWithSingleInputBuilderPipelines() = runTest {
+        // Pipeline.input(...).inference(...).output(...).build() строит Pipeline<Tuple.One<Input>, ...>,
+        // поэтому Flow<Input> должен приниматься без ручной обёртки в tuple() - так же, как в
+        // processFlowDropping.
+        val received = mutableListOf<Tuple.One<Int>>()
+        val pipeline = Pipeline(Stage<Tuple.One<Int>, Int> { input ->
+            received += input
+            input.first * 2
+        })
+
+        val result = pipeline.processFlow(flowOf(1, 2, 3)).toList()
+
+        assertEquals(listOf(2, 4, 6), result)
+        assertEquals(listOf(tuple(1), tuple(2), tuple(3)), received)
+    }
+
+    @Test
+    fun processFlowDroppingProcessesTheFirstItemAndDropsTheRestWhileBusy() = runTest {
+        // Симулируем медленную (например, реальную ML) обработку блокирующей задержкой -
+        // run() не suspend-функция, поэтому используем настоящий блокирующий вызов.
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { item ->
+            runBlocking { kotlinx.coroutines.delay(200) }
+            item.id
+        })
+
+        val items = (1..5).map { TrackedItem(it) }
+
+        // items.asFlow() эмитит все элементы практически мгновенно, без suspend-задержек,
+        // так что все они успевают дойти до processFlowDropping, пока обрабатывается первый.
+        val results = pipeline.processFlowDropping(items.asFlow()).toList()
+
+        assertEquals(listOf(1), results, "only the first item should win the mutex and be processed")
+
+        // Поток владеет каждым кадром: отброшенные закрыты сразу, обработанный - после пайплайна
+        items.forEach { item ->
+            assertTrue(item.closed, "item ${item.id} must be closed by processFlowDropping")
+        }
+    }
+
+    @Test
+    fun processFlowDroppingWorksWithSingleInputBuilderPipelines() = runTest {
+        // Pipeline.input(...).inference(...).output(...).build() строит Pipeline<Tuple.One<Input>, ...>.
+        // Здесь тот же тип собран напрямую, чтобы не требовать интерпретатора и модели.
+        val received = mutableListOf<Tuple.One<TrackedItem>>()
+        val pipeline = Pipeline(Stage<Tuple.One<TrackedItem>, Int> { input ->
+            received += input
+            runBlocking { kotlinx.coroutines.delay(200) }
+            input.first.id
+        })
+
+        val items = (1..5).map { TrackedItem(it) }
+
+        // На вход подаётся Flow<TrackedItem> без ручной обёртки в tuple()
+        val results = pipeline.processFlowDropping(items.asFlow()).toList()
+
+        assertEquals(listOf(1), results, "only the first item should win the mutex and be processed")
+        assertEquals(listOf(tuple(items[0])), received, "the pipeline must receive the item wrapped in Tuple.One")
+
+        items.forEach { item ->
+            assertTrue(item.closed, "item ${item.id} must be closed even though it was wrapped in a tuple")
+        }
+    }
+
+    @Test
+    fun processFlowDroppingClosesAnItemWhosePipelineFailed() = runTest {
+        val item = TrackedItem(1)
+        val failing = Pipeline(Stage<TrackedItem, Int> { error("model failed") })
+
+        assertFailsWith<IllegalStateException> { failing.processFlowDropping(flowOf(item)).toList() }
+
+        assertTrue(item.closed, "an item must be closed even when the pipeline throws on it")
+    }
+
+    @Test
+    fun processFlowDroppingClosesTheItemInFlightWhenTheUpstreamFails() = runTest {
+        val first = TrackedItem(1)
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+        val broken = flow { emit(first); error("camera died") }
+
+        assertFailsWith<IllegalStateException> { pipeline.processFlowDropping(broken).toList() }
+
+        assertTrue(first.closed, "the item accepted before the upstream failed must be closed")
+    }
+
+    @Test
+    fun processFlowDroppingFailsInsteadOfHangingWhenClosingAnItemThrows() = runBlocking {
+        // Если close() бросает, mutex остаётся занятым - но зависания нет: исключение роняет
+        // весь поток, и следующих кадров, которые упёрлись бы в mutex, уже не будет
+        class BrokenItem : AutoCloseable {
+            override fun close() = error("close failed")
+        }
+        val pipeline = Pipeline(Stage<BrokenItem, Int> { 1 })
+        val frames = flow {
+            repeat(5) {
+                emit(BrokenItem())
+                delay(20.milliseconds)
+            }
+        }
+
+        val failure = withTimeout(5_000.milliseconds) {
+            assertFailsWith<IllegalStateException> { pipeline.processFlowDropping(frames).toList() }
+        }
+
+        assertEquals("close failed", failure.message)
+    }
+
+    @Test
+    fun processFlowDroppingOfAnEmptyFlowCompletesWithoutResults() = runTest {
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+
+        assertEquals(emptyList(), pipeline.processFlowDropping(emptyFlow()).toList())
+    }
+
+    @Test
+    fun itemAcceptedButCancelledBeforeInferenceStartsIsClosed() = runBlocking {
+        withTimeout(15_000.milliseconds) {
+            // Занимаем единственный слот InferenceDispatcher, чтобы инференс для item встал в очередь
+            val gate = Channel<Unit>()
+            val blocker = launch(Dispatchers.Default) {
+                Pipeline(Stage<Unit, Unit> { runBlocking { gate.receive() } }).runSuspend(Unit)
+            }
+            delay(100.milliseconds)
+
+            var processed = false
+            val item = TrackedItem(1)
+            val pipeline = Pipeline(Stage<TrackedItem, Int> { processed = true; it.id })
+            val collector = launch(Dispatchers.Default) {
+                pipeline.processFlowDropping(flowOf(item)).collect { }
+            }
+            delay(100.milliseconds)
+
+            // join сразу нельзя: отменённая корутина завершится, только когда её возьмёт диспетчер
+            collector.cancel()
+            gate.send(Unit)
+            blocker.join()
+            collector.join()
+
+            assertFalse(processed, "a cancelled collection must not run the pipeline")
+            assertTrue(item.closed, "an item that was accepted but never processed must still be closed")
+        }
+    }
+
+    @Test
+    fun mapAndCloseClosesEachItemAfterASuccessfulTransform() = runTest {
+        val item = TrackedItem(1)
+
+        val result = flowOf(item).mapAndClose { it.id * 10 }.toList()
+
+        assertEquals(listOf(10), result)
+        assertTrue(item.closed)
+    }
+
+    @Test
+    fun mapAndCloseClosesTheItemEvenWhenTheTransformThrows() = runTest {
+        val item = TrackedItem(1)
+
+        val flow = flowOf(item).mapAndClose<TrackedItem, Int> { error("boom") }
+
+        assertFailsWith<IllegalStateException> { flow.toList() }
+        assertTrue(item.closed)
+    }
+
+    @Test
+    fun concurrentRunSuspendCallsNeverOverlap() = runTest {
+        // По умолчанию все функции модуля делят один диспетчер, и инференсы идут по одному,
+        // даже если пользователь запустил их параллельно. Пересечение ловится мьютексом: если
+        // tryLock не удался, значит внутрь уже кто-то вошёл.
+        val insideInference = Mutex()
+        var overlapped = false
+
+        val pipeline = Pipeline(Stage<Int, Int> { value ->
+            if (!insideInference.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { kotlinx.coroutines.delay(50) }
+                insideInference.unlock()
+            }
+            value * 2
+        })
+
+        val results = coroutineScope {
+            (1..8).map { value -> async { pipeline.runSuspend(value) } }.awaitAll()
+        }
+
+        assertFalse(overlapped, "inference through the coroutine API must queue on the shared dispatcher")
+        assertEquals(listOf(2, 4, 6, 8, 10, 12, 14, 16), results)
+    }
+
+    // --- собственный диспетчер ---
+
+    /** Диспетчер, который считает переданные ему задачи и выполняет их на [delegate]. */
+    private class CountingDispatcher(private val delegate: CoroutineDispatcher) : CoroutineDispatcher() {
+        var dispatches = 0
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatches++
+            delegate.dispatch(context, block)
+        }
+    }
+
+    @Test
+    fun pipelinesOnTheirOwnDispatchersRunInParallel() = runBlocking {
+        // Общий диспетчер сериализует инференс всего процесса; свой диспетчер у каждого пайплайна
+        // позволяет двум моделям работать одновременно
+        val inside = Mutex()
+        var overlapped = false
+        val stage = Stage<Int, Int> { value ->
+            if (!inside.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { delay(200) }
+                inside.unlock()
+            }
+            value
+        }
+        val first = Pipeline(stage)
+        val second = Pipeline(stage)
+
+        val firstDispatcher = InferenceDispatcher()
+        val secondDispatcher = InferenceDispatcher()
+        coroutineScope {
+            val a = async { first.runSuspend(1, firstDispatcher) }
+            val b = async { second.runSuspend(2, secondDispatcher) }
+            assertEquals(listOf(1, 2), listOf(a.await(), b.await()))
+        }
+        firstDispatcher.close()
+        secondDispatcher.close()
+
+        assertTrue(overlapped, "pipelines on their own dispatchers must be able to run at the same time")
+    }
+
+    @Test
+    fun oneInferenceDispatcherRunsOneCallAtATime() = runBlocking {
+        // Собственный диспетчер выполняет вызовы по одному, как и общий по умолчанию
+        val inside = Mutex()
+        var overlapped = false
+        val pipeline = Pipeline(Stage<Int, Int> { value ->
+            if (!inside.tryLock()) {
+                overlapped = true
+            } else {
+                runBlocking { delay(20) }
+                inside.unlock()
+            }
+            value
+        })
+        val dispatcher = InferenceDispatcher()
+
+        coroutineScope {
+            (1..8).map { value -> async(Dispatchers.Default) { pipeline.runSuspend(value, dispatcher) } }.awaitAll()
+        }
+        dispatcher.close()
+
+        assertFalse(overlapped, "calls on one inference dispatcher must not overlap")
+    }
+
+    @Test
+    fun theGivenDispatcherIsTheOneThatRunsThePipeline() = runBlocking {
+        val dispatcher = CountingDispatcher(Dispatchers.Default)
+        val pipeline = Pipeline(Stage<TrackedItem, Int> { it.id })
+        val item = TrackedItem(7)
+
+        assertEquals(7, pipeline.runSuspend(item, dispatcher))
+        val runSuspendDispatches = dispatcher.dispatches
+        assertEquals(listOf(7), pipeline.processFlowDropping(flowOf(TrackedItem(7)), dispatcher).toList())
+
+        assertTrue(runSuspendDispatches > 0, "runSuspend must run on the given dispatcher")
+        assertTrue(dispatcher.dispatches > runSuspendDispatches, "processFlowDropping must run on the given dispatcher")
+    }
+
+    @Test
+    fun functionsOfTheModuleFailLoudlyOnAClosedDispatcher() = runBlocking {
+        // Раньше на Android вызов лишь отменял корутину, и внутри launch работа молча не
+        // выполнялась, а на iOS закрытый диспетчер продолжал работать
+        val dispatcher = InferenceDispatcher().apply { close() }
+        val pipeline = Pipeline(Stage<Int, Int> { it })
+
+        assertClosedDispatcherError { pipeline.runSuspend(1, dispatcher) }
+        assertClosedDispatcherError { pipeline.processFlow(flowOf(1), dispatcher).toList() }
+        assertClosedDispatcherError {
+            Pipeline(Stage<TrackedItem, Int> { it.id }).processFlowDropping(flowOf(TrackedItem(1)), dispatcher).toList()
+        }
+    }
+
+    @Test
+    fun aCoroutineDispatchedToAClosedDispatcherIsCancelledOnEveryPlatform() = runBlocking {
+        val dispatcher = InferenceDispatcher().apply { close() }
+        var ran = false
+
+        val job = launch(dispatcher) { ran = true }
+        job.join()
+
+        assertTrue(job.isCancelled, "a closed dispatcher must cancel what is dispatched to it")
+        assertFalse(ran)
+    }
+
+    // На JVM CancellationException - подкласс IllegalStateException, поэтому одного типа мало:
+    // старая тихая отмена ("The task was rejected") тоже прошла бы такую проверку
+    private suspend fun assertClosedDispatcherError(block: suspend () -> Unit) {
+        val error = runCatching { block() }.exceptionOrNull()
+        assertEquals("InferenceDispatcher has already been closed", error?.message, "$error")
+    }
+
+    @Test
+    fun aChainOfStagesRunsWithoutAPipelineWrapper() = runTest {
+        // Функции модуля принимали только Pipeline, и цепочку из then приходилось оборачивать
+        val chain = Pipeline.linear<TrackedItem>().then { it.id }.then { it * 2 }
+        val item = TrackedItem(3)
+
+        assertEquals(14, chain.runSuspend(TrackedItem(7)))
+        assertEquals(listOf(6), chain.processFlowDropping(flowOf(item)).toList())
+        assertTrue(item.closed, "processFlowDropping must still close the item it processed")
+        assertEquals(listOf(2, 4), Pipeline.linear<Int>().then { it * 2 }.processFlow(flowOf(1, 2)).toList())
+    }
+}

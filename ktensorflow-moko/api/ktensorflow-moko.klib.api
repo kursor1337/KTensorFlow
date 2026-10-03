@@ -1,0 +1,10 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KTensorFlow:ktensorflow-moko>
+final fun (dev.kursor.ktensorflow/ModelDesc.Companion).dev.kursor.ktensorflow.moko/AssetResource(dev.icerock.moko.resources/AssetResource): dev.kursor.ktensorflow/ModelDesc // dev.kursor.ktensorflow.moko/AssetResource|AssetResource@dev.kursor.ktensorflow.ModelDesc.Companion(dev.icerock.moko.resources.AssetResource){}[0]
+final fun (dev.kursor.ktensorflow/ModelDesc.Companion).dev.kursor.ktensorflow.moko/FileResource(dev.icerock.moko.resources/FileResource): dev.kursor.ktensorflow/ModelDesc // dev.kursor.ktensorflow.moko/FileResource|FileResource@dev.kursor.ktensorflow.ModelDesc.Companion(dev.icerock.moko.resources.FileResource){}[0]

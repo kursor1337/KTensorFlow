@@ -8,3 +8,18 @@ captures
 .cxx
 local.properties
 xcuserdata
+
+# Kotlin build output
+.kotlin
+
+# CocoaPods: podspec генерируется kotlin.native.cocoapods, Pods - результат pod install
+*.podspec
+Pods/
+Podfile.lock
+
+# Xcode генерирует это внутри .xcodeproj
+**/*.xcodeproj/project.xcworkspace/
+
+# Модели и датасеты не хранятся в git из-за размера: их скачивает scripts/download-assets.sh
+*.tflite
+mnist.csv

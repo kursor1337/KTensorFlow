@@ -135,7 +135,12 @@ fun <T : Any> Tensor<T>.flatten(): Tensor<T> =
  */
 fun <T : Any> Tensor<T>.permuted(vararg axes: Int): Tensor<T> {
     require(axes.size == shape.rank) { "Axes length must match tensor rank" }
-    return PermutedTensorView(this, axes)
+    // Повтор оси не всегда выводит смещения за массив: на квадратном тензоре permuted(1, 1)
+    // молча возвращал мусор, поэтому оси обязаны быть перестановкой 0 until rank
+    require(axes.sorted() == (0 until shape.rank).toList()) {
+        "Axes ${axes.contentToString()} are not a permutation of 0 until ${shape.rank}"
+    }
+    return PermutedTensorView(this, axes.copyOf())
 }
 
 /**
@@ -179,17 +184,25 @@ fun <T : Any> Tensor<T>.squeeze(): Tensor<T> = reshape(
     TensorShape(
         shape
             .dimensions
-            .filter { it > 1 }
+            // Убираются только единичные измерения: с условием `> 1` пропадали и нулевые, и
+            // пустой тензор (0, 3) превращался в (3) с другим числом элементов
+            .filter { it != 1 }
             .toIntArray()
     )
 )
 
 /**
  * Returns the sum of all elements in the [Tensor].
+ *
+ * The sum is accumulated in [Double], so it stays accurate for tensors of millions of elements.
  */
 @JvmName("sumFloat")
-fun Tensor<Float>.sum(): Float {
-    var sum = 0f
+fun Tensor<Float>.sum(): Float = sumAsDouble().toFloat()
+
+// Во float накопленная сумма миллиона значений 0.1 уходила на 1%: каждое следующее слагаемое
+// округлялось к шагу, который растёт вместе с суммой
+private fun Tensor<Float>.sumAsDouble(): Double {
+    var sum = 0.0
     forEach { sum += it }
     return sum
 }
@@ -206,6 +219,9 @@ fun Tensor<Int>.sum(): Int {
 
 /**
  * Returns the sum of all elements in the [Tensor].
+ *
+ * The result wraps around on overflow, as [UByte] arithmetic does in Kotlin: a sum of 20000
+ * gives `32`. Convert with [toIntTensor] first to get the full sum; [avg] is not affected.
  */
 @JvmName("sumUByte")
 fun Tensor<UByte>.sum(): UByte {
@@ -226,33 +242,64 @@ fun Tensor<Long>.sum(): Long {
 
 /**
  * Returns the average of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("avgFloat")
-fun Tensor<Float>.avg(): Float = sum() / shape.flatSize
+fun Tensor<Float>.avg(): Float {
+    requireNotEmpty("the average")
+    return (sumAsDouble() / shape.flatSize).toFloat()
+}
 
 /**
- * Returns the average of all elements in the [Tensor].
+ * Returns the average of all elements in the [Tensor], rounded toward zero.
+ *
+ * The sum is accumulated in [Long], so the average is correct even when the sum overflows [Int].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("avgInt")
-fun Tensor<Int>.avg(): Int = sum() / shape.flatSize
+fun Tensor<Int>.avg(): Int {
+    requireNotEmpty("the average")
+    // Сумма в Int переполнялась: среднее трёх Int.MAX_VALUE выходило 715827881
+    var sum = 0L
+    forEach { sum += it }
+    return (sum / shape.flatSize).toInt()
+}
 
 /**
- * Returns the average of all elements in the [Tensor].
+ * Returns the average of all elements in the [Tensor], rounded toward zero.
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("avgUByte")
-fun Tensor<UByte>.avg(): UByte = (sum() / shape.flatSize.toUInt()).toUByte()
+fun Tensor<UByte>.avg(): UByte {
+    requireNotEmpty("the average")
+    // Раньше делилась сумма, уже обрезанная до UByte: среднее ста значений 200 выходило 0
+    var sum = 0L
+    forEach { sum += it.toLong() }
+    return (sum / shape.flatSize).toInt().toUByte()
+}
 
 /**
  * Returns the average of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("avgLong")
-fun Tensor<Long>.avg(): Long = sum() / shape.flatSize
+fun Tensor<Long>.avg(): Long {
+    requireNotEmpty("the average")
+    return sum() / shape.flatSize
+}
 
 /**
  * Returns the minimum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("minFloat")
 fun Tensor<Float>.min(): Float {
+    requireNotEmpty("the minimum")
     var min = Float.POSITIVE_INFINITY
     forEach { min = minOf(min, it) }
     return min
@@ -260,9 +307,12 @@ fun Tensor<Float>.min(): Float {
 
 /**
  * Returns the minimum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("minInt")
 fun Tensor<Int>.min(): Int {
+    requireNotEmpty("the minimum")
     var min = Int.MAX_VALUE
     forEach { min = minOf(min, it) }
     return min
@@ -270,9 +320,12 @@ fun Tensor<Int>.min(): Int {
 
 /**
  * Returns the minimum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("minUByte")
 fun Tensor<UByte>.min(): UByte {
+    requireNotEmpty("the minimum")
     var min = UByte.MAX_VALUE
     forEach { min = minOf(min, it) }
     return min
@@ -280,9 +333,12 @@ fun Tensor<UByte>.min(): UByte {
 
 /**
  * Returns the minimum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("minLong")
 fun Tensor<Long>.min(): Long {
+    requireNotEmpty("the minimum")
     var min = Long.MAX_VALUE
     forEach { min = minOf(min, it) }
     return min
@@ -290,9 +346,12 @@ fun Tensor<Long>.min(): Long {
 
 /**
  * Returns the maximum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("maxFloat")
 fun Tensor<Float>.max(): Float {
+    requireNotEmpty("the maximum")
     var max = Float.NEGATIVE_INFINITY
     forEach { max = maxOf(max, it) }
     return max
@@ -300,9 +359,12 @@ fun Tensor<Float>.max(): Float {
 
 /**
  * Returns the maximum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("maxInt")
 fun Tensor<Int>.max(): Int {
+    requireNotEmpty("the maximum")
     var max = Int.MIN_VALUE
     forEach { max = maxOf(max, it) }
     return max
@@ -310,9 +372,12 @@ fun Tensor<Int>.max(): Int {
 
 /**
  * Returns the maximum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("maxUByte")
 fun Tensor<UByte>.max(): UByte {
+    requireNotEmpty("the maximum")
     var max = UByte.MIN_VALUE
     forEach { max = maxOf(max, it) }
     return max
@@ -320,9 +385,12 @@ fun Tensor<UByte>.max(): UByte {
 
 /**
  * Returns the maximum of all elements in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("maxLong")
 fun Tensor<Long>.max(): Long {
+    requireNotEmpty("the maximum")
     var max = Long.MIN_VALUE
     forEach { max = maxOf(max, it) }
     return max
@@ -330,9 +398,12 @@ fun Tensor<Long>.max(): Long {
 
 /**
  * Returns the index of the maximum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMaxFloat")
 fun Tensor<Float>.argmax(): IntArray {
+    requireNotEmpty("argmax")
     var max = Float.NEGATIVE_INFINITY
     var maxIndex = 0
     val size = shape.flatSize
@@ -348,9 +419,12 @@ fun Tensor<Float>.argmax(): IntArray {
 
 /**
  * Returns the index of the maximum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMaxInt")
 fun Tensor<Int>.argmax(): IntArray {
+    requireNotEmpty("argmax")
     var max = Int.MIN_VALUE
     var maxIndex = 0
     val size = shape.flatSize
@@ -366,9 +440,12 @@ fun Tensor<Int>.argmax(): IntArray {
 
 /**
  * Returns the index of the maximum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMaxUByte")
 fun Tensor<UByte>.argmax(): IntArray {
+    requireNotEmpty("argmax")
     var max = UByte.MIN_VALUE
     var maxIndex = 0
     val size = shape.flatSize
@@ -384,9 +461,12 @@ fun Tensor<UByte>.argmax(): IntArray {
 
 /**
  * Returns the index of the maximum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMaxLong")
 fun Tensor<Long>.argmax(): IntArray {
+    requireNotEmpty("argmax")
     var max = Long.MIN_VALUE
     var maxIndex = 0
     val size = shape.flatSize
@@ -402,9 +482,12 @@ fun Tensor<Long>.argmax(): IntArray {
 
 /**
  * Returns the index of the minimum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMinFloat")
 fun Tensor<Float>.argmin(): IntArray {
+    requireNotEmpty("argmin")
     var min = Float.POSITIVE_INFINITY
     var minIndex = 0
     val size = shape.flatSize
@@ -420,9 +503,12 @@ fun Tensor<Float>.argmin(): IntArray {
 
 /**
  * Returns the index of the minimum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMinInt")
 fun Tensor<Int>.argmin(): IntArray {
+    requireNotEmpty("argmin")
     var min = Int.MAX_VALUE
     var minIndex = 0
     val size = shape.flatSize
@@ -438,9 +524,12 @@ fun Tensor<Int>.argmin(): IntArray {
 
 /**
  * Returns the index of the minimum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMinUByte")
 fun Tensor<UByte>.argmin(): IntArray {
+    requireNotEmpty("argmin")
     var min = UByte.MAX_VALUE
     var minIndex = 0
     val size = shape.flatSize
@@ -456,9 +545,12 @@ fun Tensor<UByte>.argmin(): IntArray {
 
 /**
  * Returns the index of the minimum element in the [Tensor].
+ *
+ * @throws NoSuchElementException if the tensor is empty.
  */
 @JvmName("argMinLong")
 fun Tensor<Long>.argmin(): IntArray {
+    requireNotEmpty("argmin")
     var min = Long.MAX_VALUE
     var minIndex = 0
     val size = shape.flatSize
@@ -483,7 +575,14 @@ fun Tensor<Float>.normalize(): Tensor<Float> {
         if (it < min) min = it
         if (it > max) max = it
     }
-    return map { (it - min) / (max - min) }
+
+    // Все значения одинаковы - диапазона нет, и деление на ноль превратило бы совершенно
+    // обычный вход (однотонный кадр, тензор из одного элемента) в сплошной NaN, который
+    // дальше молча расползается по инференсу. Принятое соглашение - нули.
+    val range = max - min
+    if (range == 0f) return map { 0f }
+
+    return map { (it - min) / range }
 }
 
 /**
@@ -576,4 +675,13 @@ fun Tensor<Long>.toFlatArray(): LongArray {
     val array = LongArray(size)
     for (i in 0 until size) array[i] = getFlat(i)
     return array
+}
+
+// Раньше пустой тензор вёл себя в каждой функции по-своему: min и max возвращали заглушки
+// (Infinity, Int.MAX_VALUE), argmax падал с IllegalArgumentException про индекс, avg давал NaN
+// или ArithmeticException. Теперь - как min() в стандартной библиотеке
+private fun Tensor<*>.requireNotEmpty(operation: String) {
+    if (shape.flatSize == 0) {
+        throw NoSuchElementException("Cannot compute $operation of an empty tensor of shape $shape")
+    }
 }

@@ -7,18 +7,18 @@ import dev.kursor.chess.engine.model.Square
 
 @Suppress("NoMultipleSpaces")
 val rookDirections = listOf(
-    Pair(0, 1),   // up
-    Pair(1, 0),   // right
-    Pair(0, -1),  // down
-    Pair(-1, 0)   // left
+    Pair(0, 1), // up
+    Pair(1, 0), // right
+    Pair(0, -1), // down
+    Pair(-1, 0) // left
 )
 
 @Suppress("NoMultipleSpaces")
 val bishopDirections = listOf(
-    Pair(1, 1),    // up-right
-    Pair(1, -1),   // down-right
-    Pair(-1, -1),  // down-left
-    Pair(-1, 1)    // up-left
+    Pair(1, 1), // up-right
+    Pair(1, -1), // down-right
+    Pair(-1, -1), // down-left
+    Pair(-1, 1) // up-left
 )
 
 val queenDirections = rookDirections + bishopDirections

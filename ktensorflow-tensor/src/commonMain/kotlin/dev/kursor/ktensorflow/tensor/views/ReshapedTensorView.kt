@@ -4,10 +4,11 @@ import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.TensorView
+import dev.kursor.ktensorflow.tensor.checkedOffset
 import dev.kursor.ktensorflow.tensor.strides
-import dev.kursor.ktensorflow.tensor.toFlatIndex
+import dev.kursor.ktensorflow.tensor.tensorToString
 
-class ReshapedTensorView<T : Any>(
+internal class ReshapedTensorView<T : Any>(
     override val delegate: Tensor<T>,
     override val shape: TensorShape
 ) : TensorView<T> {
@@ -26,10 +27,12 @@ class ReshapedTensorView<T : Any>(
     override fun setFlat(index: Int, value: T) = delegate.setFlat(index, value)
 
     override fun get(index: IntArray): T {
-        return delegate.getFlat(index.toFlatIndex(viewStrides))
+        return delegate.getFlat(index.checkedOffset(shape.dimensions, viewStrides))
     }
 
     override fun set(index: IntArray, value: T) {
-        delegate.setFlat(index.toFlatIndex(viewStrides), value)
+        delegate.setFlat(index.checkedOffset(shape.dimensions, viewStrides), value)
     }
+
+    override fun toString(): String = tensorToString()
 }

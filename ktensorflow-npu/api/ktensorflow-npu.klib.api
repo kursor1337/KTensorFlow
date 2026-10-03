@@ -1,0 +1,27 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <KTensorFlow:ktensorflow-npu>
+abstract interface dev.kursor.ktensorflow.npu/NpuDelegate : dev.kursor.ktensorflow/Delegate // dev.kursor.ktensorflow.npu/NpuDelegate|null[0]
+
+final class dev.kursor.ktensorflow.npu/NpuDelegateOptions { // dev.kursor.ktensorflow.npu/NpuDelegateOptions|null[0]
+    constructor <init>(cocoapods.TensorFlowLiteObjC/TFLCoreMLDelegateOptions) // dev.kursor.ktensorflow.npu/NpuDelegateOptions.<init>|<init>(cocoapods.TensorFlowLiteObjC.TFLCoreMLDelegateOptions){}[0]
+
+    final val tflOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions.tflOptions|{}tflOptions[0]
+        final fun <get-tflOptions>(): cocoapods.TensorFlowLiteObjC/TFLCoreMLDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions.tflOptions.<get-tflOptions>|<get-tflOptions>(){}[0]
+
+    final fun component1(): cocoapods.TensorFlowLiteObjC/TFLCoreMLDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions.component1|component1(){}[0]
+    final fun copy(cocoapods.TensorFlowLiteObjC/TFLCoreMLDelegateOptions = ...): dev.kursor.ktensorflow.npu/NpuDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions.copy|copy(cocoapods.TensorFlowLiteObjC.TFLCoreMLDelegateOptions){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // dev.kursor.ktensorflow.npu/NpuDelegateOptions.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // dev.kursor.ktensorflow.npu/NpuDelegateOptions.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // dev.kursor.ktensorflow.npu/NpuDelegateOptions.toString|toString(){}[0]
+}
+
+final fun dev.kursor.ktensorflow.npu/NpuDelegate(dev.kursor.ktensorflow.npu/NpuDelegateOptions = ...): dev.kursor.ktensorflow/Delegate // dev.kursor.ktensorflow.npu/NpuDelegate|NpuDelegate(dev.kursor.ktensorflow.npu.NpuDelegateOptions){}[0]
+final fun dev.kursor.ktensorflow.npu/NpuDelegateOptions(): dev.kursor.ktensorflow.npu/NpuDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions|NpuDelegateOptions(){}[0]
+final fun dev.kursor.ktensorflow.npu/NpuDelegateOptions(kotlin/Function1<cocoapods.TensorFlowLiteObjC/TFLCoreMLDelegateOptions, kotlin/Unit>): dev.kursor.ktensorflow.npu/NpuDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions|NpuDelegateOptions(kotlin.Function1<cocoapods.TensorFlowLiteObjC.TFLCoreMLDelegateOptions,kotlin.Unit>){}[0]
+final fun dev.kursor.ktensorflow.npu/NpuDelegateOptions(kotlin/Int): dev.kursor.ktensorflow.npu/NpuDelegateOptions // dev.kursor.ktensorflow.npu/NpuDelegateOptions|NpuDelegateOptions(kotlin.Int){}[0]

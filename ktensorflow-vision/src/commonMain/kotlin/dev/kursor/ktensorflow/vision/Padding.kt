@@ -1,0 +1,113 @@
+package dev.kursor.ktensorflow.vision
+
+/**
+ * Contains metadata about a padding and resizing operation.
+ *
+ * This class stores the original dimensions, the final dimensions, the offsets applied,
+ * and the scaling factor used during the [Image.resizeWithPad] operation. This information
+ * is typically used to map coordinates from the padded image back to the original image space.
+ *
+ * @property originalWidth The width of the image before resizing.
+ * @property originalHeight The height of the image before resizing.
+ * @property targetWidth The width of the resulting image after resizing and padding.
+ * @property targetHeight The height of the resulting image after resizing and padding.
+ * @property padX The number of pixels added as padding to the left side of the image.
+ * @property padY The number of pixels added as padding to the top side of the image.
+ * @property scale The scaling factor used during the resize operation.
+ */
+data class PadInfo(
+    val originalWidth: Int,
+    val originalHeight: Int,
+    val targetWidth: Int,
+    val targetHeight: Int,
+    val padX: Int,
+    val padY: Int,
+    val scale: Float
+)
+
+/**
+ * Represents an image that has been resized and padded, preserving the metadata of the transformation.
+ *
+ * This class uses delegation to provide the [Image] interface while also exposing [info],
+ * which contains the necessary details to map coordinates from this padded image back to
+ * the original source image dimensions.
+ *
+ * @property delegate The underlying [Image] instance containing the resized and padded pixel data.
+ * @property info The [PadInfo] containing the scaling factor, offsets, and original dimensions.
+ */
+class PaddedImage(
+    val delegate: Image,
+    val info: PadInfo
+) : Image by delegate
+
+/**
+ * Resizes the image to fit within the specified [targetWidth] and [targetHeight] while maintaining
+ * its original aspect ratio.
+ *
+ * The image is scaled down or up to fit the target dimensions, and any remaining space is filled
+ * with [padColorArgb] to reach the exact target size. The resized image is centered within the
+ * padded area.
+ *
+ * @param targetWidth The desired width of the resulting image.
+ * @param targetHeight The desired height of the resulting image.
+ * @param padColorArgb The color to use for padding the image.
+ * @param closeOriginal Whether to release this image once the padded copy is produced.
+ * Defaults to `true`, consistent with [resize], [crop] and [rotate].
+ * @return A [PaddedImage] containing the resized and padded image.
+ */
+fun Image.resizeWithPad(
+    targetWidth: Int,
+    targetHeight: Int,
+    padColorArgb: Int = 0xFF000000.toInt(),
+    closeOriginal: Boolean = true
+): PaddedImage {
+    require(targetWidth > 0 && targetHeight > 0) {
+        "Target size must be positive, got ${targetWidth}x$targetHeight"
+    }
+
+    val scale = minOf(
+        targetWidth.toFloat() / width.toFloat(),
+        targetHeight.toFloat() / height.toFloat()
+    )
+
+    // Не меньше одного пикселя: у очень вытянутой картинки (1000x3 в 300x300) масштабированная
+    // сторона округлялась до нуля, и ресайз падал - на каждой платформе с другим исключением
+    val scaledWidth = (width * scale).toInt().coerceIn(1, targetWidth)
+    val scaledHeight = (height * scale).toInt().coerceIn(1, targetHeight)
+
+    val padX = (targetWidth - scaledWidth) / 2
+    val padY = (targetHeight - scaledHeight) / 2
+
+    // Масштабирование и заливка за одну нативную отрисовку, без трёх полноразмерных копий
+    // пикселей в Kotlin (resize, getPixels, массив с полями). Серое изображение хранит один канал,
+    // поэтому цвет полей для него берётся из младшего байта - как у фабрики Image
+    val fill = if (pixelFormat == PixelFormat.Grayscale) {
+        val v = padColorArgb and 0xFF
+        (0xFF shl 24) or (v shl 16) or (v shl 8) or v
+    } else {
+        padColorArgb
+    }
+    val finalImage = drawLetterboxed(scaledWidth, scaledHeight, targetWidth, targetHeight, padX, padY, fill)
+
+    val info = PadInfo(width, height, targetWidth, targetHeight, padX, padY, scale)
+    if (closeOriginal) {
+        close()
+    }
+
+    return PaddedImage(delegate = finalImage, info = info)
+}
+
+/**
+ * Рисует это изображение, отмасштабированное до [scaledWidth] x [scaledHeight], в точку
+ * ([padX], [padY]) нового изображения [targetWidth] x [targetHeight], залитого [padColorArgb].
+ * Пиксели изображения заменяют заливку, а не смешиваются с ней, - как при копировании.
+ */
+internal expect fun Image.drawLetterboxed(
+    scaledWidth: Int,
+    scaledHeight: Int,
+    targetWidth: Int,
+    targetHeight: Int,
+    padX: Int,
+    padY: Int,
+    padColorArgb: Int
+): Image

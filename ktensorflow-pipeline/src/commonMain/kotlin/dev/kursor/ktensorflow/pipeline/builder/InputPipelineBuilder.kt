@@ -3,10 +3,7 @@
 package dev.kursor.ktensorflow.pipeline.builder
 
 import dev.kursor.ktensorflow.ExperimentalKTensorFlowApi
-import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.pipeline.Pipeline
-import dev.kursor.ktensorflow.pipeline.stage.CombinedStage
-import dev.kursor.ktensorflow.pipeline.stage.Stage
 import dev.kursor.ktensorflow.pipeline.Tuple
 import dev.kursor.ktensorflow.pipeline.Tuple.Eight
 import dev.kursor.ktensorflow.pipeline.Tuple.Five
@@ -18,6 +15,9 @@ import dev.kursor.ktensorflow.pipeline.Tuple.Six
 import dev.kursor.ktensorflow.pipeline.Tuple.Ten
 import dev.kursor.ktensorflow.pipeline.Tuple.Three
 import dev.kursor.ktensorflow.pipeline.Tuple.Two
+import dev.kursor.ktensorflow.pipeline.stage.CombinedStage
+import dev.kursor.ktensorflow.pipeline.stage.Stage
+import dev.kursor.ktensorflow.tensor.Tensor
 import kotlin.jvm.JvmName
 
 /**
@@ -53,7 +53,7 @@ fun <SI> Pipeline.Companion.input(preprocessing: Stage<SI, Tensor<*>>): InputPip
 @JvmName("input2")
 fun <SI, T1> InputPipelineBuilder<One<T1>, One<Tensor<*>>>.input(
     preprocessing: Stage<SI, Tensor<*>>
-): InputPipelineBuilder<Two<T1, SI>, Two<T1, SI>> {
+): InputPipelineBuilder<Two<T1, SI>, Two<Tensor<*>, Tensor<*>>> {
     return InputPipelineBuilder(
         (inputStages + preprocessing) as List<Stage<Any?, Tensor<*>>>
     )

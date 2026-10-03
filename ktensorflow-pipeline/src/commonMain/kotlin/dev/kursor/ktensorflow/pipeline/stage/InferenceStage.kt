@@ -6,7 +6,6 @@ import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorDataType
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.run
-import kotlin.reflect.KClass
 
 /**
  * Represents an output data of the inference stage.

@@ -1,5 +1,6 @@
 package dev.kursor.ktensorflow.tensor
 
+import dev.kursor.ktensorflow.DataType
 import kotlin.reflect.KClass
 
 /**
@@ -77,5 +78,20 @@ sealed interface TensorDataType<T : Any> {
          * @param T The kotlin type to get the TensorDataType for.
          */
         inline fun <reified T : Any> of(): TensorDataType<T> = of(T::class)
+
+        /**
+         * Returns the TensorDataType of tensors that hold model data of [dataType], or null if the
+         * model type has no [Tensor] counterpart, such as [DataType.Int8]. Such tensors can still
+         * be passed to a model as raw `ByteArray`s.
+         *
+         * @param dataType The data type reported in the model metadata.
+         */
+        fun of(dataType: DataType): TensorDataType<*>? = when (dataType) {
+            DataType.Float32 -> Float32
+            DataType.Int32 -> Int32
+            DataType.UInt8 -> UInt8
+            DataType.Int64 -> Int64
+            else -> null
+        }
     }
 }

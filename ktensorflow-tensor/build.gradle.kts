@@ -4,14 +4,22 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.convention.publishing)
-    alias(libs.plugins.binary.compatibility.validator)
+    alias(libs.plugins.convention.binary.compatibility)
 }
 
 kotlin {
+    compilerOptions {
+        // Внутренний API модулей библиотеки: снаружи он требует явного opt-in
+        optIn.add("dev.kursor.ktensorflow.InternalKTensorFlowApi")
+    }
+
     android {
         namespace = "dev.kursor.ktensorflow.tensor"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        aarMetadata {
+            minCompileSdk = libs.versions.android.minCompileSdk.get().toInt()
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -22,7 +30,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.ktensorflowCore)
+            // api, а не implementation: публичные сигнатуры модуля раскрывают типы
+            // этих модулей, поэтому потребителям они нужны транзитивно
+            api(projects.ktensorflowCore)
         }
     }
 }

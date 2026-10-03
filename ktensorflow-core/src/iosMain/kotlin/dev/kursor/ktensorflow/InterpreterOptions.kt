@@ -39,6 +39,8 @@ actual fun InterpreterOptions(
             setNumberOfThreads(numThreads.toULong())
             setUseXNNPACK(useXNNPACK)
         },
-        tflDelegates = delegates.mapNotNull { it.tflDelegate }
+        tflDelegates = delegates
+            .filter { it.isAvailable }
+            .mapNotNull { it.tflDelegate }
     )
 }

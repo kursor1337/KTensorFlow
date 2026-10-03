@@ -1,0 +1,42 @@
+public final class dev/kursor/ktensorflow/coroutines/AutoCloseableExtKt {
+	public static final fun mapAndClose (Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function2;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/kursor/ktensorflow/coroutines/InferenceDispatcher : kotlinx/coroutines/CoroutineDispatcher, java/lang/AutoCloseable {
+	public fun <init> ()V
+	public fun close ()V
+	public fun dispatch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/Runnable;)V
+	public fun isDispatchNeeded (Lkotlin/coroutines/CoroutineContext;)Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/kursor/ktensorflow/coroutines/InterpreterExtKt {
+	public static final fun SuspendInterpreter (Ldev/kursor/ktensorflow/ModelDesc;Ldev/kursor/ktensorflow/InterpreterOptions;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun SuspendInterpreter$default (Ldev/kursor/ktensorflow/ModelDesc;Ldev/kursor/ktensorflow/InterpreterOptions;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun runSuspend (Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun runSuspend (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun runSuspend (Ldev/kursor/ktensorflow/Interpreter;[B[BLkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runSuspend$default (Ldev/kursor/ktensorflow/Interpreter;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;Ldev/kursor/ktensorflow/tensor/PhysicalTensor;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun runSuspend$default (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun runSuspend$default (Ldev/kursor/ktensorflow/Interpreter;[B[BLkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun runSuspendTensors (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runSuspendTensors$default (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun runSuspendTensorsWithNames (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runSuspendTensorsWithNames$default (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun runSuspendWithNames (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runSuspendWithNames$default (Ldev/kursor/ktensorflow/Interpreter;Ljava/util/List;Ljava/util/Map;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/kursor/ktensorflow/coroutines/PipelineExtKt {
+	public static final fun processFlow (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun processFlow$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun processFlowDropping (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun processFlowDropping$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun processTupleFlow (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun processTupleFlow$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun processTupleFlowDropping (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun processTupleFlowDropping$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun runSuspend (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ljava/lang/Object;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun runSuspend$default (Ldev/kursor/ktensorflow/pipeline/stage/Stage;Ljava/lang/Object;Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

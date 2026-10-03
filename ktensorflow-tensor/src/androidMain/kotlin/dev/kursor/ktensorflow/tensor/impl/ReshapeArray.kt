@@ -7,9 +7,10 @@ import java.lang.reflect.Array
 // If we don't do this, there will be class cast exception when we cast this to multidimensional array
 @OptIn(ExperimentalUnsignedTypes::class)
 internal actual fun reshapeArray(flat: Any, dimentions: IntArray): Any {
-    require(dimentions.isNotEmpty())
-
-
+    // UByteArray на JVM - обёртка над ByteArray, поэтому последнее измерение собирается отдельно
+    // и отбрасывается из dims. У одномерного тензора после этого не оставалось измерений, и
+    // Array.newInstance падал с "Bad number of dimensions: 0" - хотя сам плоский массив и есть ответ
+    if (flat is UByteArray && dimentions.size == 1) return flat
 
     var index = 0
 

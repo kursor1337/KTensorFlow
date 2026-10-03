@@ -15,6 +15,7 @@ import dev.kursor.ktensorflow.InterpreterOptions
 import dev.kursor.ktensorflow.ModelDesc
 import dev.kursor.ktensorflow.npu.NpuDelegate
 import dev.kursor.ktensorflow.moko.FileResource
+import dev.kursor.ktensorflow.tensor.PhysicalTensor
 import dev.kursor.ktensorflow.tensor.Tensor
 import dev.kursor.ktensorflow.tensor.TensorShape
 import dev.kursor.ktensorflow.tensor.run
@@ -74,7 +75,7 @@ class ChessAiMoveRepositoryImpl() : ChessAiMoveRepository {
     }
 }
 
-private fun Board.toTensor(): Tensor<Float> {
+private fun Board.toTensor(): PhysicalTensor<Float> {
     val data = Array(8) { Array(8) { FloatArray(12) } }
     squares.forEachIndexed { i, row ->
         row.forEachIndexed { j, square ->
