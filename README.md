@@ -25,6 +25,7 @@ Upgrading from 1.x? See the [migration guide from 1.x to 2.x](MIGRATION-1.x-to-2
   - [Hardware acceleration](#hardware-acceleration)
   - [Providing platform-specific options](#providing-platform-specific-options)
   - [Writing custom delegates](#writing-custom-delegates)
+- [Running the samples and tests](#running-the-samples-and-tests)
 
 ## Requirements
 
@@ -349,6 +350,14 @@ val npuDelegateOptions = NpuDelegateOptions { // this: TFLCoreMLDelegateOptions
 
 ### Writing custom delegates
 If you need to use a custom delegate that is not yet supported by the library, create a class that would implement `Delegate` interface.
+
+## Running the samples and tests
+The models and the dataset used by the samples and tests are too large for git and are not part of the repository. Download them once after cloning:
+```bash
+scripts/download-assets.sh
+```
+
+The script puts every file where the samples and tests expect it and checks it against a SHA-256 checksum. Pass asset names, for example `scripts/download-assets.sh mnist.tflite mnist.csv`, to download only what the tests need; `--help` lists them.
 
 ## License
 ```
