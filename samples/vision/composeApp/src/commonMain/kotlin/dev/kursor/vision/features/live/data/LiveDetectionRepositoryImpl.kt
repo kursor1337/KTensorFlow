@@ -33,6 +33,7 @@ import dev.kursor.vision.features.live.domain.DetectedObject
 import dev.kursor.vision.features.live.domain.DetectionResult
 import kotlinx.coroutines.flow.Flow
 import ktensorflow.samples.vision.composeapp.generated.resources.Res
+import kotlin.math.roundToInt
 
 private const val MAX_DETECTIONS = 100
 
@@ -134,7 +135,7 @@ private fun <I> Stage<I, Tensor<Float>>.toClassIds(
     maxDetections: Int
 ): Stage<I, IntArray> = this.then { tensor ->
     IntArray(maxDetections) { i ->
-        tensor[0, i].toInt()
+        tensor[0, i].roundToInt()
     }
 }
 
@@ -154,12 +155,11 @@ fun mapToDetectionResult(
     padInfo: PadInfo,
     labels: List<String?>,
 ): DetectionResult {
-    // Число детекций приходит от модели: не больше, чем вмещают выходные буферы
     val detectedObjects = (0 until count.coerceIn(0, boxes.size)).map { i ->
         val score = scores[i]
 
         val classId = classes[i]
-        val label = labels.getOrNull(classId) ?: "Unknown ($classId)"
+        val label = labels.getOrNull(classId - 1) ?: "Unknown ($classId)"
 
         val box = boxes[i]
         val rect = Rect.fromNormalized(
@@ -179,18 +179,17 @@ fun mapToDetectionResult(
         )
     }
 
-    val result = detectedObjects.nms(
+    val result = detectedObjects.nms<DetectedObject, Any?>(
         iouThreshold = 0.5f,
-        scoreThreshold = 0.3f,
+        scoreThreshold = 0.5f,
         scoreSelector = DetectedObject::confidence,
-        boxSelector = DetectedObject::boundingBox,
-        classSelector = DetectedObject::label
+        boxSelector = DetectedObject::boundingBox
     )
 
     return DetectionResult(objects = result)
 }
 
-// Метки COCO в той нумерации, в которой их отдаёт модель: номер класса COCO минус один.
+// Метки COCO по порядку номеров: индекс в списке - номер класса COCO минус один.
 // В COCO номера идут с пропусками, и список из 80 меток подряд сдвигал все классы после
 // fire hydrant - книга (83) получалась "Unknown". Пропуски здесь null
 private val Labels = listOf(
