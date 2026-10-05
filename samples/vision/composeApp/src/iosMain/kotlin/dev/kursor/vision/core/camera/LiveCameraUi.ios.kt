@@ -14,7 +14,6 @@ import platform.AVFoundation.AVCaptureSession
 import platform.AVFoundation.AVCaptureSessionPreset640x480
 import platform.AVFoundation.AVCaptureVideoDataOutput
 import platform.AVFoundation.AVCaptureVideoDataOutputSampleBufferDelegateProtocol
-import platform.AVFoundation.AVCaptureVideoOrientationPortrait
 import platform.AVFoundation.AVCaptureVideoPreviewLayer
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.AVFoundation.AVMediaTypeVideo
@@ -47,8 +46,6 @@ actual fun LiveCameraUi(
             val output = AVCaptureVideoDataOutput().apply {
                 setAlwaysDiscardsLateVideoFrames(true)
                 videoSettings = mapOf(kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA)
-                val connection = connectionWithMediaType(AVMediaTypeVideo)
-                connection?.videoOrientation = AVCaptureVideoOrientationPortrait
             }
 
             val queue = dispatch_queue_create("camera.frame.queue", null)
@@ -61,8 +58,6 @@ actual fun LiveCameraUi(
                     ) {
                         val pixelBuffer = CMSampleBufferGetImageBuffer(didOutputSampleBuffer)!!
 
-                        // Кадр приходит в ориентации сенсора: для портрета его нужно
-                        // повернуть на 90 градусов по часовой стрелке
                         onFrame(Image(pixelBuffer).rotate(90f, closeOriginal = true))
                     }
                 }

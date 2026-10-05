@@ -1,7 +1,6 @@
 package dev.kursor.vision.core.camera
 
 import android.util.Log
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -35,22 +34,21 @@ actual fun LiveCameraUi(
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
 
+                val resolutionSelector = ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                    .build()
+
                 val preview = Preview.Builder()
-                    .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    .setResolutionSelector(resolutionSelector)
                     .setTargetRotation(previewView.display.rotation)
                     .build()
                     .apply {
                         surfaceProvider = previewView.surfaceProvider
                     }
 
-                Log.d("kursor1337", "previewView.display.rotation: ${previewView.display.rotation}")
-
-                val resolutionSelector = ResolutionSelector.Builder()
-                    .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
-                    .build()
-
                 val analyzer = ImageAnalysis.Builder()
                     .setResolutionSelector(resolutionSelector)
+                    .setTargetRotation(previewView.display.rotation)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
 
