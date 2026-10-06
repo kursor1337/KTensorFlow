@@ -7,6 +7,12 @@ KTensorFlow is a Kotlin Multiplatform library designed to run LiteRT (TensorFlow
 
 **Version 2.0** brings massive architectural improvements, including a dedicated **Computer Vision** module, **Coroutines & Flow** support with built-in Backpressure, and **Zero-Copy Tensor Views**.
 
+<p align="center">
+  <img src="files/img/live-detection.webp" width="480" alt="Live object detection with KTensorFlow on Android and iOS">
+  <br>
+  <em>The <a href="samples/vision">vision sample</a> detecting objects from the camera on Android (left) and iOS (right) with the same shared Kotlin code.</em>
+</p>
+
 Upgrading from 1.x? See the [migration guide from 1.x to 2.x](MIGRATION-1.x-to-2.x.md).
 
 ## Table of Contents
